@@ -1,0 +1,28 @@
+<assembly>
+    <id>app</id>
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+    <includeBaseDirectory>true</includeBaseDirectory>
+
+    <files>
+        <file>
+            <source>bin/potato-submit.sh</source>
+            <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+        </file>
+    </files>
+
+    <fileSets>
+        <fileSet>
+            <directory>src/main/resources</directory>
+            <outputDirectory>conf</outputDirectory>
+        </fileSet>
+    </fileSets>
+
+    <dependencySets>
+        <dependencySet>
+            <outputDirectory>lib</outputDirectory>
+        </dependencySet>
+    </dependencySets>
+</assembly>

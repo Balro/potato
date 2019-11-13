@@ -4,7 +4,7 @@ import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 import spark.streaming.potato.template.SparkStreamingTemplate
 
-object TemplateTest extends SparkStreamingTemplate with Logging {
+object KafkaPrint extends SparkStreamingTemplate with Logging {
   override def process(args: Array[String]): Unit = {
     val props = Map(
       "bootstrap.servers" -> "test01:9092",
@@ -13,7 +13,7 @@ object TemplateTest extends SparkStreamingTemplate with Logging {
     )
     val stream: InputDStream[(String, String)] = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, props, Set("test_topic"))
 
-    stream.foreachRDD(rdd => rdd.foreach(r => println(r._2)))
+    stream.flatMap(f => f._2.split("\\s+").map(_ -> 1)).reduceByKey(_ + _).print(10)
   }
 
   override def initConf(args: Array[String]): Unit = {

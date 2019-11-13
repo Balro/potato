@@ -19,4 +19,6 @@ object KafkaDemo extends SparkStreamingTemplate {
 
     stream.flatMap(f => f._2.split("\\s")).map((_, 1)).reduceByKey(_ + _).print()
   }
+
+  override def initConf(args: Array[String]): Unit = conf.setMaster("local[6]").setAppName("hello")
 }

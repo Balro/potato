@@ -11,7 +11,7 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 
 object KafkaDemoSimple extends Logging {
   def main(args: Array[String]): Unit = {
-    val conf = new SparkConf()
+    val conf = new SparkConf().setMaster("local[6]").setAppName("haha")
     val ssc = new StreamingContext(conf, Seconds(10))
 
     val props = Map(

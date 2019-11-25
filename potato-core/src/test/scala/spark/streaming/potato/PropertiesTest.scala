@@ -1,8 +1,8 @@
+package spark.streaming.potato
+
 import java.util.Properties
 
 import org.apache.spark.SparkConf
-
-import scala.collection.JavaConversions.propertiesAsScalaMap
 
 object PropertiesTest {
   def main(args: Array[String]): Unit = {

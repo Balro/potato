@@ -1,5 +1,6 @@
-import scalaj.http.{Http, HttpRequest, HttpResponse}
-import spark.streaming.potato.common.HttpUtil
+package spark.streaming.potato.utils
+
+import scalaj.http.{Http, HttpResponse}
 
 object HttpUtilTest {
   def main(args: Array[String]): Unit = {

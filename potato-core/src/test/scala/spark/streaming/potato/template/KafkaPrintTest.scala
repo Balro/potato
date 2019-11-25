@@ -1,10 +1,11 @@
+package spark.streaming.potato.template
+
 import kafka.serializer.StringDecoder
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.KafkaUtils
-import spark.streaming.potato.template.SparkStreamingTemplate
 
-object KafkaPrint extends SparkStreamingTemplate with Logging {
+object KafkaPrintTest extends SparkStreamingTemplate with Logging {
   override def process(args: Array[String]): Unit = {
     val props = Map(
       "bootstrap.servers" -> "test01:9092",

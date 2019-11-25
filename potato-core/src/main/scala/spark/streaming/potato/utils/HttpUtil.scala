@@ -1,4 +1,4 @@
-package spark.streaming.potato.common
+package spark.streaming.potato.utils
 
 import scalaj.http.{Http, HttpResponse}
 

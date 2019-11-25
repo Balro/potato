@@ -1,13 +1,12 @@
+package spark.streaming.potato.template
+
 import kafka.serializer.StringDecoder
 import org.apache.spark.internal.Logging
-import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.Seconds
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.KafkaUtils
 import spark.streaming.potato.conf.ConfigKeys
-import spark.streaming.potato.template.SparkStreamingTemplate
 
-object KafkaTopn extends SparkStreamingTemplate with Logging {
+object KafkaTopnTest extends SparkStreamingTemplate with Logging {
   override def process(args: Array[String]): Unit = {
     val props = Map(
       "bootstrap.servers" -> "test01:9092",

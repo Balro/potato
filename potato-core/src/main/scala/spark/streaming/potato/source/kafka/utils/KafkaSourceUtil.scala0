@@ -1,0 +1,49 @@
+package spark.streaming.potato.source.kafka.utils
+
+import kafka.common.InvalidConfigException
+import kafka.message.MessageAndMetadata
+import kafka.serializer.{Decoder, StringDecoder}
+import org.apache.spark.internal.Logging
+import org.apache.spark.streaming.StreamingContext
+import org.apache.spark.streaming.dstream.InputDStream
+import org.apache.spark.streaming.kafka.{HasOffsetRanges, KafkaUtils}
+import spark.streaming.potato.source.kafka.tools.{OffsetsManager, OffsetsManagerConfig}
+
+import scala.reflect.ClassTag
+
+object KafkaSourceUtil extends Logging {
+  def createDStream[K: ClassTag, V: ClassTag, KD <: Decoder[K] : ClassTag, VD <: Decoder[V] : ClassTag, R: ClassTag]
+  (ssc: StreamingContext, kafkaParams: Map[String, String])(implicit messageHandler: MessageAndMetadata[K, V] => R): (InputDStream[R], OffsetsManager) = {
+    val cleanedParams = {
+      val reset = {
+        kafkaParams.getOrElse("auto.offset.reset", None) match {
+          case "earliest" => "smallest"
+          case "latest" => "largest"
+          case None =>
+            throw new InvalidConfigException("kafka param \"auto.offset.reset\" not set, use largest instead.")
+            "largest"
+        }
+      }
+      kafkaParams + ("enable.auto.commit" -> "false", "auto.offset.reset" -> reset)
+    }
+    val offsetsManagerConfig = new OffsetsManagerConfig(ssc.sparkContext.getConf.)
+    val offsetsManager = new OffsetsManager(offsetsManagerConfig)
+    val stream = KafkaUtils.createDirectStream[K, V, KD, VD, R](
+      ssc,
+      cleanedParams,
+      offsetsManager.getOffsets(),
+      messageHandler)
+    stream.transform(rdd => {
+      //      offsetManager.cacheOffset(rdd.asInstanceOf[HasOffsetRanges].offsetRanges)
+      rdd
+    })
+
+    (stream, offsetsManager)
+  }
+}
+
+object KafkaSourceUtilImplicits {
+  def defaultMessageHandler(msg: MessageAndMetadata[K, V]): String = {
+
+  }
+}

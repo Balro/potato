@@ -4,10 +4,10 @@ import kafka.serializer.StringDecoder
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.KafkaUtils
-import spark.streaming.potato.conf.ConfigKeys
+import spark.streaming.potato.conf.PotatoConfKeys
 
 object KafkaTopnTest extends SparkStreamingTemplate with Logging {
-  override def process(args: Array[String]): Unit = {
+  override def doWork(args: Array[String]): Unit = {
     val props = Map(
       "bootstrap.servers" -> "test01:9092",
       "auto.offset.reset" -> "largest",
@@ -21,7 +21,7 @@ object KafkaTopnTest extends SparkStreamingTemplate with Logging {
 
   override def initConf(args: Array[String]): Unit = {
     conf.setMaster("local[10]").setAppName("test")
-      .set(ConfigKeys.POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY, 10.toString)
+      .set(PotatoConfKeys.POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY, 10.toString)
     super.initConf(args)
   }
 }

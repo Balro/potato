@@ -211,7 +211,6 @@ object OffsetsUtil extends Logging {
       checkMeta()
 
       def checkMeta(): Unit = {
-
         res.topicsMetadata.foreach { tm =>
           if (tm.errorCode == ErrorMapping.NoError) {
             tm.partitionsMetadata.foreach { pm =>
@@ -222,7 +221,7 @@ object OffsetsUtil extends Logging {
             }
             found = true
           } else {
-            warn(s"${consumer.host}:${consumer.port} -> Errors.forCode(tm.errorCode).message()")
+            warn(s"${consumer.host}:${consumer.port} -> $tm")
             return
           }
         }

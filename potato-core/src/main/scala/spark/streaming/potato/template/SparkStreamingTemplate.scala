@@ -15,9 +15,7 @@ trait SparkStreamingTemplate extends Logging {
   def main(args: Array[String]): Unit = {
     initConf(args)
     initContext(args)
-
-    process(args)
-
+    doWork(args)
     beforeStart(args)
     ssc.start()
     afterStart(args)
@@ -26,7 +24,7 @@ trait SparkStreamingTemplate extends Logging {
   }
 
   // 业务逻辑。
-  def process(args: Array[String]): Unit
+  def doWork(args: Array[String]): Unit
 
   def initConf(args: Array[String]): Unit = {
     logInfo("Method initConf has been called.")

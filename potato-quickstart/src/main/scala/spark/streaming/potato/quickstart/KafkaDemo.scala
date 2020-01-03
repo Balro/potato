@@ -6,7 +6,7 @@ import org.apache.spark.streaming.kafka.KafkaUtils
 import spark.streaming.potato.template.SparkStreamingTemplate
 
 object KafkaDemo extends SparkStreamingTemplate {
-  override def process(args: Array[String]): Unit = {
+  override def doWork(args: Array[String]): Unit = {
     val props = Map(
       "bootstrap.servers" -> "test01:9092",
       //      "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",

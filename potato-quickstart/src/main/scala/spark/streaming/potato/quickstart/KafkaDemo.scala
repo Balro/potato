@@ -3,9 +3,9 @@ package spark.streaming.potato.quickstart
 import kafka.serializer.StringDecoder
 import org.apache.spark.streaming.dstream.InputDStream
 import org.apache.spark.streaming.kafka.KafkaUtils
-import spark.streaming.potato.template.SparkStreamingTemplate
+import spark.streaming.potato.template.GeneralTemplate
 
-object KafkaDemo extends SparkStreamingTemplate {
+object KafkaDemo extends GeneralTemplate {
   override def doWork(args: Array[String]): Unit = {
     val props = Map(
       "bootstrap.servers" -> "test01:9092",

@@ -5,18 +5,19 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import spark.streaming.potato.context.PotatoContextUtil
 
-/**
-  * 执行顺序: initConf -> initContext -> process -> beforeStart -> ssc.start -> afterStart -> ssc.awaitTermination -> afterStop
-  */
-trait SparkStreamingTemplate extends Logging {
-  lazy val conf: SparkConf = new SparkConf()
-  lazy val ssc: StreamingContext = PotatoContextUtil.makeContext(conf)
+abstract class GeneralTemplate extends Logging {
+  var oConf: Option[SparkConf] = None
+  var oSsc: Option[StreamingContext] = None
+
+  def conf: SparkConf = oConf.get
+
+  def ssc: StreamingContext = oSsc.get
 
   def main(args: Array[String]): Unit = {
     initConf(args)
     initContext(args)
+
     doWork(args)
-    beforeStart(args)
     ssc.start()
     afterStart(args)
     ssc.awaitTermination()
@@ -28,14 +29,20 @@ trait SparkStreamingTemplate extends Logging {
 
   def initConf(args: Array[String]): Unit = {
     logInfo("Method initConf has been called.")
+
+    oConf = Option(new SparkConf())
   }
 
   def initContext(args: Array[String]): Unit = {
     logInfo("Method initContext has been called.")
-  }
 
-  def beforeStart(args: Array[String]): Unit = {
-    logInfo("Method beforeStart has been called.")
+    oConf match {
+      case Some(sparkConf) => oSsc = Option(PotatoContextUtil.createContext(sparkConf))
+      case None => throw new Exception("Spark conf is not initialized.")
+    }
+
+    if (oSsc.isEmpty)
+      throw new Exception("Spark streaming context is not initialized.")
   }
 
   def afterStart(args: Array[String]): Unit = {

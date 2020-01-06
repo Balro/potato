@@ -25,10 +25,16 @@ class KafkaSourceTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val (stream, manager) = KafkaSource.defaultDStream(ssc, kafkaParams)
+    val (stream, manager) = KafkaSource.kvDStream(ssc, kafkaParams)
+
+    val a = ssc.sparkContext.longAccumulator("test")
 
     stream.foreachRDD { rdd =>
       rdd.take(10).foreach(println)
+      a.add(1L)
+      println(s"-------- ${a.sum} --------")
+      if (a.sum > 3)
+        throw new Exception("batch is over than 3")
     }
 
     ssc.start()

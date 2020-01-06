@@ -66,7 +66,7 @@ object OffsetsManagerConf {
   val OFFSETS_STORAGE_KEY: String = CONF_PREFIX + "offsets.storage"
   val SUBSCRIBE_TOPICS_KEY: String = CONF_PREFIX + "subscribe.topics"
   val OFFSETS_AUTO_UPDATE_KEY: String = CONF_PREFIX + "offsets.auto.update"
-  val OFFSETS_AUTO_UPDATE_DEFAULT: String = "false"
+  val OFFSETS_AUTO_UPDATE_DEFAULT: String = "true"
   val OFFSETS_AUTO_UPDATE_DELAY_KEY: String = CONF_PREFIX + "offsets.auto.update.delay"
   val OFFSETS_AUTO_UPDATE_DELAY_DEFAULT = "0"
 

@@ -32,14 +32,24 @@ object KafkaSource extends Logging {
     }) -> offsetsManager
   }
 
-  def defaultDStream(ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty
-                    ): (DStream[(String, String)], OffsetsManager) = {
+  def kvDStream(ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty
+               ): (DStream[(String, String)], OffsetsManager) = {
     createDStream[String, String, StringDecoder, StringDecoder, (String, String)](
-      ssc, kafkaParams, defaultMessageHandler)
+      ssc, kafkaParams, kvMessageHandler)
   }
 
-  def defaultMessageHandler[K, V]: MessageAndMetadata[K, V] => (K, V) = {
+  def kvMessageHandler[K, V]: MessageAndMetadata[K, V] => (K, V) = {
     mmd: MessageAndMetadata[K, V] => (mmd.key, mmd.message)
+  }
+
+  def valueDStream(ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty
+                  ): (DStream[String], OffsetsManager) = {
+    createDStream[String, String, StringDecoder, StringDecoder, String](
+      ssc, kafkaParams, valueMessageHandler)
+  }
+
+  def valueMessageHandler[K, V]: MessageAndMetadata[K, V] => V = {
+    mmd: MessageAndMetadata[K, V] => mmd.message
   }
 }
 

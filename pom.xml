@@ -10,6 +10,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <modules>
         <module>potato-core</module>
+        <module>potato-plugins</module>
     </modules>
 
     <repositories>

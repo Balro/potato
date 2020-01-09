@@ -7,8 +7,13 @@
 
     <files>
         <file>
-            <source>bin/potato-submit.sh</source>
+            <source>bin/potato.sh</source>
             <outputDirectory>bin</outputDirectory>
+            <fileMode>0755</fileMode>
+        </file>
+        <file>
+            <source>bin/exec/submit.sh</source>
+            <outputDirectory>bin/exec</outputDirectory>
             <fileMode>0755</fileMode>
         </file>
     </files>

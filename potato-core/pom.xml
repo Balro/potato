@@ -43,6 +43,11 @@
             <artifactId>scalaj-http_${scala.version}</artifactId>
             <version>2.4.2</version>
         </dependency>
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20171018</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -54,6 +59,11 @@
                 <configuration>
                     <scalaCompatVersion>2.11</scalaCompatVersion>
                     <scalaVersion>2.11</scalaVersion>
+                    <args>
+                        <arg>-deprecation</arg>
+                        <arg>-feature</arg>
+                        <arg>-language:implicitConversions</arg>
+                    </args>
                 </configuration>
                 <executions>
                     <execution>

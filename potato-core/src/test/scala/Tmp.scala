@@ -53,3 +53,26 @@ object Tmp3 {
     println(new String(bs))
   }
 }
+
+object Tmp4 {
+  def main(args: Array[String]): Unit = {
+    val a1 = Case("a", { () => println("hello") })
+    val a2 = Case("A", () => println("word"))
+    println(a1 == a2)
+    println(a1 equals a2)
+    println(a1 eq a2)
+    a1.action()
+    a2.action()
+  }
+
+  case class Case(name: String, action: () => Unit = () => Unit) {
+    override def equals(obj: Any): Boolean = {
+      obj match {
+        case value: Case => value.name.toLowerCase == name.toLowerCase
+        case _ => false
+      }
+    }
+  }
+
+}
+

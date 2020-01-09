@@ -3,46 +3,68 @@ package spark.streaming.potato.template
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
-import spark.streaming.potato.context.PotatoContextUtil
+import spark.streaming.potato.conf.PotatoConfKeys
+import spark.streaming.potato.context
+import spark.streaming.potato.context.lock.RunningLockManager
 
 abstract class GeneralTemplate extends Logging {
   var oConf: Option[SparkConf] = None
   var oSsc: Option[StreamingContext] = None
+  var oLock: Option[RunningLockManager] = None
 
-  def conf: SparkConf = oConf.get
-
-  def ssc: StreamingContext = oSsc.get
+  lazy val conf: SparkConf = oConf.get
+  lazy val ssc: StreamingContext = oSsc.get
+  lazy val lock: RunningLockManager = oLock.get
 
   def main(args: Array[String]): Unit = {
-    initConf(args)
-    initContext(args)
+    createConf(args)
+    afterConfCreated(args)
+    createContext(args)
+    afterContextCreated(args)
 
     doWork(args)
+
     ssc.start()
     afterStart(args)
-    ssc.awaitTermination()
-    afterStop(args)
+    try {
+      ssc.awaitTermination()
+    } finally {
+      if (oLock.isDefined) lock.release()
+      afterStop(args)
+    }
   }
 
   // 业务逻辑。
   def doWork(args: Array[String]): Unit
 
-  def initConf(args: Array[String]): Unit = {
-    logInfo("Method initConf has been called.")
-
+  def createConf(args: Array[String]): Unit = {
+    logInfo("Method createConf has been called.")
     oConf = Option(new SparkConf())
   }
 
-  def initContext(args: Array[String]): Unit = {
-    logInfo("Method initContext has been called.")
+  def afterConfCreated(args: Array[String]): Unit = {
+    logInfo("Method afterConfCreated has been called.")
+  }
 
-    oConf match {
-      case Some(sparkConf) => oSsc = Option(PotatoContextUtil.createContext(sparkConf))
-      case None => throw new Exception("Spark conf is not initialized.")
+  def createContext(args: Array[String]): Unit = {
+    logInfo("Method createContext has been called.")
+
+    if (oConf.isEmpty)
+      throw new Exception("Spark conf is not initialized.")
+
+    oSsc = Option(context.PotatoContextUtil.createContext(conf))
+
+    if (conf.getBoolean(
+      PotatoConfKeys.POTATO_RUNNING_LOCK_ENABLE_KEY, PotatoConfKeys.POTATO_RUNNING_LOCK_ENABLE_DEFAULT
+    )) {
+      logInfo("Enable running lock and start heartbeat.")
+      oLock = Option(new RunningLockManager(ssc))
+      lock.startHeartbeat()
     }
+  }
 
-    if (oSsc.isEmpty)
-      throw new Exception("Spark streaming context is not initialized.")
+  def afterContextCreated(args: Array[String]): Unit = {
+    logInfo("Method afterContextCreated has been called.")
   }
 
   def afterStart(args: Array[String]): Unit = {

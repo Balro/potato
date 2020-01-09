@@ -58,6 +58,7 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>add-source</goal>
                             <goal>compile</goal>
                             <goal>testCompile</goal>
                         </goals>
@@ -75,6 +76,17 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <excludes>
+                        <exclude>prod/</exclude>
+                        <exclude>test/</exclude>
+                        <exclude>log4j.properties</exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>

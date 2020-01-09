@@ -1,24 +1,20 @@
 package spark.streaming.potato.quickstart
 
-import kafka.serializer.StringDecoder
-import org.apache.spark.streaming.dstream.InputDStream
-import org.apache.spark.streaming.kafka.KafkaUtils
-import spark.streaming.potato.template.GeneralTemplate
+import org.apache.spark.SparkConf
+import org.apache.spark.internal.Logging
+import org.apache.spark.streaming.{Seconds, StreamingContext}
+import spark.streaming.potato.source.kafka.KafkaSource
 
-object KafkaDemo extends GeneralTemplate {
-  override def doWork(args: Array[String]): Unit = {
-    val props = Map(
-      "bootstrap.servers" -> "test01:9092",
-      //      "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
-      //      "value.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",
-      "auto.offset.reset" -> "largest",
-      "enable.auto.commit" -> "true"
-    )
+object KafkaDemo extends Logging {
+  def main(args: Array[String]): Unit = {
+    val conf = new SparkConf()
+    val ssc = new StreamingContext(conf, Seconds(10))
 
-    val stream: InputDStream[(String, String)] = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](ssc, props, Set("test_topic"))
+    val (stream, manager) = KafkaSource.valueDStream(ssc)
 
-    stream.flatMap(f => f._2.split("\\s")).map((_, 1)).reduceByKey(_ + _).print()
+    stream.foreachRDD(rdd => rdd.foreach(r => println(r)))
+
+    ssc.start()
+    ssc.awaitTermination()
   }
-
-  override def initConf(args: Array[String]): Unit = conf.setMaster("local[6]").setAppName("hello")
 }

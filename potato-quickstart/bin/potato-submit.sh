@@ -4,7 +4,7 @@ mkdir -p $BASE_DIR/logs
 
 usage() {
     cat << EOF
-$0 <conf_file>
+$(basename $0) submit <conf_file> [other args for main jar..]
 EOF
 }
 
@@ -35,7 +35,7 @@ export_prop() {
     exit 1
 }
 
-mk_params() {
+mk_submit_params() {
     export_prop spark.potato.submit.bin submit_bin
     export_prop spark.potato.main.class main_class
     export_prop spark.potato.main.jar main_jar
@@ -62,17 +62,42 @@ mk_main_jar() {
     exit 1
 }
 
-submit() {
-    $submit_bin --properties-file $conf_file --jars $jars --class $main_class $BASE_DIR/lib/$main_jar $@ > $BASE_DIR/logs/$main_jar-$(date +'%Y%m%d-%H%M%S').out 2>&1
+submit_spark() {
+    $submit_bin --properties-file $conf_file --jars $jars --class $main_class $BASE_DIR/lib/$main_jar $@ > \
+        $BASE_DIR/logs/$main_jar-$main_class-$(date +'%Y%m%d_%H%M%S').out 2>&1
 }
 
-main() {
+submit() {
     source_env
     locate_conf $1
-    mk_params
+    mk_submit_params
     mk_jars
     mk_main_jar
-    submit $@
+    shift
+    submit_spark $@
 }
 
-main $@
+mk_stop_params() {
+    export_prop
+}
+
+stop() {
+    source_env
+    locate_conf $1
+    mk_stop_params
+}
+
+case $1 in
+    submit)
+        shift
+        submit $@
+    ;;
+    stop)
+        shift
+        stop $@
+    ;;
+    *)
+        usage
+    ;;
+esac
+

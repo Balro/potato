@@ -53,6 +53,7 @@
     </dependencies>
 
     <build>
+        <sourceDirectory>src/main/scala</sourceDirectory>
         <plugins>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -74,6 +75,7 @@
                 <executions>
                     <execution>
                         <goals>
+                            <goal>add-source</goal>
                             <goal>compile</goal>
                             <goal>testCompile</goal>
                         </goals>
@@ -104,7 +106,7 @@
                 <version>3.1.1</version>
                 <configuration>
                     <excludes>
-                        <exclude>default/</exclude>
+                        <exclude>prod/</exclude>
                         <exclude>test/</exclude>
                     </excludes>
                 </configuration>

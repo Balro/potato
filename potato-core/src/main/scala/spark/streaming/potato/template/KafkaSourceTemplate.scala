@@ -12,12 +12,8 @@ abstract class KafkaSourceTemplate[E](f: (StreamingContext, Map[String, String])
 
   def offsetsManager: OffsetsManager = oOffsetsManager.get
 
-  override def main(args: Array[String]): Unit = {
-    super.main(args)
-  }
-
-  override def initContext(args: Array[String]): Unit = {
-    super.initContext(args)
+  override def afterContextCreated(args: Array[String]): Unit = {
+    super.afterContextCreated(args)
     val (s, om) = f(ssc, Map.empty[String, String])
     oStream = Option(s)
     oOffsetsManager = Option(om)

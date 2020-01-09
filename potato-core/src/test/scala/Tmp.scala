@@ -35,7 +35,7 @@ object Tmp1 {
   }
 }
 
-object Tmp2{
+object Tmp2 {
   def main(args: Array[String]): Unit = {
     println(
       """
@@ -44,5 +44,12 @@ object Tmp2{
         |dbc
       """.stripMargin.trim)
     println("----")
+  }
+}
+
+object Tmp3 {
+  def main(args: Array[String]): Unit = {
+    val bs = "abc".getBytes()
+    println(new String(bs))
   }
 }

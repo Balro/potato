@@ -2,7 +2,8 @@ package spark.streaming.potato.context
 
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import spark.streaming.potato.conf.{ConfigNotFoundException, PotatoConfKeys}
+import spark.streaming.potato.conf.PotatoConfKeys
+import spark.streaming.potato.exception.ConfigNotFoundException
 
 object PotatoContextUtil {
   def createContext(conf: SparkConf): StreamingContext = {

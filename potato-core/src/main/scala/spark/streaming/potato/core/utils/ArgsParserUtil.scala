@@ -1,6 +1,6 @@
 package spark.streaming.potato.core.utils
 
-object ArgsParser {
+object ArgsParserUtil {
   def parse(args: TraversableOnce[String], ks: Set[String] = Set.empty, kvs: Set[String] = Set.empty): Map[String, String] = {
     args.toList match {
       case key :: tail if ks.contains(key) =>

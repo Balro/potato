@@ -158,7 +158,7 @@ trait RunningLock {
 
   def release(): Unit
 
-  def clear(): Unit
+  def clear(): Boolean
 
   def getLock: (Boolean, String)
 
@@ -196,9 +196,17 @@ class ZookeeperRunningLock(manager: RunningLockManager, addr: String, timeout: I
     zookeeper.close()
   }
 
-  override def clear(): Unit = {
-    logInfo("Clear old lock.")
-    zookeeper.delete(lockPath, -1)
+  override def clear(): Boolean = {
+    try {
+      zookeeper.delete(lockPath, -1)
+    } catch {
+      case _: NoNodeException =>
+        logWarning("Old lock not found.")
+        return false
+      case e: Throwable => throw e
+    }
+    logInfo("Old lock cleared.")
+    true
   }
 
   override def getLock: (Boolean, String) = {

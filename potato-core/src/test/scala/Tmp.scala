@@ -76,3 +76,18 @@ object Tmp4 {
 
 }
 
+object Tmp5 {
+  def main(args: Array[String]): Unit = {
+    println(classOf[String].getName)
+    println(classOf[String].getCanonicalName)
+    println(classOf[String].getSimpleName)
+    println(classOf[String].getTypeName)
+  }
+}
+
+object Tmp6 {
+  def main(args: Array[String]): Unit = {
+    val a = "hello"
+    println(f"$a%20s")
+  }
+}

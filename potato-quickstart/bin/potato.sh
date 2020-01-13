@@ -15,9 +15,10 @@ usage() {
 Usage:
     $(basename $0) <potato_conf_file> <service> [service args]
 
-    services:
-        submit  ->  submit app to cluster.
-        lock    ->  manage app lock.
+    modules:
+        submit   ->  submit app to cluster.
+        lock     ->  manage app lock.
+        offsets  ->  manage offsets.
 EOF
 }
 
@@ -48,15 +49,18 @@ export_prop() {
   exit 1
 }
 
-class_path() {
-  local class_path_=""
-  local lib_path=$1
-  for f in $(ls $lib_path/); do
-    test -f $lib_path/$f && {
-      test "$class_path_" && class_path_=$lib_path/$f:$class_path_ || class_path_=$lib_path/$f
+export_global_jars() {
+  local jars_=
+  for f in $(ls $POTATO_LIB_DIR/); do
+    test -f $POTATO_LIB_DIR/$f && {
+      test "$jars_" && jars_=$POTATO_LIB_DIR/$f,$jars_ || jars_=$POTATO_LIB_DIR/$f
     }
   done
-  echo $class_path_
+  test "$jars_" || {
+    echo "jars not valid."
+    exit 1
+  }
+  export global_jars="$jars_"
 }
 
 main() {
@@ -68,9 +72,9 @@ main() {
   test -f $source_file && {
     source $source_file
     shift
-    do_work "$@" || service_usage
+    do_work "$@" || module_usage
   } || {
-    echo "service not found"
+    echo "module not found"
     usage
   }
 }

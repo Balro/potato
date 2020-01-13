@@ -1,14 +1,15 @@
 #!/bin/echo "this shell should be sourced"
 
-module_main_class=spark.streaming.potato.core.context.lock.RunningLockCmd
+module_main_class=spark.streaming.potato.core.source.kafka.offsets.OffsetsCmd
 
 module_usage() {
   cat <<EOF
 Usage:
-  $(basename $0) <potato_conf_file> lock <args>
+  $(basename $0) <potato_conf_file> offsets <args>
   args:
-    clear -> clear old lock to stop app.
-    state -> show lock status.
+    list  -> clear old lock to stop app.
+    lag   -> show current lag.
+    reset -> reset offsets to earliest or latest.
 EOF
 }
 

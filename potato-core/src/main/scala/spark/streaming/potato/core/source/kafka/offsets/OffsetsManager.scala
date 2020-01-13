@@ -13,14 +13,14 @@ import scala.collection.mutable
 class OffsetsManager(conf: OffsetsManagerConf) extends Logging {
   private implicit val offsetUtilConf: ConsumerConfig = conf
 
-  private val brokers = OffsetsUtil.findBrokers(conf.bootstrapServers)
+  private[offsets] val brokers = OffsetsUtil.findBrokers(conf.bootstrapServers)
   private val groupId = conf.groupId
   private val storage: OffsetsStorage = conf.storageType match {
     case "kafka" => new KafkaOffsetsStorage(brokers, offsetUtilConf)
     case "zookeeper" => new ZookeeperOffsetsStorage(brokers, offsetUtilConf)
     case unknown => throw new KafkaException(s"storage type not supported: $unknown")
   }
-  private val subscriptions: Set[TopicAndPartition] = OffsetsUtil.getTopicAndPartitions(brokers, conf.subscribeTopics)
+  private[offsets] val subscriptions: Set[TopicAndPartition] = OffsetsUtil.getTopicAndPartitions(brokers, conf.subscribeTopics)
 
   logInfo(s"OffsetsManager initialized: brokers -> $brokers, groupId -> $groupId, storage -> $storage, " +
     s"subscriptions -> $subscriptions")
@@ -40,7 +40,7 @@ class OffsetsManager(conf: OffsetsManagerConf) extends Logging {
   }
 
   def getLag(topics: Seq[String] = Seq.empty[String], committed: Boolean = true): Map[String, Long] = {
-    if (offsetsCache.isEmpty)
+    if (!committed && offsetsCache.isEmpty)
       throw NotCacheAnyOffsetsException("OffsetManager has not cached any offsets.")
 
     val latest = groupByTopic(OffsetsUtil.getLatestOffsets(brokers,

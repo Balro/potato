@@ -21,6 +21,11 @@
             <outputDirectory>bin/exec</outputDirectory>
             <fileMode>0755</fileMode>
         </file>
+        <file>
+            <source>bin/exec/offsets.sh</source>
+            <outputDirectory>bin/exec</outputDirectory>
+            <fileMode>0755</fileMode>
+        </file>
     </files>
 
     <fileSets>

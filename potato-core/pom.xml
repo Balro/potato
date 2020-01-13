@@ -48,11 +48,6 @@
             <artifactId>json</artifactId>
             <version>20171018</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.4.5-cdh5.14.4</version>
-        </dependency>
     </dependencies>
 
     <build>

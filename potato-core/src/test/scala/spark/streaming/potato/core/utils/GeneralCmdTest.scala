@@ -5,11 +5,11 @@ object GeneralCmdImp extends GeneralCmd {
    * 添加action以及其他初始化。
    */
   override def init(): Unit = {
-    addAction("a1", "this is action a1", action = _ => println("action a1 act"))
+    addAction("a1", "this is action a1", action = () => println("action a1 act"))
     addAction("a2", "this is action a2")
     addAction("a3", "this is action a3", Set("arg1", "arg3"),
-      args =>
-        println(s"received args -> $args")
+      () =>
+        println(s"received args -> $props")
     )
 
     addArgument("arg1", "this is arg1", needValue = true)

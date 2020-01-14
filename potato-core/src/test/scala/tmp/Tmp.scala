@@ -1,7 +1,6 @@
-import java.util.concurrent.LinkedBlockingQueue
+package tmp
 
 import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 import scala.reflect.ClassTag
 
 object Tmp0 {
@@ -22,7 +21,6 @@ object Tmp1 {
 
   def main(args: Array[String]): Unit = {
     val f: Int => String = { f: Int => f.toString }
-    import ClassTag.Int
     println(a[Int, String](1)(f, intTag, stringTag))
   }
 

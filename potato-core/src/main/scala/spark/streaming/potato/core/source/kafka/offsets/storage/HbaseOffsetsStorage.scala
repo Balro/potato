@@ -11,7 +11,7 @@ import spark.streaming.potato.core.source.kafka.offsets.OffsetsStorage
 
 /**
  * 建表语句参考
- * create 'kafka_offsets_storage',NAME => 'storage',VERSIONS => '5',IN_MEMORY => 'true', TTL => '604800'
+ * create 'kafka_offsets_storage',NAME => 'partition',VERSIONS => '5',IN_MEMORY => 'true', TTL => '604800'
  *
  * 备注:
  * 直接使用Bytes工具类包装long型，导致hbase shell可读性变差，故将long转String后再进行导入。

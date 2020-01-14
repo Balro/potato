@@ -1,4 +1,6 @@
-import java.util.concurrent.{Executors, TimeUnit}
+package tmp
+
+import java.util.concurrent.TimeUnit
 
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka.KafkaUtils

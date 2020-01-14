@@ -91,3 +91,11 @@ object Tmp6 {
     println(f"$a%20s")
   }
 }
+
+object Tmp7 {
+  def main(args: Array[String]): Unit = {
+    val a = new Array[String](10)
+    a(1) = "a"
+    println(a)
+  }
+}

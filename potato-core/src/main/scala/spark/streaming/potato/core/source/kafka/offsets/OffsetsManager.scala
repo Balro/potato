@@ -6,6 +6,7 @@ import kafka.consumer.ConsumerConfig
 import org.apache.kafka.common.KafkaException
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.kafka.OffsetRange
+import spark.streaming.potato.core.source.kafka.offsets.storage.{HbaseOffsetsStorage, NoneOffsetsStorage}
 import spark.streaming.potato.core.source.kafka.utils.OffsetsUtil
 
 import scala.collection.mutable
@@ -18,6 +19,11 @@ class OffsetsManager(conf: OffsetsManagerConf) extends Logging {
   private val storage: OffsetsStorage = conf.storageType match {
     case "kafka" => new KafkaOffsetsStorage(brokers, offsetUtilConf)
     case "zookeeper" => new ZookeeperOffsetsStorage(brokers, offsetUtilConf)
+    case "hbase" => new HbaseOffsetsStorage(
+      conf.getOrElse(HbaseOffsetsStorage.HBASE_TABLE_KEY, HbaseOffsetsStorage.HBASE_TABLE_DEFAULT),
+      conf.subPrefixConf(HbaseOffsetsStorage.HBASE_CONF_PREFIX)
+    )
+    case "none" => new NoneOffsetsStorage
     case unknown => throw new KafkaException(s"storage type not supported: $unknown")
   }
   private[offsets] val subscriptions: Set[TopicAndPartition] = OffsetsUtil.getTopicAndPartitions(brokers, conf.subscribeTopics)

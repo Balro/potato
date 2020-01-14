@@ -44,6 +44,12 @@ class OffsetsManagerConf(sparkConf: Map[String, String], kafkaParams: Map[String
     ret
   }
 
+  def subPrefixConf(prefix: String): Map[String, String] = {
+    cleanedConf.filter(_._1.startsWith(prefix)).map { c =>
+      c._1.substring(prefix.length) -> c._2
+    }
+  }
+
   val bootstrapServers: String = cleanedConf(OffsetsManagerConf.BOOTSTRAP_SERVERS_KEY)
   val groupId: String = cleanedConf(OffsetsManagerConf.GROUP_ID_KEY)
   val subscribeTopics: Set[String] = cleanedConf(OffsetsManagerConf.SUBSCRIBE_TOPICS_KEY)

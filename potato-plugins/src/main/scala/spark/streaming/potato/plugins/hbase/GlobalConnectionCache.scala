@@ -4,7 +4,9 @@ import java.util.concurrent.ConcurrentHashMap
 
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.TableName
-import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, ConnectionFactory, Table}
+import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, ConnectionFactory, Row, Table}
+
+import scala.collection.mutable.ListBuffer
 
 object GlobalConnectionCache extends Serializable {
   val connections = new ConcurrentHashMap[HBaseZKInfo, Connection]()
@@ -26,6 +28,34 @@ object GlobalConnectionCache extends Serializable {
     val ret = f(tbl)
     tbl.close()
     ret
+  }
+
+  def withBufferedTable[R](conf: Configuration, table: String)(f: BufferedTable => R): R = {
+    val btbl = new BufferedTable(getCachedConnection(conf).getTable(TableName.valueOf(table)))
+    val ret = f(btbl)
+    btbl.close()
+    ret
+  }
+
+  class BufferedTable(table: Table) {
+
+    import scala.collection.JavaConversions.bufferAsJavaList
+
+    private val buffer: ListBuffer[Row] = ListBuffer.empty[Row]
+
+    def close(): Unit = synchronized {
+      flush()
+      table.close()
+    }
+
+    def flush(): Unit = synchronized {
+      table.batch(buffer, new Array[AnyRef](buffer.size))
+      buffer.clear()
+    }
+
+    def add(row: Row): Unit = synchronized {
+      buffer += row
+    }
   }
 
   case class HBaseZKInfo(quorum: String, port: Int, parent: String, metaServer: String)

@@ -1,27 +1,23 @@
 package spark.streaming.potato.plugins.hbase.sink
 
-import org.apache.hadoop.hbase.client.{Mutation, Row}
+import org.apache.hadoop.hbase.client.Mutation
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
 import spark.streaming.potato.plugins.hbase.GlobalConnectionCache._
 import spark.streaming.potato.plugins.hbase.HBaseImplicits.mapToConfiguration
 
-import scala.collection.mutable.ListBuffer
-
 class MutationRdd(rdd: RDD[MutationAction]) extends Logging with Serializable {
   def saveToHBaseTable(conf: Map[String, String], table: String, batchSize: Int = 100): Unit = {
-    import scala.collection.JavaConversions.bufferAsJavaList
     rdd.foreachPartition { part =>
       var count = 0
-      val tblBuffer = ListBuffer.empty[Row]
       withMutator(conf, table) { mutator =>
-        withTable(conf, table) { tbl =>
+        withBufferedTable(conf, table) { btbl =>
           part.foreach { mutate =>
             mutate match {
               case MutationAction(MutationType.APPEND, mutation) =>
-                tblBuffer += mutation
+                btbl.add(mutation)
               case MutationAction(MutationType.INCREMENT, mutation) =>
-                tblBuffer += mutation
+                btbl.add(mutation)
               case MutationAction(MutationType.DELETE, mutation) =>
                 mutator.mutate(mutation)
               case MutationAction(MutationType.PUT, mutation) =>
@@ -32,12 +28,11 @@ class MutationRdd(rdd: RDD[MutationAction]) extends Logging with Serializable {
             count += 1
             if (count >= batchSize) {
               mutator.flush()
-              tbl.batch(tblBuffer, new Array[AnyRef](tblBuffer.size))
+              btbl.flush()
               count = 0
             }
           }
         }
-        mutator.flush()
       }
     }
   }

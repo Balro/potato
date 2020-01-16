@@ -17,7 +17,7 @@
     开发骨架，可快速构建项目，同时提供作业管理脚本。  
     
 ## 使用说明  
-请参考wiki。  
+目前脚手架只支持spark-yarn-cluster部署模式。具体使用方式请参考wiki。  
 https://github.com/Balro/spark_streaming_potato/wiki
 
 ## coder自述

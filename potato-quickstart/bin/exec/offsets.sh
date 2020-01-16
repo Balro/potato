@@ -1,6 +1,6 @@
 #!/bin/echo "this shell should be sourced"
 
-module_main_class=spark.streaming.potato.core.source.kafka.offsets.OffsetsCmd
+module_main_class=spark.streaming.potato.plugins.kafka.offsets.OffsetsCmd
 
 module_usage() {
   cat <<EOF
@@ -18,7 +18,7 @@ export_module_params() {
 }
 
 export_module_main_jar() {
-  export module_main_jar=$(find $POTATO_LIB_DIR -name potato-core-*.jar)
+  export module_main_jar=$(find $POTATO_LIB_DIR -name potato-plugins-*.jar)
 }
 
 module_submit() {

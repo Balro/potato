@@ -10,7 +10,7 @@ object KafkaDemo extends Logging {
     val conf = new SparkConf()
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val (stream, manager) = KafkaSource.valueDStream(ssc)
+    val (stream, _) = KafkaSource.valueDStream(ssc)
 
     stream.foreachRDD(rdd => rdd.foreach(r => println(r)))
 

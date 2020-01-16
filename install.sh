@@ -23,7 +23,8 @@ install_archetype() {
 }
 
 create_project() {
-    mvn archetype:generate
+    mvn archetype:generate \
+    -DarchetypeGroupId=spark.streaming.potato -DarchetypeArtifactId=potato-quickstart-archetype
 }
 
 case $1 in

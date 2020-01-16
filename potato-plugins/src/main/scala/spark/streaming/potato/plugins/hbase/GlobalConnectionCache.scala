@@ -6,7 +6,7 @@ import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, ConnectionFactory, Table}
 
-trait ConnectionCache {
+object GlobalConnectionCache extends Serializable {
   val connections = new ConcurrentHashMap[HBaseZKInfo, Connection]()
 
   private def getCachedConnection(conf: Configuration): Connection = this.synchronized {
@@ -31,7 +31,7 @@ trait ConnectionCache {
   case class HBaseZKInfo(quorum: String, port: Int, parent: String, metaServer: String)
 
   object HBaseZKInfo {
-    def apply(conf: Configuration): HBaseZKInfo = new HBaseZKInfo(
+    def apply(conf: Configuration): HBaseZKInfo = HBaseZKInfo(
       conf.get("hbase.zookeeper.quorum"),
       conf.getInt("hbase.zookeeper.property.clientPort", 2181),
       conf.get("zookeeper.znode.parent", "/hbase"),

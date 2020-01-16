@@ -1,6 +1,6 @@
 #!/bin/echo "this shell should be sourced"
 
-module_main_class=spark.streaming.potato.core.context.lock.RunningLockCmd
+module_main_class=spark.streaming.potato.plugins.lock.RunningLockCmd
 
 module_usage() {
   cat <<EOF
@@ -17,7 +17,7 @@ export_module_params() {
 }
 
 export_module_main_jar() {
-  export module_main_jar=$(find $POTATO_LIB_DIR -name potato-core-*.jar)
+  export module_main_jar=$(find $POTATO_LIB_DIR -name potato-plugins-*.jar)
 }
 
 module_submit() {

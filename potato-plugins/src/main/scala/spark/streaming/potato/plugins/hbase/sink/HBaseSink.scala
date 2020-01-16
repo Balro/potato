@@ -1,30 +1,27 @@
 package spark.streaming.potato.plugins.hbase.sink
 
-import org.apache.hadoop.conf.Configuration
-import org.apache.hadoop.hbase.client.{Append, Increment, Mutation}
+import org.apache.hadoop.hbase.client.{Mutation, Row}
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
-import spark.streaming.potato.plugins.hbase.ConnectionCache
+import spark.streaming.potato.plugins.hbase.GlobalConnectionCache._
+import spark.streaming.potato.plugins.hbase.HBaseImplicits.mapToConfiguration
 
+import scala.collection.mutable.ListBuffer
 
-object HBaseSink {
-  implicit def toMutationRDD(rdd: RDD[MutationAction]): MutationRdd = {
-    new MutationRdd(rdd)
-  }
-}
-
-class MutationRdd(rdd: RDD[MutationAction]) extends ConnectionCache with Logging {
-  def saveToHBaseTable(conf: Configuration, table: String, batchSize: Int): Unit = {
+class MutationRdd(rdd: RDD[MutationAction]) extends Logging with Serializable {
+  def saveToHBaseTable(conf: Map[String, String], table: String, batchSize: Int = 100): Unit = {
+    import scala.collection.JavaConversions.bufferAsJavaList
     rdd.foreachPartition { part =>
       var count = 0
+      val tblBuffer = ListBuffer.empty[Row]
       withMutator(conf, table) { mutator =>
         withTable(conf, table) { tbl =>
           part.foreach { mutate =>
             mutate match {
               case MutationAction(MutationType.APPEND, mutation) =>
-                tbl.append(mutation.asInstanceOf[Append])
+                tblBuffer += mutation
               case MutationAction(MutationType.INCREMENT, mutation) =>
-                tbl.increment(mutation.asInstanceOf[Increment])
+                tblBuffer += mutation
               case MutationAction(MutationType.DELETE, mutation) =>
                 mutator.mutate(mutation)
               case MutationAction(MutationType.PUT, mutation) =>
@@ -35,6 +32,7 @@ class MutationRdd(rdd: RDD[MutationAction]) extends ConnectionCache with Logging
             count += 1
             if (count >= batchSize) {
               mutator.flush()
+              tbl.batch(tblBuffer, new Array[AnyRef](tblBuffer.size))
               count = 0
             }
           }

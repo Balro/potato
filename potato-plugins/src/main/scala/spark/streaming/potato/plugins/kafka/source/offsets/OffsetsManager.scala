@@ -1,4 +1,4 @@
-package spark.streaming.potato.plugins.kafka.offsets
+package spark.streaming.potato.plugins.kafka.source.offsets
 
 import kafka.cluster.BrokerEndPoint
 import kafka.common.TopicAndPartition
@@ -6,9 +6,9 @@ import kafka.consumer.ConsumerConfig
 import org.apache.kafka.common.KafkaException
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.kafka.OffsetRange
-import spark.streaming.potato.plugins.kafka.offsets.storage.{HBaseOffsetsStorage, NoneOffsetsStorage}
+import spark.streaming.potato.plugins.kafka.source.offsets.storage.{HBaseOffsetsStorage, NoneOffsetsStorage}
 import spark.streaming.potato.plugins.kafka.utils.OffsetsUtil
-import spark.streaming.potato.plugins.kafka.conf.KafkaConfigKeys._
+import spark.streaming.potato.plugins.kafka.KafkaConfigKeys._
 
 import scala.collection.mutable
 
@@ -106,7 +106,6 @@ class OffsetsManager(conf: OffsetsManagerConf) extends Logging {
   }
 
   implicit def stringToBrokers(str: String): Set[BrokerEndPoint] = {
-
     str.trim.split(",").map { bs =>
       val b = bs.split(":").map(_.trim)
       BrokerEndPoint(OffsetsUtil.unknownBrokerId, b(0), b(1).toInt)

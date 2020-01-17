@@ -1,4 +1,4 @@
-package spark.streaming.potato.plugins.kafka.offsets
+package spark.streaming.potato.plugins.kafka.source.offsets
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.scheduler.{StreamingListener, StreamingListenerBatchCompleted}

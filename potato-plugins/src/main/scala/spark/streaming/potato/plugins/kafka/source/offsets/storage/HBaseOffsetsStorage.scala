@@ -1,4 +1,4 @@
-package spark.streaming.potato.plugins.kafka.offsets.storage
+package spark.streaming.potato.plugins.kafka.source.offsets.storage
 
 import kafka.common.TopicAndPartition
 import org.apache.hadoop.conf.Configuration
@@ -6,8 +6,8 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{CellUtil, HBaseConfiguration, TableName}
 import org.apache.spark.internal.Logging
-import spark.streaming.potato.plugins.kafka.offsets.OffsetsStorage
-import spark.streaming.potato.plugins.kafka.conf.KafkaConfigKeys._
+import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsStorage
+import spark.streaming.potato.plugins.kafka.KafkaConfigKeys._
 
 /**
  * 建表语句参考

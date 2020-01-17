@@ -1,8 +1,8 @@
-package spark.streaming.potato.plugins.kafka.offsets.storage
+package spark.streaming.potato.plugins.kafka.source.offsets.storage
 
 import kafka.common.TopicAndPartition
 import org.junit.Test
-import spark.streaming.potato.plugins.kafka.conf.KafkaConfigKeys._
+import spark.streaming.potato.plugins.kafka.KafkaConfigKeys._
 
 class HBaseOffsetsStorageTest {
   @Test

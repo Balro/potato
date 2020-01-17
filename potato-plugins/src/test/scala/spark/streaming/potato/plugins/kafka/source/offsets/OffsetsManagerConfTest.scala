@@ -1,4 +1,4 @@
-package spark.streaming.potato.plugins.kafka.offsets
+package spark.streaming.potato.plugins.kafka.source.offsets
 
 import kafka.common.InvalidConfigException
 import org.junit.Test

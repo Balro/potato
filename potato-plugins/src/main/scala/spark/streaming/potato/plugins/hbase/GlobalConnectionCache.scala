@@ -8,11 +8,11 @@ import org.apache.hadoop.hbase.client.{BufferedMutator, Connection, ConnectionFa
 
 import scala.collection.mutable.ListBuffer
 
-object GlobalConnectionCache extends Serializable {
-  val connections = new ConcurrentHashMap[HBaseZKInfo, Connection]()
+object GlobalConnectionCache {
+  private val connections = new ConcurrentHashMap[HBaseZKInfo, Connection]()
 
   private def getCachedConnection(conf: Configuration): Connection = this.synchronized {
-    import scala.collection.JavaConversions.mapAsScalaMap
+    import scala.collection.JavaConversions.mapAsScalaConcurrentMap
     connections.getOrElseUpdate(HBaseZKInfo(conf), ConnectionFactory.createConnection(conf))
   }
 
@@ -37,7 +37,35 @@ object GlobalConnectionCache extends Serializable {
     ret
   }
 
+  /**
+   * 非线程安全，多线程访问可能造成数据丢失。
+   * 如需多线程访问，请使用SynchronizedBufferedTable。
+   */
   class BufferedTable(table: Table) {
+
+    import scala.collection.JavaConversions.bufferAsJavaList
+
+    private val buffer: ListBuffer[Row] = ListBuffer.empty[Row]
+
+    def close(): Unit = {
+      flush()
+      table.close()
+    }
+
+    def flush(): Unit = {
+      table.batch(buffer, new Array[AnyRef](buffer.size))
+      buffer.clear()
+    }
+
+    def add(row: Row): Unit = {
+      buffer += row
+    }
+  }
+
+  /**
+   * 线程安全。
+   */
+  class SynchronizedBufferedTable(table: Table) {
 
     import scala.collection.JavaConversions.bufferAsJavaList
 

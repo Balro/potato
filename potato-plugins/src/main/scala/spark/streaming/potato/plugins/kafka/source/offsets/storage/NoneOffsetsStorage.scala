@@ -1,8 +1,8 @@
-package spark.streaming.potato.plugins.kafka.offsets.storage
+package spark.streaming.potato.plugins.kafka.source.offsets.storage
 
 import kafka.common.TopicAndPartition
 import org.apache.spark.internal.Logging
-import spark.streaming.potato.plugins.kafka.offsets.OffsetsStorage
+import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsStorage
 
 /**
  * NoneOffsetsStorage 不对offsets做任何操作，每次load时均触发reset。

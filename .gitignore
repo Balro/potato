@@ -15,4 +15,3 @@ buildNumber.properties
 .idea
 *.iml
 /potato-core/src/main/resources/test
-/potato-quickstart/src/main/resources/test

@@ -1,5 +1,7 @@
 package spark.streaming.potato.quickstart
 
+import java.util.concurrent.TimeUnit
+
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
@@ -16,6 +18,7 @@ object Kafka2KafkaDemo extends KafkaSourceTemplate[(String, String)] {
 
   override def doWork(args: Array[String]): Unit = {
     stream.map { f =>
+      TimeUnit.SECONDS.sleep(f._2.length)
       new ProducerRecord("test2", f._1, f._2)
     }.foreachRDD { rdd =>
       rdd.saveToKafka(conf.getAllWithPrefix(PRODUCER_CONFIG_PREFIX).toMap)

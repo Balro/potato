@@ -9,11 +9,13 @@ import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsExceptio
 import org.apache.zookeeper.{CreateMode, WatchedEvent, Watcher, ZooDefs, ZooKeeper}
 import org.json.{JSONException, JSONObject}
 import spark.streaming.potato.common.exception.PotatoException
+import spark.streaming.potato.common.traits.Service
+import spark.streaming.potato.common.utils.DaemonThreadFactory
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
 import scala.collection.JavaConversions
 
-class RunningLockManager(private[lock] val ssc: StreamingContext) extends Logging {
+class RunningLockManager(private[lock] val ssc: StreamingContext) extends Service with Logging {
   val conf: SparkConf = ssc.sparkContext.getConf
   val lock: RunningLock = conf.get(
     POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
@@ -29,7 +31,7 @@ class RunningLockManager(private[lock] val ssc: StreamingContext) extends Loggin
   }
 
   var locked: Boolean = false
-  var hbService: Option[ScheduledExecutorService] = None
+  var executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(DaemonThreadFactory)
 
   def tryLock(maxTry: Int = conf.getInt(POTATO_RUNNING_LOCK_TRY_MAX_KEY, POTATO_RUNNING_LOCK_TRY_MAX_DEFAULT),
               interval: Long = conf.getLong(POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_KEY, POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_DEFAULT),
@@ -58,13 +60,8 @@ class RunningLockManager(private[lock] val ssc: StreamingContext) extends Loggin
 
   def release(): Unit = {
     ssc.stop()
-    hbService match {
-      case Some(service) =>
-        service.shutdown()
-        if (!service.awaitTermination(5, TimeUnit.SECONDS))
-          service.shutdownNow()
-      case None =>
-    }
+    if (!executor.awaitTermination(5, TimeUnit.SECONDS))
+      executor.shutdownNow()
     lock.release()
     locked = false
   }
@@ -73,8 +70,7 @@ class RunningLockManager(private[lock] val ssc: StreamingContext) extends Loggin
     if (!locked) tryLock()
     val timeout = conf.getLong(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT)
     var lastHeartbeat = System.currentTimeMillis()
-    hbService = Option(Executors.newSingleThreadScheduledExecutor())
-    hbService.get.scheduleAtFixedRate(new Runnable {
+    executor.scheduleAtFixedRate(new Runnable {
       override def run(): Unit = {
         if (System.currentTimeMillis() - lastHeartbeat > timeout) {
           logError("Heartbeat timeout, stop app.")
@@ -150,6 +146,18 @@ class RunningLockManager(private[lock] val ssc: StreamingContext) extends Loggin
       "user" -> ctx.sparkUser,
       "webUri" -> ctx.uiWebUrl.getOrElse("null")
     ))).toString
+  }
+
+  override def stop(): Unit = {
+    logInfo("Stop RunningLockManager.")
+    release()
+    logInfo("RunningLockManager stopped.")
+  }
+
+  override def start(): Unit = {
+    logInfo("Start RunningLockManager.")
+    startHeartbeat()
+    logInfo("RunningLockManager started.")
   }
 }
 

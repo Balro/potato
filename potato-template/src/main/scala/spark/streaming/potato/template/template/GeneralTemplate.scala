@@ -3,18 +3,22 @@ package spark.streaming.potato.template.template
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
-import spark.streaming.potato.plugins.lock.RunningLockManager
-import spark.streaming.potato.template.context.PotatoContextUtil
+import spark.streaming.potato.common.traits.Service
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
+import spark.streaming.potato.plugins.lock.RunningLockManager
+import spark.streaming.potato.plugins.monitor.BacklogMonitor
+import spark.streaming.potato.plugins.monitor.MonitorConfigKeys._
+import spark.streaming.potato.template.context.PotatoContextUtil
+
+import scala.collection.mutable.ListBuffer
 
 abstract class GeneralTemplate extends Logging {
   var oConf: Option[SparkConf] = None
   var oSsc: Option[StreamingContext] = None
-  var oLock: Option[RunningLockManager] = None
+  val additionServices: ListBuffer[Service] = ListBuffer.empty[Service]
 
   lazy val conf: SparkConf = oConf.get
   lazy val ssc: StreamingContext = oSsc.get
-  lazy val lock: RunningLockManager = oLock.get
 
   def main(args: Array[String]): Unit = {
     createConf(args)
@@ -29,7 +33,7 @@ abstract class GeneralTemplate extends Logging {
     try {
       ssc.awaitTermination()
     } finally {
-      if (oLock.isDefined) lock.release()
+      stopAdditionServices()
       afterStop(args)
     }
   }
@@ -54,13 +58,12 @@ abstract class GeneralTemplate extends Logging {
 
     oSsc = Option(PotatoContextUtil.createContext(conf))
 
-    if (conf.getBoolean(
-      POTATO_RUNNING_LOCK_ENABLE_KEY, POTATO_RUNNING_LOCK_ENABLE_DEFAULT
-    )) {
-      logInfo("Enable running lock and start heartbeat.")
-      oLock = Option(new RunningLockManager(ssc))
-      lock.startHeartbeat()
+    services.foreach { info =>
+      if (conf.getBoolean(info.key, info.default))
+        addService(Class.forName(info.clazz).getConstructor(classOf[StreamingContext]).newInstance(ssc).asInstanceOf[Service])
     }
+
+    startAdditionServices()
   }
 
   def afterContextCreated(args: Array[String]): Unit = {
@@ -74,4 +77,31 @@ abstract class GeneralTemplate extends Logging {
   def afterStop(args: Array[String]): Unit = {
     logInfo("Method afterStop has been called.")
   }
+
+  private def addService(service: Service): Unit = {
+    additionServices += service
+    logInfo(s"Service: $service added to the app.")
+  }
+
+  private def startAdditionServices(): Unit = {
+    additionServices.foreach { service =>
+      service.start()
+      logInfo(s"Service: $service started.")
+    }
+  }
+
+  private def stopAdditionServices(): Unit = {
+    additionServices.foreach { service =>
+      service.stop()
+      logInfo(s"Service: $service stopped.")
+    }
+  }
+
+  private val services = Seq(
+    ServiceInfo(POTATO_RUNNING_LOCK_ENABLE_KEY, POTATO_RUNNING_LOCK_ENABLE_DEFAULT, classOf[RunningLockManager].getName),
+    ServiceInfo(MONITOR_BACKLOG_ENABLE_KEY, MONITOR_BACKLOG_ENABLE_DEFAULT, classOf[BacklogMonitor].getName)
+  )
+
+  case class ServiceInfo(key: String, default: Boolean, clazz: String)
+
 }

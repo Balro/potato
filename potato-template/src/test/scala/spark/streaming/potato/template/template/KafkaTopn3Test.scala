@@ -11,9 +11,9 @@ import spark.streaming.potato.plugins.kafka.source.KafkaSource
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
 object KafkaTopn3Test extends KafkaSourceTemplate[String] with Logging {
-  override def initKafka(ssc: StreamingContext, kafkaParam: Map[String, String]): (DStream[String], OffsetsManager) =
+  override def initKafka(ssc: StreamingContext): (DStream[String], OffsetsManager) =
     KafkaSource.createDStream[String, String, StringDecoder, StringDecoder, String](
-      ssc, kafkaParam, mam => mam.message())
+      ssc, messageHandler = mam => mam.message())
 
   override def doWork(args: Array[String]): Unit = {
     stream.foreachRDD { rdd =>

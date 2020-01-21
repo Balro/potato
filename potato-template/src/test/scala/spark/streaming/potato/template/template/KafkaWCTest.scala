@@ -10,8 +10,8 @@ import spark.streaming.potato.plugins.kafka.source.KafkaSource
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
 object KafkaWCTest extends KafkaSourceTemplate[(String, String)] with Logging {
-  override def initKafka(ssc: StreamingContext, kafkaParam: Map[String, String]): (DStream[(String, String)], OffsetsManager) =
-    KafkaSource.kvDStream(ssc, kafkaParam)
+  override def initKafka(ssc: StreamingContext): (DStream[(String, String)], OffsetsManager) =
+    KafkaSource.kvDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
     stream.flatMap(f => f._2.split("\\s+").map(_ -> 1)).reduceByKey(_ + _).print(10)

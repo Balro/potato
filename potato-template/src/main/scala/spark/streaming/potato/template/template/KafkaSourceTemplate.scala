@@ -8,7 +8,7 @@ abstract class KafkaSourceTemplate[E] extends GeneralTemplate {
   var oStream: Option[DStream[E]] = None
   var oOffsetsManager: Option[OffsetsManager] = None
 
-  def initKafka(ssc: StreamingContext, kafkaParam: Map[String, String]): (DStream[E], OffsetsManager)
+  def initKafka(ssc: StreamingContext): (DStream[E], OffsetsManager)
 
   def stream: DStream[E] = oStream.get
 
@@ -16,7 +16,7 @@ abstract class KafkaSourceTemplate[E] extends GeneralTemplate {
 
   override def afterContextCreated(args: Array[String]): Unit = {
     super.afterContextCreated(args)
-    val (s, om) = initKafka(ssc, Map.empty[String, String])
+    val (s, om) = initKafka(ssc)
     oStream = Option(s)
     oOffsetsManager = Option(om)
   }

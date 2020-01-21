@@ -53,6 +53,11 @@
             <artifactId>hbase-client</artifactId>
             <version>1.2.0-cdh5.14.4</version>
         </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch-spark-20_2.11</artifactId>
+            <version>6.3.0</version>
+        </dependency>
     </dependencies>
 
     <build>

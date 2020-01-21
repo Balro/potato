@@ -13,8 +13,8 @@ import spark.streaming.potato.plugins.kafka.KafkaConfigKeys._
 import spark.streaming.potato.plugins.kafka.utils.OffsetsUtilImplicits._
 
 object Kafka2KafkaDemo extends KafkaSourceTemplate[(String, String)] {
-  override def initKafka(ssc: StreamingContext, kafkaParam: Map[String, String]): (DStream[(String, String)], OffsetsManager) =
-    KafkaSource.kvDStream(ssc, kafkaParam)
+  override def initKafka(ssc: StreamingContext): (DStream[(String, String)], OffsetsManager) =
+    KafkaSource.kvDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
     stream.map { f =>

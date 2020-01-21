@@ -23,6 +23,16 @@ class HBaseOffsetsStorage(table: String, conf: Map[String, String]) extends Offs
   val hbaseConf: Configuration = HBaseConfiguration.create()
   conf.foreach { c => hbaseConf.set(c._1, c._2) }
 
+  /*
+   修复hbase无法连接时等待时间过长的bug。
+   时间仅供参考:
+      6 -> 17s
+      7 -> 37s
+      8 -> 81s
+      9 -> 192s
+      10 -> 322s
+   */
+  hbaseConf.set("hbase.client.retries.number", "8")
   val conn: Connection = ConnectionFactory.createConnection(hbaseConf)
 
   override def save(groupId: String, offsets: Map[TopicAndPartition, Long]): Boolean = {

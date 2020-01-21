@@ -14,8 +14,8 @@ import spark.streaming.potato.plugins.kafka.source.KafkaSource
 import spark.streaming.potato.template.template.KafkaSourceTemplate
 
 object Kafka2HBaseDemo extends KafkaSourceTemplate[String] {
-  override def initKafka(ssc: StreamingContext, kafkaParam: Map[String, String]): (DStream[String], OffsetsManager) =
-    KafkaSource.valueDStream(ssc, kafkaParam)
+  override def initKafka(ssc: StreamingContext): (DStream[String], OffsetsManager) =
+    KafkaSource.valueDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
     stream.foreachRDD { rdd =>

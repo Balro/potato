@@ -10,9 +10,12 @@ object KafkaDemo extends Logging {
     val conf = new SparkConf()
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val (stream, _) = KafkaSource.valueDStream(ssc)
+    val (stream, manager) = KafkaSource.valueDStream(ssc)
 
-    stream.foreachRDD(rdd => rdd.foreach(r => println(r)))
+    stream.foreachRDD { (rdd, time) =>
+      rdd.foreach(r => println(r))
+      manager.updateOffsetsByDelay(time.milliseconds)
+    }
 
     ssc.start()
     ssc.awaitTermination()

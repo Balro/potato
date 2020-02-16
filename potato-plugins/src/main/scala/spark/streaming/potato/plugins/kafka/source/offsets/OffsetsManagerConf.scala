@@ -9,14 +9,14 @@ import scala.language.implicitConversions
 
 class OffsetsManagerConf(sparkConf: Map[String, String], kafkaParams: Map[String, String] = Map.empty) {
   private val requiredKey = Set(
-    CONSUMER_BOOTSTRAP_SERVERS_KEY,
-    CONSUMER_GROUP_ID_KEY,
-    SUBSCRIBE_TOPICS_KEY,
-    OFFSETS_STORAGE_KEY,
-    CONSUMER_OFFSET_RESET_POLICY
+    KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY,
+    KAFKA_CONSUMER_GROUP_ID_KEY,
+    KAFKA_SUBSCRIBE_TOPICS_KEY,
+    KAFKA_OFFSETS_STORAGE_KEY,
+    KAFKA_CONSUMER_OFFSET_RESET_POLICY
   )
   private val mapKey = Map(
-    CONSUMER_OFFSET_RESET_POLICY -> Set("earliest" -> "smallest", "latest" -> "largest")
+    KAFKA_CONSUMER_OFFSET_RESET_POLICY -> Set("earliest" -> "smallest", "latest" -> "largest")
   )
 
   private val cleanedConf = {
@@ -31,10 +31,10 @@ class OffsetsManagerConf(sparkConf: Map[String, String], kafkaParams: Map[String
     }
 
     val tmpKafkaParams = kafkaParams.map { conf =>
-      CONSUMER_CONFIG_PREFIX + conf._1 -> conf._2
+      KAFKA_CONSUMER_CONFIG_PREFIX + conf._1 -> conf._2
     }
 
-    val ret = Map(CONSUMER_CONFIG_PREFIX + "zookeeper.connect" -> "") ++ sparkConf ++ tmpConf ++ tmpKafkaParams
+    val ret = Map(KAFKA_CONSUMER_CONFIG_PREFIX + "zookeeper.connect" -> "") ++ sparkConf ++ tmpConf ++ tmpKafkaParams
 
     requiredKey.foreach { k =>
       if (!ret.contains(k))
@@ -50,20 +50,20 @@ class OffsetsManagerConf(sparkConf: Map[String, String], kafkaParams: Map[String
     }
   }
 
-  val bootstrapServers: String = cleanedConf(CONSUMER_BOOTSTRAP_SERVERS_KEY)
-  val groupId: String = cleanedConf(CONSUMER_GROUP_ID_KEY)
-  val subscribeTopics: Set[String] = cleanedConf(SUBSCRIBE_TOPICS_KEY)
+  val bootstrapServers: String = cleanedConf(KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY)
+  val groupId: String = cleanedConf(KAFKA_CONSUMER_GROUP_ID_KEY)
+  val subscribeTopics: Set[String] = cleanedConf(KAFKA_SUBSCRIBE_TOPICS_KEY)
     .split(",").map(_.trim).toSet
-  val storageType: String = cleanedConf(OFFSETS_STORAGE_KEY)
-  val offsetResetPolicy: String = cleanedConf(CONSUMER_OFFSET_RESET_POLICY)
+  val storageType: String = cleanedConf(KAFKA_OFFSETS_STORAGE_KEY)
+  val offsetResetPolicy: String = cleanedConf(KAFKA_CONSUMER_OFFSET_RESET_POLICY)
   val offsetsAutoUpdate: Boolean = cleanedConf.getOrElse(
-    OFFSETS_AUTO_UPDATE_KEY, OFFSETS_AUTO_UPDATE_DEFAULT).toBoolean
+    KAFKA_OFFSETS_AUTO_UPDATE_KEY, KAFKA_OFFSETS_AUTO_UPDATE_DEFAULT).toBoolean
   val offsetsAutoUpdateDelay: Long = cleanedConf.getOrElse(
-    OFFSETS_AUTO_UPDATE_DELAY_KEY, OFFSETS_AUTO_UPDATE_DELAY_DEFAULT).toLong
+    KAFKA_OFFSETS_AUTO_UPDATE_DELAY_KEY, KAFKA_OFFSETS_AUTO_UPDATE_DELAY_DEFAULT).toLong
   val consumerConfigs: Map[String, String] = cleanedConf.filter {
-    _._1.startsWith(CONSUMER_CONFIG_PREFIX)
+    _._1.startsWith(KAFKA_CONSUMER_CONFIG_PREFIX)
   }.map { conf =>
-    conf._1.substring(CONSUMER_CONFIG_PREFIX.length) -> conf._2
+    conf._1.substring(KAFKA_CONSUMER_CONFIG_PREFIX.length) -> conf._2
   }
 }
 

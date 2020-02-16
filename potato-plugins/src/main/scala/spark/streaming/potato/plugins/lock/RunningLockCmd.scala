@@ -1,7 +1,7 @@
 package spark.streaming.potato.plugins.lock
 
 import org.apache.spark.SparkConf
-import spark.streaming.potato.common.utils.GeneralCmd
+import spark.streaming.potato.common.util.GeneralCmd
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
 object RunningLockCmd extends GeneralCmd {

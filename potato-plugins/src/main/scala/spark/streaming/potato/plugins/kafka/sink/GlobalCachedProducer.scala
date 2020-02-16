@@ -11,15 +11,16 @@ import org.apache.kafka.clients.producer.KafkaProducer
  * 若想提高并发，请增加executor数量。
  */
 object GlobalCachedProducer {
-  private val producers = new ConcurrentHashMap[Properties, KafkaProducer[String, String]]()
+  private val producers = new ConcurrentHashMap[Properties, KafkaProducer[Any,Any]]()
 
-  private def getProducer(prop: Properties): KafkaProducer[String, String] = synchronized {
+  private def getProducer[K, V](prop: Properties): KafkaProducer[K, V] = synchronized {
     import scala.collection.JavaConversions.mapAsScalaConcurrentMap
-    producers.getOrElseUpdate(prop, new KafkaProducer[String, String](prop))
+    producers.getOrElseUpdate(prop, new KafkaProducer[K, V](prop).asInstanceOf[KafkaProducer[Any,Any]])
+      .asInstanceOf[KafkaProducer[K, V]]
   }
 
-  def withProducer[R](prop: Properties)(f: KafkaProducer[String, String] => R): R = {
-    val producer = getProducer(prop)
+  def withProducer[K, V, R](prop: Properties)(f: KafkaProducer[K, V] => R): R = {
+    val producer = getProducer[K, V](prop)
     val ret = f(producer)
     producer.flush()
     ret

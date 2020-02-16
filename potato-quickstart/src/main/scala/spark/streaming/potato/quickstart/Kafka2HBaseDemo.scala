@@ -8,6 +8,7 @@ import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import spark.streaming.potato.plugins.hbase.HBaseConfigKeys._
 import spark.streaming.potato.plugins.hbase.HBaseImplicits._
+import spark.streaming.potato.plugins.hbase.sink.HBaseSinkImplicits._
 import spark.streaming.potato.plugins.hbase.sink.{MutationAction, MutationType}
 import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsManager
 import spark.streaming.potato.plugins.kafka.source.KafkaSource
@@ -41,7 +42,7 @@ object Kafka2HBaseDemo extends KafkaSourceTemplate[String] {
             1
           ))
         )
-      }.saveToHBaseTable(conf.getAllWithPrefix(POTATO_HBASE_SITE_PREFIX).toMap, "test")
+      }.saveToHBase(conf.getAllWithPrefix(POTATO_HBASE_SITE_PREFIX).toMap, "test")
     }
   }
 }

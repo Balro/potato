@@ -1,4 +1,4 @@
-package spark.streaming.potato.common.utils
+package spark.streaming.potato.common.util
 
 /**
  * 命令行参数请务必指定 --action 参数，指定调用的Action。

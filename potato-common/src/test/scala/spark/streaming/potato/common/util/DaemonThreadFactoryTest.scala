@@ -1,4 +1,4 @@
-package spark.streaming.potato.common.utils
+package spark.streaming.potato.common.util
 
 import java.util.Date
 import java.util.concurrent.{Executors, TimeUnit}

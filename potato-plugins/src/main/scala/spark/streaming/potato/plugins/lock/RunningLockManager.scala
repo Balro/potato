@@ -9,8 +9,8 @@ import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsExceptio
 import org.apache.zookeeper.{CreateMode, WatchedEvent, Watcher, ZooDefs, ZooKeeper}
 import org.json.{JSONException, JSONObject}
 import spark.streaming.potato.common.exception.PotatoException
-import spark.streaming.potato.common.traits.Service
-import spark.streaming.potato.common.utils.DaemonThreadFactory
+import spark.streaming.potato.common.util.Service
+import spark.streaming.potato.common.util.DaemonThreadFactory
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
 import scala.collection.JavaConversions

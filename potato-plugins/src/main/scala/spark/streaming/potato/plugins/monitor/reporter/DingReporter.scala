@@ -1,7 +1,7 @@
 package spark.streaming.potato.plugins.monitor.reporter
 
 import org.apache.spark.internal.Logging
-import spark.streaming.potato.common.utils.DingRobot
+import spark.streaming.potato.common.util.DingRobot
 import spark.streaming.potato.plugins.monitor.MonitorConfigKeys._
 
 class DingReporter(conf: Map[String, String]) extends Reporter with Logging {

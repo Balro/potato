@@ -21,8 +21,8 @@ class OffsetsManager(conf: OffsetsManagerConf) extends Logging {
     case "kafka" => new KafkaOffsetsStorage(brokers, offsetUtilConf)
     case "zookeeper" => new ZookeeperOffsetsStorage(brokers, offsetUtilConf)
     case "hbase" => new HBaseOffsetsStorage(
-      conf.getOrElse(HBASE_TABLE_KEY, HBASE_TABLE_DEFAULT),
-      conf.subPrefixConf(HBASE_CONF_PREFIX)
+      conf.getOrElse(KAFKA_HBASE_TABLE_KEY, KAFKA_HBASE_TABLE_DEFAULT),
+      conf.subPrefixConf(KAFKA_HBASE_CONF_PREFIX)
     )
     case "none" => new NoneOffsetsStorage
     case unknown => throw new KafkaException(s"storage type not supported: $unknown")

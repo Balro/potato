@@ -1,4 +1,4 @@
-package spark.streaming.potato.common.utils
+package spark.streaming.potato.common.util
 
 object ArgsParserUtil {
   def parse(args: TraversableOnce[String], ks: Set[String] = Set.empty, kvs: Set[String] = Set.empty): Map[String, String] = {

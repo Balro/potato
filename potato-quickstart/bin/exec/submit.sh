@@ -3,7 +3,9 @@
 module_usage() {
   cat <<EOF
 Usage:
-    $(basename $0) <potato_conf_file> submit [main jar args]
+  $(basename $0) <potato_conf_file> submit [-s] [main jar args]
+Args:
+  -s  Start app silently，log msg to logfile.
 EOF
 }
 
@@ -24,13 +26,20 @@ module_submit() {
   $submit_bin --properties-file $potato_conf_file \
     --jars $global_jars \
     --class $main_class \
-    $POTATO_LIB_DIR/$main_jar "$@" \
-    >$POTATO_LOG_DIR/$main_jar-$main_class-$(date +'%Y%m%d_%H%M%S').out 2>&1
+    $POTATO_LIB_DIR/$main_jar "$@"
+
 }
 
 do_work() {
   export_module_params
   export_global_jars
   export_module_main_jar
-  module_submit "$@"
+
+  if [ "$1" = "-s" ]; then
+    shift
+    export -f module_submit
+    nohup bash -c "module_submit \"$@\"" >$POTATO_LOG_DIR/$main_jar-$main_class-$(date +'%Y%m%d_%H%M%S').out 2>&1 &
+  else
+    module_submit "$@"
+  fi
 }

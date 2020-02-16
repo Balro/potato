@@ -1,10 +1,8 @@
-package spark.streaming.potato.common.utils
+package spark.streaming.potato.common.util
 
 import org.apache.spark.internal.Logging
 import org.json.JSONObject
 import scalaj.http.Http
-
-import scala.collection.JavaConversions.mapAsJavaMap
 
 object DingRobot extends Logging {
   val url = "https://oapi.dingtalk.com/robot/send"
@@ -25,6 +23,7 @@ object DingRobot extends Logging {
   }
 
   private def mkMsg(msg: String, atAll: Boolean, phones: Array[String]): String = {
+    import scala.collection.JavaConversions.mapAsJavaMap
     new JSONObject(mapAsJavaMap(Map(
       "msgtype" -> "text",
       "text" -> mapAsJavaMap(Map(

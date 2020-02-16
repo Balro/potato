@@ -1,9 +1,9 @@
-package spark.streaming.potato.template.context
+package spark.streaming.potato.common.context
 
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
-import spark.streaming.potato.common.exception.ConfigNotFoundException
 import spark.streaming.potato.common.conf.CommonConfigKeys.POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY
+import spark.streaming.potato.common.exception.ConfigNotFoundException
 
 object PotatoContextUtil {
   def createContext(conf: SparkConf): StreamingContext = {

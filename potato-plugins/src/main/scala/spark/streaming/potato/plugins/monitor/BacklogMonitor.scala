@@ -2,16 +2,15 @@ package spark.streaming.potato.plugins.monitor
 
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
+import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
-import org.apache.spark.streaming.scheduler.{StreamingListener, StreamingListenerBatchCompleted, StreamingListenerBatchSubmitted, StreamingListenerStreamingStarted}
+import org.apache.spark.streaming.scheduler._
 import spark.streaming.potato.common.exception.PotatoException
-import spark.streaming.potato.common.traits.Service
-import spark.streaming.potato.common.utils.DaemonThreadFactory
+import spark.streaming.potato.common.util.{DaemonThreadFactory, Service}
 import spark.streaming.potato.plugins.monitor.reporter.{DingReporter, Reporter}
 
 class BacklogMonitor(ssc: StreamingContext) extends StreamingListener with Runnable with Service with Logging {
@@ -86,6 +85,7 @@ class BacklogMonitor(ssc: StreamingContext) extends StreamingListener with Runna
        |reportTime    : ${df.format(new Date())}
        |appName       : ${ssc.sparkContext.appName}
        |appId         : ${ssc.sparkContext.applicationId}
+       |webui         : ${ssc.sparkContext.uiWebUrl.getOrElse("unknown")}
        |delayBatch    : ${delayBatch.get()}
        |delayTime     : ${currentDelay / 1000}s
        |threshold     : ${conf.threshold / 1000}s

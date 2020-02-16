@@ -3,12 +3,12 @@ package spark.streaming.potato.template.template
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
-import spark.streaming.potato.common.traits.Service
+import spark.streaming.potato.common.util.Service
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 import spark.streaming.potato.plugins.lock.RunningLockManager
 import spark.streaming.potato.plugins.monitor.BacklogMonitor
 import spark.streaming.potato.plugins.monitor.MonitorConfigKeys._
-import spark.streaming.potato.template.context.PotatoContextUtil
+import spark.streaming.potato.common.context.PotatoContextUtil
 
 import scala.collection.mutable.ListBuffer
 
@@ -17,8 +17,8 @@ abstract class GeneralTemplate extends Logging {
   var oSsc: Option[StreamingContext] = None
   val additionServices: ListBuffer[Service] = ListBuffer.empty[Service]
 
-  lazy val conf: SparkConf = oConf.get
-  lazy val ssc: StreamingContext = oSsc.get
+  def conf: SparkConf = oConf.get
+  def ssc: StreamingContext = oSsc.get
 
   def main(args: Array[String]): Unit = {
     createConf(args)
@@ -57,17 +57,16 @@ abstract class GeneralTemplate extends Logging {
       throw new Exception("Spark conf is not initialized.")
 
     oSsc = Option(PotatoContextUtil.createContext(conf))
+  }
 
+  def afterContextCreated(args: Array[String]): Unit = {
+    logInfo("Method afterContextCreated has been called.")
     services.foreach { info =>
       if (conf.getBoolean(info.key, info.default))
         addService(Class.forName(info.clazz).getConstructor(classOf[StreamingContext]).newInstance(ssc).asInstanceOf[Service])
     }
 
     startAdditionServices()
-  }
-
-  def afterContextCreated(args: Array[String]): Unit = {
-    logInfo("Method afterContextCreated has been called.")
   }
 
   def afterStart(args: Array[String]): Unit = {

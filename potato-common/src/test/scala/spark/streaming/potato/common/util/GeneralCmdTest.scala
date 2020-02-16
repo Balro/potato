@@ -1,4 +1,4 @@
-package spark.streaming.potato.common.utils
+package spark.streaming.potato.common.util
 
 object GeneralCmdImp extends GeneralCmd {
   /**

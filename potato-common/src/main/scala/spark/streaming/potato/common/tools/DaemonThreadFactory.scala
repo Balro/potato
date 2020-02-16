@@ -1,4 +1,4 @@
-package spark.streaming.potato.common.util
+package spark.streaming.potato.common.tools
 
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger

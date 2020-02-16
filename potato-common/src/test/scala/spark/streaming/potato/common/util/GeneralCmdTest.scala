@@ -1,5 +1,7 @@
 package spark.streaming.potato.common.util
 
+import spark.streaming.potato.common.tools.GeneralCmd
+
 object GeneralCmdImp extends GeneralCmd {
   /**
    * 添加action以及其他初始化。

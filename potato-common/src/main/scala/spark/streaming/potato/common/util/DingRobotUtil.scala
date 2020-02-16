@@ -4,7 +4,7 @@ import org.apache.spark.internal.Logging
 import org.json.JSONObject
 import scalaj.http.Http
 
-object DingRobot extends Logging {
+object DingRobotUtil extends Logging {
   val url = "https://oapi.dingtalk.com/robot/send"
 
   def ding(token: String, msg: String, atAll: Boolean = false, phones: Array[String] = Array.empty): Boolean = {

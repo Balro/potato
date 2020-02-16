@@ -2,7 +2,7 @@ package spark.streaming.potato.plugins.kafka.source.offsets
 
 import kafka.consumer.ConsumerConfig
 import org.apache.spark.SparkConf
-import spark.streaming.potato.common.util.GeneralCmd
+import spark.streaming.potato.common.tools.GeneralCmd
 import spark.streaming.potato.plugins.kafka.utils.OffsetsUtil
 
 object OffsetsCmd extends GeneralCmd {

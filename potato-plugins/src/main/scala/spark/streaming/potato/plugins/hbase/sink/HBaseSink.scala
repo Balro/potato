@@ -1,17 +1,17 @@
 package spark.streaming.potato.plugins.hbase.sink
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.client.Mutation
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
+import spark.streaming.potato.plugins.hbase.SerializableConfiguration
 import spark.streaming.potato.plugins.hbase.TableUtil._
 
 object HBaseSink extends Logging {
-  def saveToHBase(rdd: RDD[MutationAction], conf: Configuration, table: String, bufferSize: Int): Unit = {
+  def saveToHBase(rdd: RDD[MutationAction], conf: SerializableConfiguration, table: String, bufferSize: Int): Unit = {
     rdd.foreachPartition { part =>
       withMutator(conf, table) { mutator =>
-        withBufferedSinkTable(conf, table,bufferSize) { btbl =>
+        withBufferedSinkTable(conf, table, bufferSize) { btbl =>
           part.foreach {
             case MutationAction(MutationType.APPEND, mutation) =>
               btbl.add(mutation)
@@ -29,7 +29,7 @@ object HBaseSink extends Logging {
     }
   }
 
-  def saveToHBase(stream: DStream[MutationAction], conf: Configuration, table: String, bufferSize: Int): Unit = {
+  def saveToHBase(stream: DStream[MutationAction], conf: SerializableConfiguration, table: String, bufferSize: Int): Unit = {
     stream.foreachRDD { rdd =>
       saveToHBase(rdd, conf, table, bufferSize)
     }
@@ -39,13 +39,13 @@ object HBaseSink extends Logging {
 object HBaseSinkImplicits {
 
   class MutationActionRDD(rdd: RDD[MutationAction]) extends Serializable {
-    def saveToHBase(conf: Configuration, table: String, bufferSize: Int = 1000): Unit = {
+    def saveToHBase(conf: SerializableConfiguration, table: String, bufferSize: Int = 1000): Unit = {
       HBaseSink.saveToHBase(rdd, conf, table, bufferSize)
     }
   }
 
   class MutationActionDStream(stream: DStream[MutationAction]) extends Serializable {
-    def saveToHBase(conf: Configuration, table: String, bufferSize: Int = 1000): Unit = {
+    def saveToHBase(conf: SerializableConfiguration, table: String, bufferSize: Int = 1000): Unit = {
       HBaseSink.saveToHBase(stream, conf, table, bufferSize)
     }
   }

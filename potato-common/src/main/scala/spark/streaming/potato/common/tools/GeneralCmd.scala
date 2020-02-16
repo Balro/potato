@@ -1,4 +1,6 @@
-package spark.streaming.potato.common.util
+package spark.streaming.potato.common.tools
+
+import spark.streaming.potato.common.util.ArgsParserUtil
 
 /**
  * 命令行参数请务必指定 --action 参数，指定调用的Action。

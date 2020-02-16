@@ -8,9 +8,9 @@ import org.apache.spark.streaming.StreamingContext
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException, SessionExpiredException}
 import org.apache.zookeeper.{CreateMode, WatchedEvent, Watcher, ZooDefs, ZooKeeper}
 import org.json.{JSONException, JSONObject}
+import spark.streaming.potato.common.context.Service
 import spark.streaming.potato.common.exception.PotatoException
-import spark.streaming.potato.common.util.Service
-import spark.streaming.potato.common.util.DaemonThreadFactory
+import spark.streaming.potato.common.tools.DaemonThreadFactory
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
 import scala.collection.JavaConversions

@@ -3,6 +3,8 @@ package spark.streaming.potato.common.util
 import java.util.Date
 import java.util.concurrent.{Executors, TimeUnit}
 
+import spark.streaming.potato.common.tools.DaemonThreadFactory
+
 object DaemonThreadFactoryTest {
   def main(args: Array[String]): Unit = {
     val executor = Executors.newSingleThreadScheduledExecutor(DaemonThreadFactory)

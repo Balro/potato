@@ -102,7 +102,7 @@
                 <version>3.1.1</version>
                 <configuration>
                     <excludes>
-                        <exclude>log4j.properties</exclude>
+                        <exclude>*</exclude>
                     </excludes>
                 </configuration>
             </plugin>

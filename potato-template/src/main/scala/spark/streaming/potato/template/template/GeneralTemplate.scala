@@ -3,12 +3,11 @@ package spark.streaming.potato.template.template
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
-import spark.streaming.potato.common.util.Service
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 import spark.streaming.potato.plugins.lock.RunningLockManager
 import spark.streaming.potato.plugins.monitor.BacklogMonitor
 import spark.streaming.potato.plugins.monitor.MonitorConfigKeys._
-import spark.streaming.potato.common.context.PotatoContextUtil
+import spark.streaming.potato.common.context.{PotatoContextUtil, Service}
 
 import scala.collection.mutable.ListBuffer
 

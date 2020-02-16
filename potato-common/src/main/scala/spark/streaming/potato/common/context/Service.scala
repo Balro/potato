@@ -1,4 +1,4 @@
-package spark.streaming.potato.common.util
+package spark.streaming.potato.common.context
 
 trait Service {
   def start(): Unit

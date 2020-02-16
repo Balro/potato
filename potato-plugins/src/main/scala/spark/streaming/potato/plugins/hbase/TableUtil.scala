@@ -3,7 +3,6 @@ package spark.streaming.potato.plugins.hbase
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
-import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{BufferedMutator, Row, Table}
 import spark.streaming.potato.common.exception.PotatoException
@@ -12,28 +11,28 @@ import spark.streaming.potato.plugins.hbase.GlobalConnectionCache.getCachedConne
 import scala.collection.mutable.ListBuffer
 
 object TableUtil {
-  def withMutator[R](conf: Configuration, table: String)(f: BufferedMutator => R): R = {
+  def withMutator[R](conf: SerializableConfiguration, table: String)(f: BufferedMutator => R): R = {
     val mtt = getCachedConnection(conf).getBufferedMutator(TableName.valueOf(table))
     val ret = f(mtt)
     mtt.close()
     ret
   }
 
-  def withTable[R](conf: Configuration, table: String)(f: Table => R): R = {
+  def withTable[R](conf: SerializableConfiguration, table: String)(f: Table => R): R = {
     val tbl = getCachedConnection(conf).getTable(TableName.valueOf(table))
     val ret = f(tbl)
     tbl.close()
     ret
   }
 
-  def withBufferedSinkTable[R](conf: Configuration, table: String, bufferSize: Int)(f: BufferedSinkTable => R): R = {
+  def withBufferedSinkTable[R](conf: SerializableConfiguration, table: String, bufferSize: Int)(f: BufferedSinkTable => R): R = {
     val sinkTable = new BufferedSinkTable(getCachedConnection(conf).getTable(TableName.valueOf(table)), bufferSize)
     val ret = f(sinkTable)
     sinkTable.close()
     ret
   }
 
-  def withSynchronizedBufferedSinkTable[R](conf: Configuration, table: String, bufferSize: Int)(f: SynchronizedBufferedSinkTable => R): R = {
+  def withSynchronizedBufferedSinkTable[R](conf: SerializableConfiguration, table: String, bufferSize: Int)(f: SynchronizedBufferedSinkTable => R): R = {
     val sinkTable = new SynchronizedBufferedSinkTable(getCachedConnection(conf).getTable(TableName.valueOf(table)), bufferSize)
     val ret = f(sinkTable)
     sinkTable.close()

@@ -9,8 +9,9 @@ import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.scheduler._
+import spark.streaming.potato.common.context.Service
 import spark.streaming.potato.common.exception.PotatoException
-import spark.streaming.potato.common.util.{DaemonThreadFactory, Service}
+import spark.streaming.potato.common.tools.DaemonThreadFactory
 import spark.streaming.potato.plugins.monitor.reporter.{DingReporter, Reporter}
 
 class BacklogMonitor(ssc: StreamingContext) extends StreamingListener with Runnable with Service with Logging {

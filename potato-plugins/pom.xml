@@ -10,6 +10,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>potato-plugins</artifactId>
+    <packaging>pom</packaging>
+    <modules>
+        <module>potato-plugin-hbase</module>
+        <module>potato-plugin-kafka</module>
+        <module>potato-plugin-lock</module>
+        <module>potato-plugin-monitor</module>
+    </modules>
 
     <dependencies>
         <dependency>
@@ -37,26 +44,6 @@
             <artifactId>spark-streaming_${scala.version}</artifactId>
             <version>${spark.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming-kafka-0-8_${scala.version}</artifactId>
-            <version>${spark.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20171018</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
-            <version>1.2.0-cdh5.14.4</version>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch-spark-20_2.11</artifactId>
-            <version>6.3.0</version>
         </dependency>
     </dependencies>
 

@@ -17,7 +17,7 @@ export_module_params() {
 }
 
 export_module_main_jar() {
-  export module_main_jar=$(find $POTATO_LIB_DIR -name potato-plugins-*.jar)
+  export module_main_jar=$(find $POTATO_LIB_DIR -name potato-plugin-lock-*.jar)
 }
 
 module_submit() {

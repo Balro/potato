@@ -5,7 +5,6 @@ import org.apache.spark.streaming.dstream.DStream
 import spark.streaming.potato.plugins.kafka.source.KafkaSource
 import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsManager
 import spark.streaming.potato.template.template.KafkaSourceTemplate
-
 import org.elasticsearch.spark._
 
 object Kafka2EsDemo extends KafkaSourceTemplate[String] {

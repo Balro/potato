@@ -28,11 +28,6 @@
             <version>1.2.17</version>
         </dependency>
         <dependency>
-            <groupId>spark.streaming.potato</groupId>
-            <artifactId>potato-plugins</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming_${scala.version}</artifactId>
             <version>${spark.version}</version>
@@ -42,6 +37,26 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming-kafka-0-8_${scala.version}</artifactId>
             <version>${spark.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>spark.streaming.potato</groupId>
+            <artifactId>potato-common</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>spark.streaming.potato</groupId>
+            <artifactId>potato-plugin-kafka</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>spark.streaming.potato</groupId>
+            <artifactId>potato-plugin-lock</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>spark.streaming.potato</groupId>
+            <artifactId>potato-plugin-monitor</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

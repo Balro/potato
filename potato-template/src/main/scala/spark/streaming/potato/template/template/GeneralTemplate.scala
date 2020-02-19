@@ -7,14 +7,14 @@ import spark.streaming.potato.plugins.lock.LockConfigKeys._
 import spark.streaming.potato.plugins.lock.RunningLockManager
 import spark.streaming.potato.plugins.monitor.BacklogMonitor
 import spark.streaming.potato.plugins.monitor.MonitorConfigKeys._
-import spark.streaming.potato.common.context.{PotatoContextUtil, Service}
+import spark.streaming.potato.common.context.{PotatoContextUtil, Service, ServiceInfo}
 
 import scala.collection.mutable.ListBuffer
 
 abstract class GeneralTemplate extends Logging {
-  var oConf: Option[SparkConf] = None
-  var oSsc: Option[StreamingContext] = None
-  val additionServices: ListBuffer[Service] = ListBuffer.empty[Service]
+  protected var oConf: Option[SparkConf] = None
+  protected var oSsc: Option[StreamingContext] = None
+  protected val additionServices: ListBuffer[Service] = ListBuffer.empty[Service]
 
   def conf: SparkConf = oConf.get
   def ssc: StreamingContext = oSsc.get
@@ -99,7 +99,5 @@ abstract class GeneralTemplate extends Logging {
     ServiceInfo(POTATO_RUNNING_LOCK_ENABLE_KEY, POTATO_RUNNING_LOCK_ENABLE_DEFAULT, classOf[RunningLockManager].getName),
     ServiceInfo(MONITOR_BACKLOG_ENABLE_KEY, MONITOR_BACKLOG_ENABLE_DEFAULT, classOf[BacklogMonitor].getName)
   )
-
-  case class ServiceInfo(key: String, default: Boolean, clazz: String)
 
 }

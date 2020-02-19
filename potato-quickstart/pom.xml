@@ -18,9 +18,10 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scala.version>2.11</scala.version>
+        <scala.version>2.11.12</scala.version>
         <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
         <spark.version>2.2.0.cloudera2</spark.version>
+        <spark.scala.version>2.11</spark.scala.version>
     </properties>
 
     <dependencies>
@@ -41,7 +42,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming_${scala.version}</artifactId>
+            <artifactId>spark-streaming_${spark.scala.version}</artifactId>
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -49,6 +50,16 @@
             <groupId>spark.streaming.potato</groupId>
             <artifactId>potato-template</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>spark.streaming.potato</groupId>
+            <artifactId>potato-plugin-hbase</artifactId>
+            <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch-spark-20_2.11</artifactId>
+            <version>6.3.0</version>
         </dependency>
     </dependencies>
 

@@ -1,7 +1,5 @@
 package spark.streaming.potato.quickstart
 
-import java.util.concurrent.TimeUnit
-
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream

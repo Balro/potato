@@ -7,7 +7,6 @@ import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import spark.streaming.potato.plugins.hbase.HBaseConfigKeys._
-import spark.streaming.potato.plugins.hbase.HBaseImplicits._
 import spark.streaming.potato.plugins.hbase.sink.HBaseSinkImplicits._
 import spark.streaming.potato.plugins.hbase.sink.{MutationAction, MutationType}
 import spark.streaming.potato.plugins.kafka.source.KafkaSource

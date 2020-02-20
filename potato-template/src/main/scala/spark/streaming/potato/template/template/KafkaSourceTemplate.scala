@@ -5,19 +5,19 @@ import org.apache.spark.streaming.dstream.DStream
 import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsManager
 
 abstract class KafkaSourceTemplate[E] extends GeneralTemplate {
-  var oStream: Option[DStream[E]] = None
-  var oOffsetsManager: Option[OffsetsManager] = None
+  private var stream: DStream[E] = _
+  private var offsetsManager: OffsetsManager = _
 
   def initKafka(ssc: StreamingContext): (DStream[E], OffsetsManager)
 
-  def stream: DStream[E] = oStream.get
+  def getStream: DStream[E] = stream
 
-  def offsetsManager: OffsetsManager = oOffsetsManager.get
+  def getOffsetsManager: OffsetsManager = offsetsManager
 
   override def afterContextCreated(args: Array[String]): Unit = {
     super.afterContextCreated(args)
-    val (s, om) = initKafka(ssc)
-    oStream = Option(s)
-    oOffsetsManager = Option(om)
+    val (s, o) = initKafka(getSsc)
+    stream = s
+    offsetsManager = o
   }
 }

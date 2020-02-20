@@ -1,6 +1,7 @@
 package spark.streaming.potato.template.template
 
 import kafka.serializer.StringDecoder
+import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
@@ -16,13 +17,13 @@ object KafkaTopn3Test extends KafkaSourceTemplate[String] with Logging {
       ssc, messageHandler = mam => mam.message())
 
   override def doWork(args: Array[String]): Unit = {
-    stream.foreachRDD { rdd =>
+    getStream.foreachRDD { rdd =>
       rdd.top(10).foreach(println)
     }
   }
 
-  override def afterConfCreated(args: Array[String]): Unit = {
-    super.afterConfCreated(args)
+  override def afterConfCreated(args: Array[String],conf:SparkConf): Unit = {
+    super.afterConfCreated(args,conf)
     conf.setMaster("local[10]").setAppName("test")
     conf.set(POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY, "20")
     conf.set(KAFKA_OFFSETS_STORAGE_KEY, "zookeeper")

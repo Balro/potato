@@ -41,7 +41,7 @@ object SerializableConfiguration {
     SerializableConfiguration(mapToConfiguration(map))
   }
 
-  implicit def defaultConfFromSpark(conf: SparkConf): SerializableConfiguration = {
+  implicit def confFromSpark(conf: SparkConf): SerializableConfiguration = {
     mapToSerializableConfiguration(conf.getAllWithPrefix(HBaseConfigKeys.POTATO_HBASE_SITE_PREFIX).toMap)
   }
 }

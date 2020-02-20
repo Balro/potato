@@ -1,5 +1,6 @@
 package spark.streaming.potato.template.template
 
+import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
@@ -14,11 +15,11 @@ object KafkaWCTest extends KafkaSourceTemplate[(String, String)] with Logging {
     KafkaSource.kvDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
-    stream.flatMap(f => f._2.split("\\s+").map(_ -> 1)).reduceByKey(_ + _).print(10)
+    getStream.flatMap(f => f._2.split("\\s+").map(_ -> 1)).reduceByKey(_ + _).print(10)
   }
 
-  override def afterConfCreated(args: Array[String]): Unit = {
-    super.afterConfCreated(args)
+  override def afterConfCreated(args: Array[String], conf: SparkConf): Unit = {
+    super.afterConfCreated(args, conf)
     conf.setMaster("local[10]").setAppName("test")
     conf.set(POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY, "20")
     conf.set(KAFKA_OFFSETS_STORAGE_KEY, "zookeeper")

@@ -6,7 +6,6 @@ import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
-import spark.streaming.potato.plugins.hbase.HBaseConfigKeys._
 import spark.streaming.potato.plugins.hbase.sink.HBaseSinkImplicits._
 import spark.streaming.potato.plugins.hbase.sink.{MutationAction, MutationType}
 import spark.streaming.potato.plugins.kafka.source.KafkaSource
@@ -18,7 +17,7 @@ object Kafka2HBaseDemo extends KafkaSourceTemplate[String] {
     KafkaSource.valueDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
-    stream.transform { rdd =>
+    getStream.transform { rdd =>
       rdd.flatMap { f =>
         f.split("\\s+")
       }.distinct().filter {
@@ -30,6 +29,6 @@ object Kafka2HBaseDemo extends KafkaSourceTemplate[String] {
           Bytes.toBytes(new Date().toString)
         ))
       }
-    }.saveToHBase(conf.getAllWithPrefix(POTATO_HBASE_SITE_PREFIX).toMap, "test")
+    }.saveToHBase(getConf, "test")
   }
 }

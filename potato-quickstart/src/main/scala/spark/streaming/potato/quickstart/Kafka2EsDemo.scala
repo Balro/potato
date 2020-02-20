@@ -12,7 +12,7 @@ object Kafka2EsDemo extends KafkaSourceTemplate[String] {
     KafkaSource.valueDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
-    stream.foreachRDD { rdd =>
+    getStream.foreachRDD { rdd =>
       rdd.saveToEs("test")
     }
   }

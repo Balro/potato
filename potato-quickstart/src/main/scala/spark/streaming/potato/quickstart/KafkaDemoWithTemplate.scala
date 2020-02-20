@@ -11,6 +11,6 @@ object KafkaDemoWithTemplate extends KafkaSourceTemplate[String] {
     KafkaSource.valueDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
-    stream.flatMap(f => f.split("\\s")).map((_, 1)).reduceByKey(_ + _).print()
+    getStream.flatMap(f => f.split("\\s")).map((_, 1)).reduceByKey(_ + _).print()
   }
 }

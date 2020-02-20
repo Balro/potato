@@ -3,8 +3,10 @@ package spark.streaming.potato.plugins.kafka.sink
 import java.util.Properties
 
 import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
+import spark.streaming.potato.plugins.kafka.KafkaConfigKeys.KAFKA_PRODUCER_CONFIG_PREFIX
 
 object KafkaSink {
   def saveToKafka[K, V](stream: DStream[ProducerRecord[K, V]], props: Properties): Unit = {
@@ -52,5 +54,9 @@ object KafkaSinkImplicits {
     val props = new Properties()
     props ++= map
     props
+  }
+
+  implicit def propsFromSpark(conf: SparkConf): Properties = {
+    mapToProperties(conf.getAllWithPrefix(KAFKA_PRODUCER_CONFIG_PREFIX).toMap)
   }
 }

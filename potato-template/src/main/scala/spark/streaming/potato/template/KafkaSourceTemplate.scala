@@ -1,4 +1,4 @@
-package spark.streaming.potato.template.template
+package spark.streaming.potato.template
 
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream

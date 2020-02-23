@@ -1,4 +1,4 @@
-package spark.streaming.potato.template.template
+package spark.streaming.potato.template
 
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging

@@ -1,6 +1,5 @@
-package spark.streaming.potato.template.template
+package spark.streaming.potato.template
 
-import kafka.serializer.StringDecoder
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
@@ -11,14 +10,13 @@ import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsManager
 import spark.streaming.potato.plugins.kafka.source.KafkaSourceUtil
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
-object KafkaTopn3Test extends KafkaSourceTemplate[String] with Logging {
-  override def initKafka(ssc: StreamingContext): (DStream[String], OffsetsManager) =
-    KafkaSourceUtil.createDStream[String, String, StringDecoder, StringDecoder, String](
-      ssc, messageHandler = mam => mam.message())
+object KafkaTopn1Test extends KafkaSourceTemplate[(String, String)] with Logging {
+  override def initKafka(ssc: StreamingContext): (DStream[(String, String)], OffsetsManager) =
+    KafkaSourceUtil.kvDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
     getStream.foreachRDD { rdd =>
-      rdd.top(10).foreach(println)
+      rdd.map(_._2).top(10).foreach(println)
     }
   }
 

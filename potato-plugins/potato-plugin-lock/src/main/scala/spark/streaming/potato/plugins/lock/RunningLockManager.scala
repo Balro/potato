@@ -15,7 +15,7 @@ import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
 import scala.collection.JavaConversions
 
-class RunningLockManager(private[lock] val ssc: StreamingContext) extends Service with Logging {
+class RunningLockManager(ssc: StreamingContext) extends Service with Logging {
   val conf: SparkConf = ssc.sparkContext.getConf
   val lock: RunningLock = conf.get(
     POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
@@ -60,6 +60,7 @@ class RunningLockManager(private[lock] val ssc: StreamingContext) extends Servic
 
   def release(): Unit = {
     ssc.stop()
+    executor.shutdown()
     if (!executor.awaitTermination(5, TimeUnit.SECONDS))
       executor.shutdownNow()
     lock.release()

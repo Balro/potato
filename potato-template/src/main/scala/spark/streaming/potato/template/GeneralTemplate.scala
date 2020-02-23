@@ -33,15 +33,13 @@ abstract class GeneralTemplate extends Logging {
     afterConfCreated(args, conf)
     ssc = createContext(args, conf)
     afterContextCreated(args)
-
     activeServices ++= createDefaultService() ++= createAdditionalService(args)
-    startServices()
 
-    doWork(args)
-
-    ssc.start()
-    afterStart(args)
     try {
+      startServices()
+      doWork(args)
+      ssc.start()
+      afterStart(args)
       ssc.awaitTermination()
     } finally {
       stopServices()
@@ -112,6 +110,5 @@ abstract class GeneralTemplate extends Logging {
         logInfo(s"Service: $service stopped.")
     }
   }
-
 
 }

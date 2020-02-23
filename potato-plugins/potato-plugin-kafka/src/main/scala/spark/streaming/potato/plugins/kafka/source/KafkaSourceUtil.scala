@@ -6,7 +6,7 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.{DStream, InputDStream}
 import org.apache.spark.streaming.kafka.{HasOffsetRanges, KafkaUtils}
-import spark.streaming.potato.plugins.kafka.source.offsets.{OffsetsManager, OffsetsManagerConf, OffsetsUpdateListener}
+import spark.streaming.potato.plugins.kafka.source.offsets.{OffsetsManagerConf, OffsetsUpdateListener}
 
 import scala.reflect.ClassTag
 

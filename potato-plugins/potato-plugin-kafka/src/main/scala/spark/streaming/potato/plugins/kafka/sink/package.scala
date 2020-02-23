@@ -2,13 +2,14 @@ package spark.streaming.potato.plugins.kafka
 
 import java.util.Properties
 
-import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
 import spark.streaming.potato.plugins.kafka.KafkaConfigKeys.KAFKA_PRODUCER_CONFIG_PREFIX
 
 package object sink {
+
+  type ProducerRecord[K, V] = org.apache.kafka.clients.producer.ProducerRecord[K, V]
 
   class ProducerRecordRDDFunction[K, V](rdd: RDD[ProducerRecord[K, V]]) extends Serializable {
     def saveToKafka(props: Properties): Unit = {

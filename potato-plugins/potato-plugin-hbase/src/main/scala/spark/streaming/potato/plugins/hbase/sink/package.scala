@@ -4,6 +4,10 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
 
 package object sink {
+  type Put = org.apache.hadoop.hbase.client.Put
+  type Append = org.apache.hadoop.hbase.client.Append
+  type Delete = org.apache.hadoop.hbase.client.Delete
+  type Increment = org.apache.hadoop.hbase.client.Increment
 
   class MutationActionRDD(rdd: RDD[MutationAction]) extends Serializable {
     def saveToHBase(conf: SerializableConfiguration, table: String, bufferSize: Int = 1000): Unit = {

@@ -1,6 +1,7 @@
 package spark.streaming.potato.plugins.hbase.sink
 
 import org.apache.hadoop.hbase.client.Mutation
+import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
@@ -34,6 +35,8 @@ object HBaseSinkUtil extends Logging {
       saveToHBase(rdd, conf, table, bufferSize)
     }
   }
+
+  val a = new Bytes
 
 }
 

@@ -7,6 +7,8 @@ import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.junit.Test
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
+import scala.collection.mutable
+
 class RunningLockManagerTest {
   @Test
   def initTest(): Unit = {
@@ -17,7 +19,7 @@ class RunningLockManagerTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    new RunningLockManager(ssc)
+    val lock = new RunningLockManager(ssc)
   }
 
   @Test
@@ -64,7 +66,7 @@ object HeartbeatTest {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[8]").setAppName("test")
-    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY, "test02:2181")
+    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY, "test01:2181")
     conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
     conf.set(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, "90000")
     conf.set(POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_KEY, "5000")
@@ -74,6 +76,16 @@ object HeartbeatTest {
 
     val lockManager = new RunningLockManager(ssc)
 
-    lockManager.startHeartbeat()
+    try {
+      lockManager.start()
+
+      ssc.queueStream(mutable.Queue(ssc.sparkContext.makeRDD(Seq(0))))
+        .foreachRDD(rdd => rdd.foreach(println))
+
+      ssc.start()
+      ssc.awaitTermination()
+    } finally {
+      lockManager.stop()
+    }
   }
 }

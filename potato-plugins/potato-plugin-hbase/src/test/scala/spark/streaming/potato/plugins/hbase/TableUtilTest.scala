@@ -14,79 +14,96 @@ class TableUtilTest {
 
   @Test
   def withTableTest(): Unit = {
-    withTable(conf, "test") { table =>
-      table.put(new Put(Bytes.toBytes("haha")).addColumn(
-        Bytes.toBytes("f1"),
-        Bytes.toBytes("test"),
-        Bytes.toBytes("hello")
-      ))
-
-      table.delete(new Delete(Bytes.toBytes("haha")).addColumns(
-        Bytes.toBytes("f1"),
-        Bytes.toBytes("test")
-      ))
+    for (i <- 0 until 4) {
+      withTable(conf, "test") { table =>
+        for (j <- 0 until 2000) {
+          table.put(new Put(Bytes.toBytes(s"$i-$j")).addColumn(
+            Bytes.toBytes("f1"),
+            Bytes.toBytes("test"),
+            Bytes.toBytes("hello")
+          ))
+          if (j % 2 == 0)
+            table.delete(new Delete(Bytes.toBytes(s"$i-$j")).addColumns(
+              Bytes.toBytes("f1"),
+              Bytes.toBytes("test")
+            ))
+        }
+      }
     }
   }
 
   @Test
   def withMutatorTest(): Unit = {
+    for (i <- 0 until 4) {
+      withMutator(conf, "test") { mutator =>
+        for (j <- 0 until 2000) {
+          mutator.mutate(new Put(Bytes.toBytes(s"$i-$j")).addColumn(
+            Bytes.toBytes("f1"),
+            Bytes.toBytes("test"),
+            Bytes.toBytes("hello")
+          ))
+          if (j % 2 == 0)
+            mutator.mutate(new Delete(Bytes.toBytes(s"$i-$j")).addColumns(
+              Bytes.toBytes("f1"),
+              Bytes.toBytes("test")
+            ))
+        }
+      }
+    }
     //    withMutator(conf, "test") { mutator =>
     //      mutator.mutate(new Put(Bytes.toBytes("haha")).addColumn(
     //        Bytes.toBytes("f1"),
     //        Bytes.toBytes("test"),
-    //        Bytes.toBytes(1L)
+    //        Bytes.toBytes("hello")
     //      ))
-    //      mutator.mutate(new Increment(Bytes.toBytes("haha")).addColumn(
+    //
+    //      mutator.mutate(new Append(Bytes.toBytes("haha")).add(
     //        Bytes.toBytes("f1"),
     //        Bytes.toBytes("test"),
-    //        1
+    //        Bytes.toBytes(" world")
     //      ))
     //    }
-    withMutator(conf, "test") { mutator =>
-      mutator.mutate(new Put(Bytes.toBytes("haha")).addColumn(
-        Bytes.toBytes("f1"),
-        Bytes.toBytes("test"),
-        Bytes.toBytes("hello")
-      ))
-
-      mutator.mutate(new Append(Bytes.toBytes("haha")).add(
-        Bytes.toBytes("f1"),
-        Bytes.toBytes("test"),
-        Bytes.toBytes(" world")
-      ))
-    }
-    withMutator(conf, "test") { mutator =>
-      mutator.mutate(new Delete(Bytes.toBytes("haha")).addColumns(
-        Bytes.toBytes("f1"),
-        Bytes.toBytes("test")
-      ))
-    }
+    //    withMutator(conf, "test") { mutator =>
+    //      mutator.mutate(new Delete(Bytes.toBytes("haha")).addColumns(
+    //        Bytes.toBytes("f1"),
+    //        Bytes.toBytes("test")
+    //      ))
+    //    }
   }
 
   @Test
   def withBufferedSinkTableTest(): Unit = {
-    withBufferedSinkTable(conf, "test", 100) { sinkTable =>
-      for (i <- 0 until 1024) {
-        sinkTable.add(new Put(Bytes.toBytes(i.toString)).addColumn(
-          Bytes.toBytes("f1"),
-          Bytes.toBytes("bst"),
-          Bytes.toBytes("gaga")
-        ))
+    for (i <- 0 until 4) {
+      withBufferedSinkTable(conf, "test") { table =>
+        for (j <- 0 until 2000) {
+          table.add(new Put(Bytes.toBytes(s"$i-$j")).addColumn(
+            Bytes.toBytes("f1"),
+            Bytes.toBytes("test"),
+            Bytes.toBytes("hello")
+          ))
+          if (j % 2 == 0)
+            table.add(new Delete(Bytes.toBytes(s"$i-$j")).addColumns(
+              Bytes.toBytes("f1"),
+              Bytes.toBytes("test")
+            ))
+        }
       }
     }
   }
 
   @Test
   def withSynchronizedBufferedSinkTableTest(): Unit = {
-    withSynchronizedBufferedSinkTable(conf, "test", 100) { sinkTable =>
+    withSynchronizedBufferedSinkTable(conf, "test") { table =>
       class Runner(id: Int) extends Runnable {
         override def run(): Unit = {
-          for (i <- 0 until 1024) {
-            sinkTable.add(new Put(Bytes.toBytes(s"${Thread.currentThread().getName}-$id:$i")).addColumn(
-              Bytes.toBytes("f1"),
-              Bytes.toBytes("bst"),
-              Bytes.toBytes("gaga")
-            ))
+          for (i <- 0 until 1000) {
+            val key = Bytes.toBytes(s"${Thread.currentThread().getName}-$id:$i")
+            val family = Bytes.toBytes("f1")
+            val column = Bytes.toBytes("bst")
+            val value = Bytes.toBytes("gaga")
+            table.add(new Put(key).addColumn(family, column, value))
+            if (i % 2 == 0)
+              table.add(new Delete(key).addColumns(family, column))
           }
         }
       }

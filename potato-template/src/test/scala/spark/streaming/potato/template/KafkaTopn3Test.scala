@@ -1,29 +1,31 @@
-package spark.streaming.potato.template.template
+package spark.streaming.potato.template
 
+import kafka.serializer.StringDecoder
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
-import spark.streaming.potato.plugins.kafka.source.KafkaSource
 import spark.streaming.potato.common.conf.CommonConfigKeys._
 import spark.streaming.potato.plugins.kafka.KafkaConfigKeys._
 import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsManager
+import spark.streaming.potato.plugins.kafka.source.KafkaSourceUtil
 import spark.streaming.potato.plugins.lock.LockConfigKeys._
 
-object KafkaErrTest extends KafkaSourceTemplate[(String, String)] with Logging {
-  override def initKafka(ssc: StreamingContext): (DStream[(String, String)], OffsetsManager) =
-    KafkaSource.kvDStream(ssc)
+object KafkaTopn3Test extends KafkaSourceTemplate[String] with Logging {
+  override def initKafka(ssc: StreamingContext): (DStream[String], OffsetsManager) =
+    KafkaSourceUtil.createDStream[String, String, StringDecoder, StringDecoder, String](
+      ssc, messageHandler = mam => mam.message())
 
   override def doWork(args: Array[String]): Unit = {
     getStream.foreachRDD { rdd =>
-      println(1 / (rdd.count() - 1))
+      rdd.top(10).foreach(println)
     }
   }
 
-  override def afterConfCreated(args: Array[String], conf: SparkConf): Unit = {
-    super.afterConfCreated(args, conf)
+  override def afterConfCreated(args: Array[String],conf:SparkConf): Unit = {
+    super.afterConfCreated(args,conf)
     conf.setMaster("local[10]").setAppName("test")
-    conf.set(POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY, "5")
+    conf.set(POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY, "20")
     conf.set(KAFKA_OFFSETS_STORAGE_KEY, "zookeeper")
     conf.set(KAFKA_CONSUMER_OFFSET_RESET_POLICY, "earliest")
     conf.set(KAFKA_SUBSCRIBE_TOPICS_KEY, "test")

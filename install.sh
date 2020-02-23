@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-BIN=`cd $(dirname $0);pwd`
+BIN=`cd -P $(dirname $0);pwd`
 cd $BIN
 
 usage() {

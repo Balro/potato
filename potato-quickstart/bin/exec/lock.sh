@@ -1,4 +1,4 @@
-#!/bin/echo "this shell should be sourced"
+#!/bin/echo
 
 module_main_class=spark.streaming.potato.plugins.lock.RunningLockCmd
 

@@ -25,7 +25,7 @@ class KafkaSourceTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val (stream, manager) = KafkaSource.kvDStream(ssc, kafkaParams)
+    val (stream, manager) = KafkaSourceUtil.kvDStream(ssc, kafkaParams)
 
     val a = ssc.sparkContext.longAccumulator("test")
 

@@ -1,11 +1,11 @@
-#!/bin/echo "this shell should be sourced"
+#!/bin/echo
 
 module_usage() {
   cat <<EOF
 Usage:
   $(basename $0) <potato_conf_file> submit [-s] [main jar args]
 Args:
-  -s  Start app silently，log msg to logfile.
+  -s  start app silently，log msg to logfile.
 EOF
 }
 
@@ -38,7 +38,7 @@ do_work() {
   if [ "$1" = "-s" ]; then
     shift
     export -f module_submit
-    nohup bash -c "module_submit \"$@\"" >$POTATO_LOG_DIR/$main_jar-$main_class-$(date +'%Y%m%d_%H%M%S').out 2>&1 &
+    nohup bash -c "module_submit \"$*\"" >$POTATO_LOG_DIR/$main_jar-$main_class-$(date +'%Y%m%d_%H%M%S').out 2>&1 &
   else
     module_submit "$@"
   fi

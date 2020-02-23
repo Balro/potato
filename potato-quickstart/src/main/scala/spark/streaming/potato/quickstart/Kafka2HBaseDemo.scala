@@ -2,19 +2,16 @@ package spark.streaming.potato.quickstart
 
 import java.util.Date
 
-import org.apache.hadoop.hbase.client.Put
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
-import spark.streaming.potato.plugins.hbase.sink.HBaseSinkImplicits._
-import spark.streaming.potato.plugins.hbase.sink.{MutationAction, MutationType}
-import spark.streaming.potato.plugins.kafka.source.KafkaSource
-import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsManager
-import spark.streaming.potato.template.template.KafkaSourceTemplate
+import spark.streaming.potato.plugins.hbase.sink._
+import spark.streaming.potato.plugins.kafka.source._
+import spark.streaming.potato.template.KafkaSourceTemplate
 
 object Kafka2HBaseDemo extends KafkaSourceTemplate[String] {
   override def initKafka(ssc: StreamingContext): (DStream[String], OffsetsManager) =
-    KafkaSource.valueDStream(ssc)
+    KafkaSourceUtil.valueDStream(ssc)
 
   override def doWork(args: Array[String]): Unit = {
     getStream.transform { rdd =>

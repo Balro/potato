@@ -2,7 +2,7 @@ package spark.streaming.potato.template.template
 
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
-import spark.streaming.potato.plugins.kafka.source.offsets.OffsetsManager
+import spark.streaming.potato.plugins.kafka.source._
 
 abstract class KafkaSourceTemplate[E] extends GeneralTemplate {
   private var stream: DStream[E] = _

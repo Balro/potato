@@ -10,7 +10,7 @@ import spark.streaming.potato.plugins.kafka.source.offsets.{OffsetsManager, Offs
 
 import scala.reflect.ClassTag
 
-object KafkaSource extends Logging {
+object KafkaSourceUtil extends Logging {
   def createDStream[K: ClassTag, V: ClassTag, KD <: Decoder[K] : ClassTag, VD <: Decoder[V] : ClassTag, R: ClassTag
   ](ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty, messageHandler: MessageAndMetadata[K, V] => R
    ): (DStream[R], OffsetsManager) = {

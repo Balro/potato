@@ -5,7 +5,7 @@ module_main_class=spark.streaming.potato.plugins.kafka.source.offsets.OffsetsCmd
 module_usage() {
   cat <<EOF
 Usage:
-  $(basename $0) <potato_conf_file> offsets <args>
+  $(basename "$0") <potato_conf_file> offsets <args>
   args:
     list  -> clear old lock to stop app.
     lag   -> show current lag.
@@ -18,16 +18,17 @@ export_module_params() {
 }
 
 export_module_main_jar() {
-  export module_main_jar=$(find $POTATO_LIB_DIR -name potato-plugin-kafka-*.jar)
+  module_main_jar="$(find "$POTATO_LIB_DIR" -name "potato-plugin-kafka-*.jar")"
+  export module_main_jar
 }
 
 module_submit() {
-  $submit_bin --properties-file $potato_conf_file \
+  $submit_bin --properties-file "$potato_conf_file" \
     --master local \
     --deploy-mode client \
-    --jars $global_jars \
+    --jars "$global_jars" \
     --class $module_main_class \
-    $module_main_jar "$@"
+    "$module_main_jar" "$@"
 }
 
 do_work() {

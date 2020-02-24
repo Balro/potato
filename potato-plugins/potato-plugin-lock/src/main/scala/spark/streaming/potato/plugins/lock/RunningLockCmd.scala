@@ -28,7 +28,7 @@ object RunningLockCmd extends GeneralCmd {
 
         output(lock.getLock)
         if (lock.clear())
-          output("Old lock cleared.")
+          output("\nOld lock cleared.")
         else
           output("Old lock does not exist.")
         lock.release()

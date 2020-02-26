@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>spark.streaming.potato</groupId>
+    <groupId>spark.potato</groupId>
     <artifactId>potato-quickstart</artifactId>
     <version>0.0.1-SNAPSHOT</version>
 
@@ -17,11 +17,12 @@
     </repositories>
 
     <properties>
+        <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scala.version>2.11.12</scala.version>
+        <scala.binary.version>2.11</scala.binary.version>
+        <scala.version>${scala.binary.version}.12</scala.version>
         <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
         <spark.version>2.2.0.cloudera2</spark.version>
-        <spark.scala.version>2.11</spark.scala.version>
     </properties>
 
     <dependencies>
@@ -42,23 +43,23 @@
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming_${spark.scala.version}</artifactId>
+            <artifactId>spark-streaming_${scala.binary.version}</artifactId>
             <version>${spark.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>spark.streaming.potato</groupId>
+            <groupId>spark.potato</groupId>
             <artifactId>potato-template</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>spark.streaming.potato</groupId>
-            <artifactId>potato-plugin-hbase</artifactId>
+            <groupId>spark.potato</groupId>
+            <artifactId>potato-hbase</artifactId>
             <version>0.0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch-spark-20_2.11</artifactId>
+            <artifactId>elasticsearch-spark-20_${scala.binary.version}</artifactId>
             <version>6.3.0</version>
         </dependency>
     </dependencies>
@@ -70,9 +71,9 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>UTF-8</encoding>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                    <encoding>${project.build.sourceEncoding}</encoding>
                 </configuration>
             </plugin>
             <plugin>
@@ -80,8 +81,8 @@
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>3.2.2</version>
                 <configuration>
-                    <scalaCompatVersion>2.11</scalaCompatVersion>
-                    <scalaVersion>2.11</scalaVersion>
+                    <scalaCompatVersion>${scala.binary.version}</scalaCompatVersion>
+                    <scalaVersion>${scala.binary.version}</scalaVersion>
                 </configuration>
                 <executions>
                     <execution>
@@ -117,7 +118,7 @@
                 <version>3.1.1</version>
                 <configuration>
                     <excludes>
-                        <exclude>*</exclude>
+                        <exclude>**/*.properties</exclude>
                     </excludes>
                 </configuration>
             </plugin>

@@ -91,18 +91,13 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <excludes>
-                        <exclude>**/*.properties</exclude>
-                    </excludes>
-                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.1.1</version>
                 <configuration>
                     <excludes>
-                        <exclude>**/*.properties</exclude>
+                        <exclude>log4j.properties</exclude>
                     </excludes>
                 </configuration>
             </plugin>

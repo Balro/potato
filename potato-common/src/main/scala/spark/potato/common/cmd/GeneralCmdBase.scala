@@ -1,7 +1,5 @@
 package spark.potato.common.cmd
 
-import spark.potato.common.util.ArgsParserUtil
-
 /**
  * 命令行参数请务必指定 --action 参数，指定调用的Action。
  * 使用:

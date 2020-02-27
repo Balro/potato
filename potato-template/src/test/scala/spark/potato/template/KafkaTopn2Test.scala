@@ -5,8 +5,8 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import spark.potato.common.conf.CommonConfigKeys._
-import spark.potato.kafka.KafkaConfigKeys._
-import spark.potato.kafka.source.offsets.OffsetsManager
+import spark.potato.kafka.conf.KafkaConfigKeys._
+import spark.potato.kafka.offsets.manager.OffsetsManager
 import spark.potato.kafka.source.KafkaSourceUtil
 import spark.potato.lock.LockConfigKeys._
 
@@ -22,7 +22,7 @@ object KafkaTopn2Test extends KafkaSourceTemplate[(String, String)] with Logging
   override def afterConfCreated(args: Array[String],conf:SparkConf): Unit = {
     super.afterConfCreated(args,conf)
     conf.setMaster("local[10]").setAppName("test")
-    conf.set(POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY, "20")
+    conf.set(POTATO_STREAMING_BATCH_DURATION_SECONDS_KEY, "20")
     conf.set(KAFKA_OFFSETS_STORAGE_KEY, "zookeeper")
     conf.set(KAFKA_CONSUMER_OFFSET_RESET_POLICY, "earliest")
     conf.set(KAFKA_SUBSCRIBE_TOPICS_KEY, "test")

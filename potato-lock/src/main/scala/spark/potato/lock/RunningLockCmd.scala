@@ -1,10 +1,10 @@
 package spark.potato.lock
 
 import org.apache.spark.SparkConf
-import spark.potato.common.cmd.GeneralCmdBase
+import spark.potato.common.cmd.ActionCMDBase
 import LockConfigKeys._
 
-object RunningLockCmd extends GeneralCmdBase {
+object RunningLockCmd extends ActionCMDBase {
   /**
    * 添加action,argument以及其他初始化。
    */

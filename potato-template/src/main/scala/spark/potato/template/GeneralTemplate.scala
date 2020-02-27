@@ -5,7 +5,7 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import spark.potato.common.context.PotatoContextUtil
 import spark.potato.common.exception.SparkContextNotInitializedException
-import spark.potato.common.service.{ServiceTrait, ServiceInfo}
+import spark.potato.common.service.{Service, ServiceInfo}
 import spark.potato.monitor.BacklogMonitor
 import spark.potato.lock.LockConfigKeys._
 import spark.potato.lock.RunningLockManager
@@ -19,7 +19,7 @@ abstract class GeneralTemplate extends Logging {
     ServiceInfo(POTATO_RUNNING_LOCK_ENABLE_KEY, POTATO_RUNNING_LOCK_ENABLE_DEFAULT, classOf[RunningLockManager].getName),
     ServiceInfo(MONITOR_BACKLOG_ENABLE_KEY, MONITOR_BACKLOG_ENABLE_DEFAULT, classOf[BacklogMonitor].getName)
   )
-  private val activeServices = ListBuffer.empty[ServiceTrait]
+  private val activeServices = ListBuffer.empty[Service]
 
   def getConf: SparkConf = {
     if (ssc == null)
@@ -66,7 +66,7 @@ abstract class GeneralTemplate extends Logging {
     if (conf == null)
       throw new Exception("Spark conf is not initialized.")
 
-    PotatoContextUtil.createStreamingContext(conf)
+    PotatoContextUtil.createStreamingContextWithDuration(conf)
   }
 
   def afterContextCreated(args: Array[String]): Unit = {
@@ -81,17 +81,17 @@ abstract class GeneralTemplate extends Logging {
     logInfo("Method afterStop has been called.")
   }
 
-  private def createDefaultService(): Seq[ServiceTrait] = {
+  private def createDefaultService(): Seq[Service] = {
     logInfo("Method registerDefaultService has been called.")
     defaultServices.filter { info =>
       getConf.getBoolean(info.key, info.default)
     }.map { info =>
       logInfo(s"Register default service ${info.clazz}")
-      Class.forName(info.clazz).getConstructor(classOf[StreamingContext]).newInstance(ssc).asInstanceOf[ServiceTrait]
+      Class.forName(info.clazz).getConstructor(classOf[StreamingContext]).newInstance(ssc).asInstanceOf[Service]
     }
   }
 
-  def createAdditionalService(args: Array[String]): Seq[ServiceTrait] = {
+  def createAdditionalService(args: Array[String]): Seq[Service] = {
     logInfo("Method registerAdditionalService has been called.")
     Seq.empty
   }

@@ -8,14 +8,14 @@ import org.apache.spark.streaming.StreamingContext
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException, SessionExpiredException}
 import org.apache.zookeeper.{CreateMode, WatchedEvent, Watcher, ZooDefs, ZooKeeper}
 import org.json.{JSONException, JSONObject}
-import spark.potato.common.service.ServiceTrait
+import spark.potato.common.service.Service
 import spark.potato.common.exception.PotatoException
 import spark.potato.common.tools.DaemonThreadFactory
 import LockConfigKeys._
 
 import scala.collection.JavaConversions
 
-class RunningLockManager(ssc: StreamingContext) extends ServiceTrait with Logging {
+class RunningLockManager(ssc: StreamingContext) extends Service with Logging {
   val conf: SparkConf = ssc.sparkContext.getConf
   val lock: RunningLock = conf.get(
     POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT

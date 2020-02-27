@@ -12,19 +12,26 @@
     <artifactId>potato-hbase</artifactId>
 
     <properties>
+        <potato.common.version>0.0.1-SNAPSHOT</potato.common.version>
+        <potato.hadoop.version>0.0.1-SNAPSHOT</potato.hadoop.version>
         <hbase.version>1.2.0-cdh5.14.4</hbase.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.hbase</groupId>
-            <artifactId>hbase-client</artifactId>
-            <version>${hbase.version}</version>
+            <groupId>spark.potato</groupId>
+            <artifactId>potato-common</artifactId>
+            <version>${potato.common.version}</version>
         </dependency>
         <dependency>
             <groupId>spark.potato</groupId>
-            <artifactId>potato-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <artifactId>potato-hadoop</artifactId>
+            <version>${potato.hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hbase</groupId>
+            <artifactId>hbase-client</artifactId>
+            <version>${hbase.version}</version>
         </dependency>
     </dependencies>
 

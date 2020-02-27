@@ -5,3 +5,5 @@ class PotatoException(msg: String = null, throwable: Throwable = null) extends E
 case class SparkContextNotInitializedException(msg: String = null, throwable: Throwable = null) extends PotatoException(msg, throwable)
 
 case class ConfigNotFoundException(msg: String = null, throwable: Throwable = null) extends PotatoException(msg, throwable)
+
+case class ArgParseException(msg: String = null, throwable: Throwable = null) extends PotatoException(msg, throwable)

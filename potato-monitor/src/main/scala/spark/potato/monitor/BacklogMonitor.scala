@@ -9,12 +9,12 @@ import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.scheduler._
-import spark.potato.common.service.ServiceTrait
+import spark.potato.common.service.Service
 import spark.potato.common.exception.PotatoException
 import spark.potato.common.tools.DaemonThreadFactory
 import spark.potato.monitor.reporter.{DingReporter, Reporter}
 
-class BacklogMonitor(ssc: StreamingContext) extends StreamingListener with Runnable with ServiceTrait with Logging {
+class BacklogMonitor(ssc: StreamingContext) extends StreamingListener with Runnable with Service with Logging {
   ssc.addStreamingListener(this)
   private val delayBatch = new AtomicLong(0)
   private var lastBatchTime: Long = -1
@@ -102,11 +102,11 @@ case class BacklogMonitorConfig(reporter: String,
 object BacklogMonitorConfig {
   def parse(conf: SparkConf): BacklogMonitorConfig = {
     import MonitorConfigKeys._
-    import spark.potato.common.conf.CommonConfigKeys.POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY
+    import spark.potato.common.conf.CommonConfigKeys.POTATO_STREAMING_BATCH_DURATION_SECONDS_KEY
     BacklogMonitorConfig(
       conf.get(BACKLOG_REPORTER_TYPE_KEY, BACKLOG_REPORTER_TYPE_DEFAULT),
       conf.get(MONITOR_BACKLOG_DELAY_SECONDS_KEY).toLong * 1000,
-      conf.get(POTATO_STREAMING_SLIDE_DURATION_SECONDS_KEY).toLong * 1000,
+      conf.get(POTATO_STREAMING_BATCH_DURATION_SECONDS_KEY).toLong * 1000,
       conf.getLong(BACKLOG_REPORTER_INTERVAL_SECOND_KEY, BACKLOG_REPORTER_INTERVAL_SECOND_DEFAULT) * 1000,
       conf.getInt(BACKLOG_REPORTER_MAX_KEY, BACKLOG_REPORTER_MAX_DEFAULT)
     )

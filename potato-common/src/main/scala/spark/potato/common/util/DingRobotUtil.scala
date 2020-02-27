@@ -4,9 +4,19 @@ import org.apache.spark.internal.Logging
 import org.json.JSONObject
 import scalaj.http.Http
 
+/**
+ * 钉钉机器人工具。
+ */
 object DingRobotUtil extends Logging {
   val url = "https://oapi.dingtalk.com/robot/send"
 
+  /**
+   * @param token  机器人token。
+   * @param msg    通知信息。
+   * @param atAll  是否@所有人。
+   * @param phones 需要@的电话，如atAll为true，则次项无效(钉钉内部逻辑，代码无处理)。
+   * @return
+   */
   def ding(token: String, msg: String, atAll: Boolean = false, phones: Array[String] = Array.empty): Boolean = {
     var token_ = null.asInstanceOf[String]
     if (token.startsWith("http"))

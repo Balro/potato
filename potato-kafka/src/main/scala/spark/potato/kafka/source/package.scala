@@ -1,5 +1,7 @@
 package spark.potato.kafka
 
+import spark.potato.kafka.offsets.manager.OffsetsManager
+
 package object source {
-  type OffsetsManager = spark.potato.kafka.source.offsets.OffsetsManager
+  type OffsetsManager = OffsetsManager
 }

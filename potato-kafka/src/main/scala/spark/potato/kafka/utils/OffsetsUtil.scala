@@ -13,10 +13,23 @@ import org.apache.kafka.common.protocol.Errors
 import scala.collection.mutable
 import scala.util.Random
 
+import spark.potato.kafka.exception.MetadataNotFoundException
+
+/**
+ * kafka offsets管理工具，基于SimpleConsumer，实现对offsets的查询，修改等功能。
+ */
 object OffsetsUtil extends Logging {
   val unknownBrokerId: Int = -1
   val invalidOffset: Long = -1L
 
+  /**
+   * 提交offsets到kafka内部实现的broker存储。
+   *
+   * @param version 参考https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol。
+   *                v1版本，offsets的时间戳可以由用户指定，来间接修改offsets的保留时间。
+   *                v2版本(https://issues.apache.org/jira/browse/KAFKA-1634)，
+   *                offsets时间戳始终为broker接收时间，用户可以显示指定offsets保留时间。
+   */
   def commitOffsetsOnKafka(seeds: Set[BrokerEndPoint], groupId: String, offsets: Map[TopicAndPartition, Long], version: Short = 2)
                           (implicit config: ConsumerConfig): (Boolean, Seq[Throwable]) = {
     if (version != 1 && version != 2)
@@ -24,11 +37,20 @@ object OffsetsUtil extends Logging {
     commitOffsets(seeds, groupId, offsets, 2)
   }
 
+  /**
+   * 提交offsets到kafka内部实现的Zookeeper存储。
+   */
   def commitOffsetsOnZookeeper(seeds: Set[BrokerEndPoint], groupId: String, offsets: Map[TopicAndPartition, Long])
                               (implicit config: ConsumerConfig): (Boolean, Seq[Throwable]) = {
     commitOffsets(seeds, groupId, offsets, 0)
   }
 
+  /**
+   * 提交offsets到kafka。
+   *
+   * @param version 0 -> zookeeper, 1/2 -> broker。
+   *                参考https://cwiki.apache.org/confluence/display/KAFKA/A+Guide+To+The+Kafka+Protocol。
+   */
   def commitOffsets(seeds: Set[BrokerEndPoint], groupId: String, offsets: Map[TopicAndPartition, Long], version: Short)
                    (implicit config: ConsumerConfig): (Boolean, Seq[Throwable]) = {
     val errs = mutable.ArrayBuffer[Throwable]()
@@ -51,6 +73,11 @@ object OffsetsUtil extends Logging {
     false -> errs
   }
 
+  /**
+   * 根据提交的offsets判断是否在kafka托管范围内。
+   *
+   * @param reset 是否重置offsets，若为true，则根据auto.offset.reset，判断重置策略。
+   */
   def validatedOrResetOffsets(seeds: Set[BrokerEndPoint], offsets: Map[TopicAndPartition, Long], reset: Boolean = true)
                              (implicit config: ConsumerConfig): Map[TopicAndPartition, Long] = {
     val taps = offsets.keySet
@@ -76,17 +103,28 @@ object OffsetsUtil extends Logging {
     }
   }
 
+  /**
+   * 从kafka_broker获取当前groupId已提交的offsets。
+   */
   def fetchOffsetsOnKafka(seeds: Set[BrokerEndPoint], groupId: String, taps: Set[TopicAndPartition])
                          (implicit config: ConsumerConfig): Map[TopicAndPartition, Long] = {
     fetchOffsets(seeds, groupId, taps, 1)
   }
 
+  /**
+   * 从kafka_zookeeper获取当前groupId已提交的offsets。
+   */
   def fetchOffsetsOnZookeeper(seeds: Set[BrokerEndPoint], groupId: String, taps: Set[TopicAndPartition])
                              (implicit config: ConsumerConfig): Map[TopicAndPartition, Long] = {
     fetchOffsets(seeds, groupId, taps, 0)
   }
 
 
+  /**
+   * 从kafka获取当前groupId已提交的offsets。
+   *
+   * @param version 0 -> zookeeper, 1 -> broker。
+   */
   def fetchOffsets(seeds: Set[BrokerEndPoint], groupId: String, taps: Set[TopicAndPartition], version: Short)
                   (implicit config: ConsumerConfig): Map[TopicAndPartition, Long] = {
     withCoordinator(seeds, groupId, config) { consumer =>
@@ -106,6 +144,12 @@ object OffsetsUtil extends Logging {
     throw new KafkaException(s"Cannot fetchOffsets for $groupId on $taps")
   }
 
+  /**
+   * 获取当前groupId的协调员，可用于向协调员提交offsets。
+   *
+   * @param f 操作coordinator的函数。
+   * @tparam R 函数f的返回值类型。
+   */
   def withCoordinator[R](seeds: Set[BrokerEndPoint], groupId: String, config: ConsumerConfig)(f: SimpleConsumer => R): Map[Int, Option[R]] = {
     withBroker(seeds, config) { consumer =>
       val gcResp = consumer.send(GroupCoordinatorRequest(groupId, 0))
@@ -116,16 +160,27 @@ object OffsetsUtil extends Logging {
     throw new NotCoordinatorForConsumerException(s"Not coordinator for $groupId")
   }
 
+  /**
+   * 获取指定tap的最新offset。
+   */
   def getLatestOffsets(seeds: Set[BrokerEndPoint], taps: Set[TopicAndPartition])
                       (implicit config: ConsumerConfig): Map[TopicAndPartition, Long] = {
     getOffsetsBefore(seeds, taps, OffsetRequest.LatestTime)(config)
   }
 
+  /**
+   * 获取指定tap的最早offset。
+   */
   def getEarliestOffsets(seeds: Set[BrokerEndPoint], taps: Set[TopicAndPartition])
                         (implicit config: ConsumerConfig): Map[TopicAndPartition, Long] = {
     getOffsetsBefore(seeds, taps, OffsetRequest.EarliestTime)(config)
   }
 
+  /**
+   * 根据指定事件，获取指定tap的offset。
+   *
+   * @param time OffsetRequest.LatestTime = -1L, OffsetRequest.EarliestTime = -2L, 其他时间未做测试。
+   */
   def getOffsetsBefore(seeds: Set[BrokerEndPoint], taps: Set[TopicAndPartition], time: Long)
                       (implicit config: ConsumerConfig): Map[TopicAndPartition, Long] = {
     val leaders = findLeaders(seeds, taps).groupBy(_._2).map { bt => bt._1 -> bt._2.keySet }
@@ -151,6 +206,11 @@ object OffsetsUtil extends Logging {
     }
   }
 
+  /**
+   * 获取给定topic的分区信息。
+   *
+   * @param topics 若指定topic为空，则获取所有topic的分区信息。
+   */
   def getTopicAndPartitions(seeds: Set[BrokerEndPoint], topics: Set[String])
                            (implicit config: ConsumerConfig): Set[TopicAndPartition] = {
     getMetadata(seeds, topics).topicsMetadata.filter { tm => topics.contains(tm.topic) }.flatMap { tm =>
@@ -158,6 +218,9 @@ object OffsetsUtil extends Logging {
     }.toSet
   }
 
+  /**
+   * 批量获取给定tap的leader_broker。
+   */
   def findLeaders(seeds: Set[BrokerEndPoint], tps: Set[TopicAndPartition])
                  (implicit config: ConsumerConfig): Map[TopicAndPartition, BrokerEndPoint] = {
     val ret = mutable.Map.empty[TopicAndPartition, BrokerEndPoint]
@@ -185,6 +248,9 @@ object OffsetsUtil extends Logging {
     throw new LeaderNotAvailableException(s"Leader not found for: $notFound")
   }
 
+  /**
+   * 获取给定tap的leader_broker。
+   */
   def findLeader(seeds: Set[BrokerEndPoint], tp: TopicAndPartition)(implicit config: ConsumerConfig): BrokerEndPoint = {
     getMetadata(seeds).topicsMetadata.foreach { tm =>
       if (tm.topic == tp.topic)
@@ -197,10 +263,18 @@ object OffsetsUtil extends Logging {
   }
 
 
+  /**
+   * 根据broker_seed获取全部broker。
+   */
   def findBrokers(seeds: Set[BrokerEndPoint])(implicit config: ConsumerConfig): Set[BrokerEndPoint] = {
     getMetadata(seeds).brokers.toSet
   }
 
+  /**
+   * 获取元数据信息。
+   *
+   * @param topics 若指定topic为空，则获取全部topic的元数据信息。
+   */
   def getMetadata(seeds: Set[BrokerEndPoint], topics: Set[String] = Set.empty)
                  (implicit config: ConsumerConfig): TopicMetadataResponse = {
     var found = false
@@ -233,6 +307,12 @@ object OffsetsUtil extends Logging {
     throw MetadataNotFoundException(s"Cannot found valid metadata.")
   }
 
+  /**
+   * 基本方法，对给定broker进行操作。
+   *
+   * @param f 操作broker的函数。
+   * @tparam R 函数f的返回值类型。
+   */
   def withBroker[R](brokers: Set[BrokerEndPoint], config: ConsumerConfig)
                    (f: SimpleConsumer => R): Map[Int, Option[R]] = {
     Random.shuffle(brokers).map { broker =>
@@ -250,11 +330,17 @@ object OffsetsUtil extends Logging {
           consumer.close()
       }
     }
-  }.toMap
+    }.toMap
 
 }
 
+/**
+ * offsets工具类隐式转换。
+ */
 object OffsetsUtilImplicits {
+  /**
+   * 默认SimpleConsumer的空配置，屏蔽了zookeeper与groupId避免报错。
+   */
   implicit val defaultConfig: ConsumerConfig = {
     val props = new Properties()
     props.setProperty("zookeeper.connect", "")
@@ -307,5 +393,3 @@ object OffsetsUtilImplicits {
   }
 
 }
-
-case class MetadataNotFoundException(msg: String = null, throwable: Throwable = null) extends KafkaException(msg, throwable)

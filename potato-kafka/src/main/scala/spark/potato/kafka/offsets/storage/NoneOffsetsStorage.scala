@@ -4,7 +4,7 @@ import kafka.common.TopicAndPartition
 import org.apache.spark.internal.Logging
 
 /**
- * NoneOffsetsStorage 不对offsets做任何操作，每次load时均触发reset。
+ * NoneOffsetsStorage 不存储offsets，每次load时均触发reset后的值。
  */
 class NoneOffsetsStorage extends OffsetsStorage with Logging {
   override def save(groupId: String, offsets: Map[TopicAndPartition, Long]): Boolean = {

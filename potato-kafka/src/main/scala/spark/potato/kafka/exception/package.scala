@@ -4,7 +4,7 @@ import kafka.common.KafkaException
 
 package object exception {
 
-  case class NotCacheAnyOffsetsException(msg: String = null, throwable: Throwable = null) extends Exception(msg, throwable)
+  case class NotCacheAnyOffsetsException(msg: String = null, throwable: Throwable = null) extends KafkaException(msg, throwable)
 
   /**
    * 扩展KafkaException，用于指示未找到元数据的异常。

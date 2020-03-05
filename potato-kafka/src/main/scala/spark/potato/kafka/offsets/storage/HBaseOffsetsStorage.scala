@@ -38,10 +38,10 @@ class HBaseOffsetsStorage(table: String, conf: Map[String, String]) extends Offs
     import scala.collection.JavaConversions.seqAsJavaList
     val tbl: Table = conn.getTable(TableName.valueOf(table))
     val puts = offsets.groupBy(_._1.topic).map { ttapo =>
-      val put = new Put(Bytes.toBytes(genKey(groupId, ttapo._1)))
+      val put = new Put(Bytes.toBytes(makeKey(groupId, ttapo._1)))
       ttapo._2.foreach { tapo =>
         put.addColumn(
-          Bytes.toBytes(conf.getOrElse(KAFKA_HBASE_FAMILY_KEY, KAFKA_HBASE_FAMILY_DEFAULT)),
+          Bytes.toBytes(conf.getOrElse(POTATO_KAFKA_OFFSETS_STORAGE_HBASE_FAMILY_KEY, POTATO_KAFKA_OFFSETS_STORAGE_HBASE_FAMILY_DEFAULT)),
           Bytes.toBytes(tapo._1.partition.toString),
           Bytes.toBytes(tapo._2.toString))
       }
@@ -63,10 +63,10 @@ class HBaseOffsetsStorage(table: String, conf: Map[String, String]) extends Offs
     import scala.collection.JavaConversions.collectionAsScalaIterable
     val tbl: Table = conn.getTable(TableName.valueOf(table))
     val tapo = taps.groupBy { tap => tap.topic }.flatMap { ttap =>
-      val get = new Get(Bytes.toBytes(genKey(groupId, ttap._1)))
+      val get = new Get(Bytes.toBytes(makeKey(groupId, ttap._1)))
       ttap._2.foreach { tap =>
         get.addColumn(
-          Bytes.toBytes(conf.getOrElse(KAFKA_HBASE_FAMILY_KEY, KAFKA_HBASE_FAMILY_DEFAULT)),
+          Bytes.toBytes(conf.getOrElse(POTATO_KAFKA_OFFSETS_STORAGE_HBASE_FAMILY_KEY, POTATO_KAFKA_OFFSETS_STORAGE_HBASE_FAMILY_DEFAULT)),
           Bytes.toBytes(tap.partition.toString))
       }
       try {
@@ -87,5 +87,5 @@ class HBaseOffsetsStorage(table: String, conf: Map[String, String]) extends Offs
     }.toMap ++ tapo
   }
 
-  def genKey(groupId: String, topic: String): String = groupId + "##" + topic
+  def makeKey(groupId: String, topic: String): String = groupId + "##" + topic
 }

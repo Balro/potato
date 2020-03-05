@@ -1,15 +1,15 @@
-package spark.potato.hbase.util
+package spark.potato.hbase.sink
 
 import org.apache.hadoop.hbase.client.{ConnectionConfiguration, Mutation}
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
-import TableUtil._
 import spark.potato.hadoop.conf.SerializedConfiguration
+import spark.potato.hbase.util.TableUtil.{withBufferedSinkTable, withMutator}
 
 /**
  * hbase基本工具类。
  */
-object HBaseCommonUtil extends Logging {
+object HBaseSinkUtil extends Logging {
   /**
    * rdd写入hbase，非线程安全。
    *

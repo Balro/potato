@@ -1,4 +1,4 @@
-package spark.potato.lock
+package spark.potato.lock.runninglock
 
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
@@ -6,12 +6,13 @@ import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException, SessionExpiredException}
-import org.apache.zookeeper.{CreateMode, WatchedEvent, Watcher, ZooDefs, ZooKeeper}
+import org.apache.zookeeper._
 import org.json.{JSONException, JSONObject}
-import spark.potato.common.service.Service
 import spark.potato.common.exception.PotatoException
+import spark.potato.common.service.Service
 import spark.potato.common.tools.DaemonThreadFactory
-import LockConfigKeys._
+import spark.potato.lock.conf.LockConfigKeys._
+import spark.potato.lock.exception.{CannotGetRunningLockException, LockMismatchException}
 
 import scala.collection.JavaConversions
 

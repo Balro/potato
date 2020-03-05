@@ -16,7 +16,7 @@ object OffsetsCmd extends ActionCMDBase {
      */
     addAction("list", "show committed offsets.",
       action = () => {
-        val conf = new OffsetsManagerConf(new SparkConf().getAll.toMap)
+        val conf = new OffsetsManagerConf(new SparkConf(), Map.empty[String, String])
         val manager = new OffsetsManager(conf)
         output(s"list status for groupId: ${conf.groupId}\n")
         output("%-20s  %-10s  offset".format("topic", "partition"))
@@ -31,7 +31,7 @@ object OffsetsCmd extends ActionCMDBase {
      */
     addAction("lag", "show current lag.",
       action = () => {
-        val conf = new OffsetsManagerConf(new SparkConf().getAll.toMap)
+        val conf = new OffsetsManagerConf(new SparkConf(), Map.empty[String, String])
         val manager = new OffsetsManager(conf)
         output(s"lag for groupId: ${conf.groupId}\n")
         output("%-20s  lag".format("topic"))
@@ -46,7 +46,7 @@ object OffsetsCmd extends ActionCMDBase {
      */
     addAction("reset", "reset offsets to earliest or latest.",
       action = () => {
-        val conf = new OffsetsManagerConf(new SparkConf().getAll.toMap)
+        val conf = new OffsetsManagerConf(new SparkConf(), Map.empty[String, String])
         val manager = new OffsetsManager(conf)
 
         val policy = props.get("--reset-to") match {

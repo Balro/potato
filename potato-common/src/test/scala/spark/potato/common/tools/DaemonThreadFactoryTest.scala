@@ -1,10 +1,9 @@
-package spark.potato.common.util
+package spark.potato.common.tools
 
 import java.util.Date
 import java.util.concurrent.{Executors, TimeUnit}
 
-import spark.potato.common.tools.DaemonThreadFactory
-
+//noinspection ScalaDeprecation
 object DaemonThreadFactoryTest {
   def main(args: Array[String]): Unit = {
     val executor = Executors.newSingleThreadScheduledExecutor(DaemonThreadFactory)
@@ -18,4 +17,5 @@ object DaemonThreadFactoryTest {
       println(s"${new Date()} ${Thread.currentThread().getName} ${Thread.currentThread().isDaemon}")
     }
   }
+
 }

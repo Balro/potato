@@ -7,8 +7,8 @@ import spark.potato.common.context.PotatoContextUtil
 import spark.potato.common.exception.SparkContextNotInitializedException
 import spark.potato.common.service.{Service, ServiceInfo}
 import spark.potato.monitor.BacklogMonitor
-import spark.potato.lock.LockConfigKeys._
-import spark.potato.lock.RunningLockManager
+import spark.potato.lock.conf.LockConfigKeys._
+import spark.potato.lock.runninglock.RunningLockManager
 import spark.potato.monitor.MonitorConfigKeys._
 
 import scala.collection.mutable.ListBuffer

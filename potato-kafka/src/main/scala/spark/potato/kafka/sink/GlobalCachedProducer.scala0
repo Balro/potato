@@ -3,6 +3,7 @@ package spark.potato.kafka.sink
 import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
 
+import org.apache.commons.pool.KeyedObjectPool
 import org.apache.kafka.clients.producer.KafkaProducer
 
 /**
@@ -12,6 +13,7 @@ import org.apache.kafka.clients.producer.KafkaProducer
  */
 object GlobalCachedProducer {
   private val producers = new ConcurrentHashMap[Properties, KafkaProducer[Any,Any]]()
+  val pool = KeyedObjectPool
 
   private def getProducer[K, V](prop: Properties): KafkaProducer[K, V] = synchronized {
     import scala.collection.JavaConversions.mapAsScalaConcurrentMap

@@ -5,7 +5,8 @@ import java.util.concurrent.TimeUnit
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.junit.Test
-import LockConfigKeys._
+import spark.potato.lock.conf.LockConfigKeys._
+import spark.potato.lock.runninglock.RunningLockManager
 
 import scala.collection.mutable
 

@@ -1,8 +1,8 @@
-package spark.potato.lock
+package spark.potato.lock.runninglock
 
 import org.apache.spark.SparkConf
 import spark.potato.common.cmd.ActionCMDBase
-import LockConfigKeys._
+import spark.potato.lock.conf.LockConfigKeys._
 
 object RunningLockCmd extends ActionCMDBase {
   /**

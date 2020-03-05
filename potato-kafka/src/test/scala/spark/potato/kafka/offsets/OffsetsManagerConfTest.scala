@@ -1,15 +1,15 @@
 package spark.potato.kafka.offsets
 
 import kafka.common.InvalidConfigException
+import org.apache.spark.SparkConf
 import org.junit.Test
 import spark.potato.kafka.offsets.manager.OffsetsManagerConf
 
 class OffsetsManagerConfTest {
   @Test
   def requiredKeyTest(): Unit = {
-    val mconf = Map[String, String]()
     try {
-      val conf = new OffsetsManagerConf(mconf)
+      new OffsetsManagerConf(new SparkConf(),Map.empty[String,String])
     } catch {
       case e: InvalidConfigException => println(e)
     }

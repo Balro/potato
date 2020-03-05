@@ -9,7 +9,7 @@ import spark.potato.common.conf.CommonConfigKeys._
 import spark.potato.kafka.conf.KafkaConfigKeys._
 import spark.potato.kafka.offsets.manager.OffsetsManager
 import spark.potato.kafka.source.KafkaSourceUtil
-import spark.potato.lock.LockConfigKeys._
+import spark.potato.lock.conf.LockConfigKeys._
 
 object KafkaTopn3Test extends KafkaSourceTemplate[String] with Logging {
   override def initKafka(ssc: StreamingContext): (DStream[String], OffsetsManager) =

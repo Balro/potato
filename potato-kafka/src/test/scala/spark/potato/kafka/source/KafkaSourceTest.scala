@@ -1,5 +1,6 @@
 package spark.potato.kafka.source
 
+import kafka.serializer.StringDecoder
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.junit.Test
@@ -25,7 +26,9 @@ class KafkaSourceTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val (stream, manager) = KafkaSourceUtil.kvDStream(ssc, kafkaParams)
+    val (stream, _) = createDStreamWithOffsetsManager[String, String, StringDecoder, StringDecoder, String](ssc, kafkaParams) {
+      valueMessageHandler
+    }
 
     val a = ssc.sparkContext.longAccumulator("test")
 

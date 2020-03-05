@@ -10,7 +10,7 @@ import spark.potato.kafka.conf.KafkaConfigKeys._
 class HBaseOffsetsStorageTest {
   @Test
   def saveTest(): Unit = {
-    val storage = new HBaseOffsetsStorage(KAFKA_HBASE_TABLE_DEFAULT, Map(
+    val storage = new HBaseOffsetsStorage(POTATO_KAFKA_OFFSETS_STORAGE_HBASE_TABLE_DEFAULT, Map(
       "hbase.zookeeper.quorum" -> "test01,test02",
       "hbase.zookeeper.property.clientPort" -> "2181"
     ))
@@ -20,7 +20,7 @@ class HBaseOffsetsStorageTest {
 
   @Test
   def loadTest(): Unit = {
-    val storage = new HBaseOffsetsStorage(KAFKA_HBASE_TABLE_DEFAULT, Map(
+    val storage = new HBaseOffsetsStorage(POTATO_KAFKA_OFFSETS_STORAGE_HBASE_TABLE_DEFAULT, Map(
       "hbase.zookeeper.quorum" -> "test01,test02",
       "hbase.zookeeper.property.clientPort" -> "2181"
     ))

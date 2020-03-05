@@ -1,4 +1,4 @@
-package spark.potato.lock
+package spark.potato.lock.conf
 
 import spark.potato.common.conf.CommonConfigKeys.POTATO_PREFIX
 

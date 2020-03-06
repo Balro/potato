@@ -53,7 +53,7 @@ class ServiceManager {
    * 通过类型创建service实例。
    */
   def serve(clazz: Class[_]): Service = {
-    (if (classOf[GeneralService].isAssignableFrom(clazz)) {
+    if (classOf[GeneralService].isAssignableFrom(clazz)) {
       clazz.newInstance().asInstanceOf[GeneralService].serve(checkNullable(conf))
     } else if (classOf[ContextService].isAssignableFrom(clazz)) {
       clazz.newInstance().asInstanceOf[ContextService].serve(checkNullable(sc))
@@ -61,7 +61,7 @@ class ServiceManager {
       clazz.newInstance().asInstanceOf[StreamingService].serve(checkNullable(ssc))
     } else {
       throw UnknownServiceException(s"Unknown service $clazz")
-    })
+    }
   }
 
   /**

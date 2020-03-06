@@ -6,16 +6,17 @@ import kafka.common.TopicAndPartition
 import org.apache.spark.streaming.kafka.OffsetRange
 import org.junit.Test
 import spark.potato.kafka.offsets.manager.{OffsetsManager, OffsetsManagerConf}
+import spark.potato.kafka.conf.KafkaConfigKeys._
 
 class OffsetsManagerTest {
   @Test
   def gatStartOffsetsTest(): Unit = {
     val mconf = Map[String, String](
-      "spark.potato.source.kafka.offsets.storage" -> "zookeeper",
-      "spark.potato.source.kafka.subscribe.topics" -> "test1,test2",
-      "spark.potato.source.kafka.consumer.group.id" -> "test_potato",
-      "spark.potato.source.kafka.consumer.auto.offset.reset" -> "earliest",
-      "spark.potato.source.kafka.consumer.bootstrap.servers" -> "test03:9092"
+      POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
+      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
+      POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test_potato",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test03:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
 
@@ -28,11 +29,11 @@ class OffsetsManagerTest {
   @Test
   def cacheOffsetsTest(): Unit = {
     val mconf = Map[String, String](
-      "spark.potato.source.kafka.offsets.storage" -> "zookeeper",
-      "spark.potato.source.kafka.subscribe.topics" -> "test1,test2",
-      "spark.potato.source.kafka.consumer.group.id" -> "test_potato",
-      "spark.potato.source.kafka.consumer.auto.offset.reset" -> "earliest",
-      "spark.potato.source.kafka.consumer.bootstrap.servers" -> "test03:9092"
+      POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
+      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
+      POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test_potato",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test03:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
 
@@ -49,11 +50,11 @@ class OffsetsManagerTest {
   @Test
   def gatLagTest(): Unit = {
     val mconf = Map[String, String](
-      "spark.potato.source.kafka.offsets.storage" -> "zookeeper",
-      "spark.potato.source.kafka.subscribe.topics" -> "test1,test2",
-      "spark.potato.source.kafka.consumer.group.id" -> "test_potato",
-      "spark.potato.source.kafka.consumer.auto.offset.reset" -> "earliest",
-      "spark.potato.source.kafka.consumer.bootstrap.servers" -> "test03:9092"
+      POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
+      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
+      POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test_potato",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test03:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
 
@@ -71,11 +72,11 @@ class OffsetsManagerTest {
   @Test
   def updateOffsetsTest(): Unit = {
     val mconf = Map[String, String](
-      "spark.potato.source.kafka.offsets.storage" -> "zookeeper",
-      "spark.potato.source.kafka.subscribe.topics" -> "test1,test2",
-      "spark.potato.source.kafka.consumer.group.id" -> "test_potato_zoo",
-      "spark.potato.source.kafka.consumer.auto.offset.reset" -> "earliest",
-      "spark.potato.source.kafka.consumer.bootstrap.servers" -> "test03:9092"
+      POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
+      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
+      POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test_potato_zoo",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test03:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
 
@@ -94,56 +95,56 @@ class OffsetsManagerTest {
   @Test
   def updateOffsetsByDelayTest(): Unit = {
     val mconf = Map[String, String](
-      "spark.potato.source.kafka.offsets.storage" -> "zookeeper",
-      "spark.potato.source.kafka.subscribe.topics" -> "test1,test2",
-      "spark.potato.source.kafka.consumer.group.id" -> "test_potato_zoo",
-      "spark.potato.source.kafka.consumer.auto.offset.reset" -> "earliest",
-      "spark.potato.source.kafka.consumer.bootstrap.servers" -> "test03:9092"
+      POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
+      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
+      POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test_potato_zoo",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test03:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
 
     val manager = new OffsetsManager(conf)
     manager.cacheOffsets(System.currentTimeMillis(),
       Seq(OffsetRange(TopicAndPartition("test1", 0), 0, 1)))
-    TimeUnit.MILLISECONDS.sleep(100)
+    TimeUnit.MILLISECONDS.sleep(5000)
     manager.cacheOffsets(System.currentTimeMillis(),
       Seq(OffsetRange(TopicAndPartition("test2", 0), 0, 3)))
 
-    println(manager.currentCache)
+    println("--------" + manager.currentCache)
 
-    println(manager.committedOffsets())
+    println("--------" + manager.committedOffsets())
 
-    manager.updateOffsetsByDelay(50)
-    println(manager.currentCache)
+    manager.updateOffsetsByDelay(System.currentTimeMillis(), 2500)
+    println("--------" + manager.currentCache)
 
-    println(manager.committedOffsets())
+    println("--------" + manager.committedOffsets())
   }
 
   @Test
   def updateOffsetsOnKafkaTest(): Unit = {
     val mconf = Map[String, String](
-      "spark.potato.source.kafka.offsets.storage" -> "kafka",
-      "spark.potato.source.kafka.subscribe.topics" -> "test1,test2",
-      "spark.potato.source.kafka.consumer.group.id" -> "test_potato_kafka",
-      "spark.potato.source.kafka.consumer.auto.offset.reset" -> "earliest",
-      "spark.potato.source.kafka.consumer.bootstrap.servers" -> "test03:9092"
+      POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "kafka",
+      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
+      POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test_potato_kafka",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test03:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
 
     val manager = new OffsetsManager(conf)
     manager.cacheOffsets(System.currentTimeMillis(),
       Seq(OffsetRange(TopicAndPartition("test1", 0), 0, 1)))
-    TimeUnit.MILLISECONDS.sleep(100)
+    TimeUnit.MILLISECONDS.sleep(5000)
     manager.cacheOffsets(System.currentTimeMillis(),
       Seq(OffsetRange(TopicAndPartition("test2", 0), 0, 3)))
 
-    println(manager.currentCache)
+    println("--------" + manager.currentCache)
 
-    println(manager.committedOffsets(false))
+    println("--------" + manager.committedOffsets(false))
 
-    manager.updateOffsetsByDelay(0)
-    println(manager.currentCache)
+    manager.updateOffsetsByDelay(System.currentTimeMillis(), 2500)
+    println("--------" + manager.currentCache)
 
-    println(manager.committedOffsets(false))
+    println("--------" + manager.committedOffsets(false))
   }
 }

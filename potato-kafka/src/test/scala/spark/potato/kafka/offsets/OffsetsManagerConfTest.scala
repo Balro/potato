@@ -4,12 +4,13 @@ import kafka.common.InvalidConfigException
 import org.apache.spark.SparkConf
 import org.junit.Test
 import spark.potato.kafka.offsets.manager.OffsetsManagerConf
+import spark.potato.kafka.conf.KafkaConfigKeys._
 
 class OffsetsManagerConfTest {
   @Test
   def requiredKeyTest(): Unit = {
     try {
-      new OffsetsManagerConf(new SparkConf(),Map.empty[String,String])
+      new OffsetsManagerConf(new SparkConf(), Map.empty[String, String])
     } catch {
       case e: InvalidConfigException => println(e)
     }
@@ -18,24 +19,25 @@ class OffsetsManagerConfTest {
   @Test
   def mapKeyTest(): Unit = {
     val mconf = Map[String, String](
-      "spark.potato.source.kafka.offsets.storage" -> "zookeeper",
-      "spark.potato.source.kafka.subscribe.topics" -> "test",
-      "spark.potato.source.kafka.consumer.group.id" -> "test",
-      "spark.potato.source.kafka.consumer.auto.offset.reset" -> "earliest",
-      "spark.potato.source.kafka.consumer.bootstrap.servers" -> "test01:9092"
+      POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
+      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test",
+      POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test01:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
-    println(conf.get("auto.offset.reset"))
+    println(conf.toMap)
+    println(conf.get(POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY))
   }
 
   @Test
   def kvTest(): Unit = {
     val mconf = Map[String, String](
-      "spark.potato.source.kafka.offsets.storage" -> "zookeeper",
-      "spark.potato.source.kafka.subscribe.topics" -> "test1,test2",
-      "spark.potato.source.kafka.consumer.group.id" -> "test",
-      "spark.potato.source.kafka.consumer.auto.offset.reset" -> "earliest",
-      "spark.potato.source.kafka.consumer.bootstrap.servers" -> "test01:9092"
+      POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
+      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
+      POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test01:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
     println(conf.storageType)

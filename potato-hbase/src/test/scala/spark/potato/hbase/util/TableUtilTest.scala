@@ -17,6 +17,7 @@ class TableUtilTest {
     for (i <- 0 until 4) {
       withTable(conf, "test") { table =>
         for (j <- 0 until 2000) {
+          // 非批处理，性能非常差。
           table.put(new Put(Bytes.toBytes(s"$i-$j")).addColumn(
             Bytes.toBytes("f1"),
             Bytes.toBytes("test"),

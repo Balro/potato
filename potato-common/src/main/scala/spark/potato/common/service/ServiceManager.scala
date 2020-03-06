@@ -32,9 +32,9 @@ class ServiceManager {
    * 初始化可用配置参数，用于创建service实例。
    */
   def sc(sc: SparkContext, overrideConf: Boolean = true): ServiceManager = {
-    conf = sc.getConf.getAll.toMap
+    if (overrideConf)
+      conf = sc.getConf.getAll.toMap
     this.sc = sc
-    if (overrideConf) this.conf = sc.getConf.getAll.toMap
     this
   }
 
@@ -42,10 +42,10 @@ class ServiceManager {
    * 初始化可用配置参数，用于创建service实例。
    */
   def ssc(ssc: StreamingContext, overrideConf: Boolean = true): ServiceManager = {
-    conf = sc.getConf.getAll.toMap
+    if (overrideConf)
+      conf = sc.getConf.getAll.toMap
     sc = ssc.sparkContext
     this.ssc = ssc
-    if (overrideConf) this.conf = sc.getConf.getAll.toMap
     this
   }
 

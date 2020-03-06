@@ -2,17 +2,20 @@ package spark.potato.monitor.reporter
 
 import org.apache.spark.internal.Logging
 import spark.potato.common.util.DingRobotUtil
-import spark.potato.monitor.MonitorConfigKeys._
+import spark.potato.monitor.conf.MonitorConfigKeys._
 
+/**
+ * 钉钉reporter，用于将信息发送给指定机器人。
+ */
 class DingReporter(conf: Map[String, String]) extends Reporter with Logging {
-  val token: String = conf(BACKLOG_REPORTER_DING_TOKEN_KEY)
-  val atAll: Boolean = conf.get(BACKLOG_REPORTER_DING_ATALL_KEY) match {
+  val token: String = conf(POTATO_MONITOR_BACKLOG_REPORTER_DING_TOKEN_KEY)
+  val atAll: Boolean = conf.get(POTATO_MONITOR_BACKLOG_REPORTER_DING_ATALL_KEY) match {
     case Some(bool) => bool.toBoolean
-    case None => BACKLOG_REPORTER_DING_ATALL_DEFAULT
+    case None => POTATO_MONITOR_BACKLOG_REPORTER_DING_ATALL_DEFAULT
   }
-  val atPhones: Array[String] = conf.get(BACKLOG_REPORTER_DING_ATPHONEs_KEY) match {
+  val atPhones: Array[String] = conf.get(POTATO_MONITOR_BACKLOG_REPORTER_DING_ATPHONEs_KEY) match {
     case Some(phones) => phones.split(",")
-    case None => BACKLOG_REPORTER_DING_ATPHONEs_DEFAULT
+    case None => POTATO_MONITOR_BACKLOG_REPORTER_DING_ATPHONEs_DEFAULT
   }
 
   override def report(msg: String): Unit = {

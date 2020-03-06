@@ -3,7 +3,7 @@ package spark.potato.lock.conf
 import spark.potato.common.conf.CommonConfigKeys.POTATO_PREFIX
 
 object LockConfigKeys {
-  val POTATO_RUNNING_LOCK_PREFIX: String = POTATO_PREFIX + "running.lock."
+  val POTATO_RUNNING_LOCK_PREFIX: String = POTATO_PREFIX + "lock.running."
 
   val POTATO_RUNNING_LOCK_ENABLE_KEY: String = POTATO_RUNNING_LOCK_PREFIX + "enable"
   val POTATO_RUNNING_LOCK_ENABLE_DEFAULT: Boolean = true

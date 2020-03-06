@@ -1,4 +1,4 @@
-package spark.potato.lock
+package spark.potato.lock.runninglock
 
 import java.util.concurrent.TimeUnit
 
@@ -6,7 +6,6 @@ import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.junit.Test
 import spark.potato.lock.conf.LockConfigKeys._
-import spark.potato.lock.runninglock.RunningLockManager
 
 import scala.collection.mutable
 
@@ -20,7 +19,7 @@ class RunningLockManagerTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val lock = new RunningLockManager(ssc)
+    new RunningLockManager().serve(ssc.sparkContext)
   }
 
   @Test
@@ -32,13 +31,13 @@ class RunningLockManagerTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val lockManager = new RunningLockManager(ssc)
+    val lockManager = new RunningLockManager().serve(ssc.sparkContext)
 
-    println(lockManager.locked)
+    println(lockManager.isLocked)
 
     lockManager.tryLock(3, 5000)
 
-    println(lockManager.locked)
+    println(lockManager.isLocked)
 
     TimeUnit.MINUTES.sleep(10)
   }
@@ -52,11 +51,11 @@ class RunningLockManagerTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val lockManager = new RunningLockManager(ssc)
+    val lockManager: RunningLockManager = new RunningLockManager().serve(ssc.sparkContext)
 
-    println(lockManager.locked + lockManager.lock.getLock.toString())
+    println(lockManager.isLocked + lockManager.lock.getLock.toString())
     lockManager.tryLock(3, 5000)
-    println(lockManager.locked + lockManager.lock.getLock.toString())
+    println(lockManager.isLocked + lockManager.lock.getLock.toString())
     lockManager.release()
 
     TimeUnit.MINUTES.sleep(10)
@@ -75,7 +74,7 @@ object HeartbeatTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val lockManager = new RunningLockManager(ssc)
+    val lockManager = new RunningLockManager().serve(ssc.sparkContext)
 
     try {
       lockManager.start()

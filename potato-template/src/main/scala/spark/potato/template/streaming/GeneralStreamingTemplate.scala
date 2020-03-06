@@ -1,25 +1,26 @@
-package spark.potato.template
+package spark.potato.template.streaming
 
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import spark.potato.common.context.PotatoContextUtil
 import spark.potato.common.exception.SparkContextNotInitializedException
-import spark.potato.common.service.{Service, ServiceInfo}
-import spark.potato.monitor.BacklogMonitor
+import spark.potato.common.service.Service
 import spark.potato.lock.conf.LockConfigKeys._
 import spark.potato.lock.runninglock.RunningLockManager
-import spark.potato.monitor.MonitorConfigKeys._
+import spark.potato.monitor.backlog.BacklogMonitor
+import spark.potato.monitor.conf.MonitorConfigKeys._
 
 import scala.collection.mutable.ListBuffer
 
-abstract class GeneralTemplate extends Logging {
-  private var ssc: StreamingContext = _
-  private val defaultServices = Seq(
-    ServiceInfo(POTATO_RUNNING_LOCK_ENABLE_KEY, POTATO_RUNNING_LOCK_ENABLE_DEFAULT, classOf[RunningLockManager].getName),
-    ServiceInfo(MONITOR_BACKLOG_ENABLE_KEY, MONITOR_BACKLOG_ENABLE_DEFAULT, classOf[BacklogMonitor].getName)
-  )
-  private val activeServices = ListBuffer.empty[Service]
+/**
+ * Streaming快捷模板，通过继承该抽象类快速构建Streaming作业。
+ */
+abstract class GeneralStreamingTemplate extends Logging {
+  protected var cmdArgs: Array[String] = _
+  lazy val ssc: StreamingContext = createContext(cmdArgs)
+  lazy val conf: SparkConf = createConf(cmdArgs)
+  private val additionalServices = ListBuffer.empty[Service]
 
   def getConf: SparkConf = {
     if (ssc == null)
@@ -30,11 +31,9 @@ abstract class GeneralTemplate extends Logging {
   def getSsc: StreamingContext = ssc
 
   def main(args: Array[String]): Unit = {
-    val conf = createConf(args)
-    afterConfCreated(args, conf)
-    ssc = createContext(args, conf)
-    afterContextCreated(args)
-    activeServices ++= createDefaultService() ++= createAdditionalService(args)
+    this.cmdArgs = args
+
+    additionalServices ++= registerDefaultService() ++= registerAdditionalService()
 
     try {
       startServices()
@@ -56,10 +55,6 @@ abstract class GeneralTemplate extends Logging {
     new SparkConf()
   }
 
-  def afterConfCreated(args: Array[String], conf: SparkConf): Unit = {
-    logInfo("Method afterConfCreated has been called.")
-  }
-
   def createContext(args: Array[String], conf: SparkConf): StreamingContext = {
     logInfo("Method createContext has been called.")
 
@@ -67,10 +62,6 @@ abstract class GeneralTemplate extends Logging {
       throw new Exception("Spark conf is not initialized.")
 
     PotatoContextUtil.createStreamingContextWithDuration(conf)
-  }
-
-  def afterContextCreated(args: Array[String]): Unit = {
-    logInfo("Method afterContextCreated has been called.")
   }
 
   def afterStart(args: Array[String]): Unit = {
@@ -81,7 +72,7 @@ abstract class GeneralTemplate extends Logging {
     logInfo("Method afterStop has been called.")
   }
 
-  private def createDefaultService(): Seq[Service] = {
+  private def registerDefaultService(): Seq[Service] = {
     logInfo("Method registerDefaultService has been called.")
     defaultServices.filter { info =>
       getConf.getBoolean(info.key, info.default)
@@ -91,13 +82,13 @@ abstract class GeneralTemplate extends Logging {
     }
   }
 
-  def createAdditionalService(args: Array[String]): Seq[Service] = {
+  def registerAdditionalService(args: Array[String]): Seq[Service] = {
     logInfo("Method registerAdditionalService has been called.")
     Seq.empty
   }
 
   private def startServices(): Unit = {
-    activeServices.foreach {
+    additionalServices.foreach {
       service =>
         service.start()
         logInfo(s"Service: $service started.")
@@ -105,7 +96,7 @@ abstract class GeneralTemplate extends Logging {
   }
 
   private def stopServices(): Unit = {
-    activeServices.foreach {
+    additionalServices.foreach {
       service =>
         service.stop()
         logInfo(s"Service: $service stopped.")

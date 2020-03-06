@@ -9,6 +9,7 @@ import spark.potato.kafka.conf.KafkaConfigKeys._
 import spark.potato.kafka.offsets.manager.OffsetsManager
 import spark.potato.kafka.source.KafkaSourceUtil
 import spark.potato.lock.conf.LockConfigKeys._
+import spark.potato.template.streaming.KafkaSourceTemplate
 
 object KafkaTopn1Test extends KafkaSourceTemplate[(String, String)] with Logging {
   override def initKafka(ssc: StreamingContext): (DStream[(String, String)], OffsetsManager) =

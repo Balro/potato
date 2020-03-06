@@ -1,6 +1,8 @@
 package spark.potato.template
 
-object GeneralTemplateTest extends GeneralTemplate {
+import spark.potato.template.streaming.GeneralStreamingTemplate
+
+object GeneralTemplateTest extends GeneralStreamingTemplate {
   override def doWork(args: Array[String]): Unit = {
 
   }

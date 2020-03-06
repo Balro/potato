@@ -1,4 +1,4 @@
-package spark.potato.lock
+package spark.potato.lock.runninglock
 
 import org.junit.Test
 import spark.potato.lock.runninglock.RunningLockCmd

@@ -6,7 +6,7 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.{SparkConf, SparkContext}
 import org.json.{JSONException, JSONObject}
 import spark.potato.common.exception.PotatoException
-import spark.potato.common.service.ContextService
+import spark.potato.common.service.Service
 import spark.potato.common.tools.DaemonThreadFactory
 import spark.potato.lock.conf.LockConfigKeys._
 import spark.potato.lock.exception.{CannotGetRunningLockException, LockMismatchException}
@@ -18,27 +18,20 @@ import scala.collection.JavaConversions
  * running lock为了解决作业重复启动的问题，当已有作业获取锁时，新作业无法再次提交。
  * 或者新作业可以直接停止旧作业，代替旧作业运行。
  */
-class RunningLockManager extends ContextService with Logging {
-  private var sc: SparkContext = _
-  private var conf: SparkConf = _
-  private[runninglock] var lock: RunningLock = _
+class RunningLockManager2(sc: SparkContext) extends Service with Logging {
 
-  override def serve(sc: SparkContext): RunningLockManager = {
-    this.sc = sc
-    conf = sc.getConf
-    lock = conf.get(
-      POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
-    ) match {
-      case "zookeeper" => new ZookeeperRunningLock(
-        this,
-        conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY),
-        conf.getInt(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT),
-        conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY),
-        sc.appName
-      )
-      case t => throw new PotatoException(s"Running lock type -> $t not supported.")
-    }
-    this
+  val conf: SparkConf = sc.getConf
+  val lock: RunningLock = conf.get(
+    POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
+  ) match {
+    case "zookeeper" => new ZookeeperRunningLock(
+      this,
+      conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY),
+      conf.getInt(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT),
+      conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY),
+      sc.appName
+    )
+    case t => throw new PotatoException(s"Running lock type -> $t not supported.")
   }
 
   private var locked: Boolean = false

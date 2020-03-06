@@ -4,11 +4,15 @@ import org.apache.spark.SparkConf
 import spark.potato.common.cmd.ActionCMDBase
 import spark.potato.lock.conf.LockConfigKeys._
 
+/**
+ * runninglock命令行管理工具。
+ */
 object RunningLockCmd extends ActionCMDBase {
   /**
    * 添加action,argument以及其他初始化。
    */
   override def init(): Unit = {
+    // 清楚已存在的锁。
     addAction("clear", "stop the app by clear the lock. app must monitor its lock status.",
       action = { () =>
         val conf = new SparkConf()
@@ -35,6 +39,7 @@ object RunningLockCmd extends ActionCMDBase {
       }
     )
 
+    // 查看当前锁状态。
     addAction("state", describe = "show current lock msg.",
       action = { () =>
         val conf = new SparkConf()

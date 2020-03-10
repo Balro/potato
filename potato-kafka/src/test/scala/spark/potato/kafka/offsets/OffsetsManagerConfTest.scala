@@ -22,12 +22,12 @@ class OffsetsManagerConfTest {
       POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
       POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test",
       POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test",
-      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY -> "earliest",
       POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test01:9092"
     )
     val conf = new OffsetsManagerConf(mconf)
     println(conf.toMap)
-    println(conf.get(POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY))
+    println(conf.get(POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY))
   }
 
   @Test
@@ -36,7 +36,7 @@ class OffsetsManagerConfTest {
       POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
       POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
       POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test",
-      POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> "earliest",
+      POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY -> "earliest",
       POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test01:9092"
     )
     val conf = new OffsetsManagerConf(mconf)

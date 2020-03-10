@@ -30,13 +30,13 @@ class OffsetsManagerConf(conf: Map[String, String], kafkaParams: Map[String, Str
     POTATO_KAFKA_CONSUMER_GROUP_ID_KEY,
     POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY,
     POTATO_KAFKA_OFFSETS_STORAGE_KEY,
-    POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY
+    POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY
   )
 
   // 自动进行转换的参数，会将给定参数根据值进行转换。
   private val mapKey = Map(
     // 兼容新版本重置策略，转换为旧版本重置策略可识别参数。
-    POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY -> Set("earliest" -> "smallest", "latest" -> "largest")
+    POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY -> Set("earliest" -> "smallest", "latest" -> "largest")
   )
 
   // 对传入参数进行校验，检查是否已包含必须key，并对需要转换的key进行转换。
@@ -81,7 +81,7 @@ class OffsetsManagerConf(conf: Map[String, String], kafkaParams: Map[String, Str
   val subscribeTopics: Set[String] = cleanedConf(POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY)
     .split(",").map(_.trim).toSet
   val storageType: String = cleanedConf(POTATO_KAFKA_OFFSETS_STORAGE_KEY)
-  val offsetResetPolicy: String = cleanedConf(POTATO_KAFKA_CONSUMER_OFFSET_RESET_POLICY)
+  val offsetResetPolicy: String = cleanedConf(POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY)
   val offsetsAutoUpdate: Boolean = cleanedConf.getOrElse(
     POTATO_KAFKA_OFFSETS_AUTO_UPDATE_KEY, POTATO_KAFKA_OFFSETS_AUTO_UPDATE_DEFAULT).toBoolean
   val offsetsAutoUpdateDelay: Long = cleanedConf.getOrElse(

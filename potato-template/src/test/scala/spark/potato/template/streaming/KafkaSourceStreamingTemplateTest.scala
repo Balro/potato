@@ -31,5 +31,11 @@ object KafkaSourceStreamingTemplateTest extends KafkaSourceStreamingTemplate[Str
       .set(POTATO_MONITOR_BACKLOG_DELAY_MS_KEY, 1.toString)
       .set(POTATO_MONITOR_BACKLOG_REPORTER_DING_TOKEN_KEY, "abc")
       .set(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY, "test02")
+
+      .set(POTATO_KAFKA_OFFSETS_STORAGE_KEY, "kafka")
+      .set(POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY, "test")
+      .set(POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY, "test02:9092")
+      .set(POTATO_KAFKA_CONSUMER_GROUP_ID_KEY, "potato_test_group")
+      .set(POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY, "largest")
   }
 }

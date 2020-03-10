@@ -3,7 +3,7 @@ package spark.potato.kafka.offsets.manager
 import kafka.common.InvalidConfigException
 import kafka.consumer.ConsumerConfig
 import org.apache.spark.SparkConf
-import spark.potato.kafka.conf.KafkaConfigKeys._
+import spark.potato.kafka.conf._
 
 import scala.collection.mutable
 

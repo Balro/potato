@@ -5,7 +5,8 @@ import java.util.concurrent.TimeUnit
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.junit.Test
-import spark.potato.lock.conf.LockConfigKeys._
+import spark.potato.common.service.ServiceManager
+import spark.potato.lock.conf._
 
 import scala.collection.mutable
 
@@ -19,7 +20,8 @@ class RunningLockManagerTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    new RunningLockManager().serve(ssc.sparkContext)
+    //    new RunningLockManager().serve(ssc.sparkContext)
+    new ServiceManager().ssc(ssc).serve(classOf[RunningLockManagerService])
   }
 
   @Test
@@ -31,13 +33,14 @@ class RunningLockManagerTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val lockManager = new RunningLockManager().serve(ssc.sparkContext)
+    //    val lockManager = new RunningLockManagerService().serve(ssc.sparkContext)
+    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManagerService]).asInstanceOf[RunningLockManagerService]
 
     println(lockManager.isLocked)
 
     lockManager.tryLock(3, 5000)
 
-    println(lockManager.isLocked)
+    println(lockManager.lock.getLock)
 
     TimeUnit.MINUTES.sleep(10)
   }
@@ -51,11 +54,13 @@ class RunningLockManagerTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val lockManager: RunningLockManager = new RunningLockManager().serve(ssc.sparkContext)
+    //    val lockManager: RunningLockManagerService = new RunningLockManagerService().serve(ssc.sparkContext)
+    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManagerService]).asInstanceOf[RunningLockManagerService]
 
     println(lockManager.isLocked + lockManager.lock.getLock.toString())
     lockManager.tryLock(3, 5000)
     println(lockManager.isLocked + lockManager.lock.getLock.toString())
+    TimeUnit.SECONDS.sleep(10)
     lockManager.release()
 
     TimeUnit.MINUTES.sleep(10)
@@ -74,18 +79,17 @@ object HeartbeatTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val lockManager = new RunningLockManager().serve(ssc.sparkContext)
+    //    val lockManager = new RunningLockManagerService().serve(ssc.sparkContext)
+    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManagerService])
 
-    try {
-      lockManager.start()
+    lockManager.startAndStopOnJVMExit()
 
-      ssc.queueStream(mutable.Queue(ssc.sparkContext.makeRDD(Seq(0))))
-        .foreachRDD(rdd => rdd.foreach(println))
+    ssc.queueStream(mutable.Queue(ssc.sparkContext.makeRDD(Seq(0))))
+      .foreachRDD(rdd => rdd.foreach(println))
 
-      ssc.start()
-      ssc.awaitTermination()
-    } finally {
-      lockManager.stop()
-    }
+    ssc.start()
+    //      ssc.awaitTermination()
+
+    TimeUnit.SECONDS.sleep(10)
   }
 }

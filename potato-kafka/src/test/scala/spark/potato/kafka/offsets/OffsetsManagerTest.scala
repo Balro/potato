@@ -6,7 +6,7 @@ import kafka.common.TopicAndPartition
 import org.apache.spark.streaming.kafka.OffsetRange
 import org.junit.Test
 import spark.potato.kafka.offsets.manager.{OffsetsManager, OffsetsManagerConf}
-import spark.potato.kafka.conf.KafkaConfigKeys._
+import spark.potato.kafka.conf._
 
 class OffsetsManagerTest {
   @Test

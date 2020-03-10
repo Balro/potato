@@ -30,22 +30,26 @@
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-kafka</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-lock</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-monitor</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-streaming-kafka-0-8_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
 

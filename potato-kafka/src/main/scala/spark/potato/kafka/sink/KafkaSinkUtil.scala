@@ -7,6 +7,8 @@ import org.apache.spark.streaming.dstream.DStream
 
 /**
  * 数据写入kafka的工具类。
+ * producer相关参数(取自KafkaProducer_JavaDoc):
+ * ["bootstrap.servers","acks","retries","batch.size","linger.ms","buffer.memory","key.serializer","value.serializer"]
  */
 object KafkaSinkUtil {
   def saveToKafka[K, V](stream: DStream[ProducerRecord[K, V]], props: Properties): Unit = {

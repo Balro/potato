@@ -2,7 +2,7 @@ package spark.potato.monitor.reporter
 
 import org.apache.spark.internal.Logging
 import spark.potato.common.util.DingRobotUtil
-import spark.potato.monitor.conf.MonitorConfigKeys._
+import spark.potato.monitor.conf._
 
 /**
  * 钉钉reporter，用于将信息发送给指定机器人。

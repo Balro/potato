@@ -2,7 +2,7 @@ package spark.potato.lock.runninglock
 
 import org.apache.spark.SparkConf
 import spark.potato.common.cmd.ActionCMDBase
-import spark.potato.lock.conf.LockConfigKeys._
+import spark.potato.lock.conf._
 
 /**
  * runninglock命令行管理工具。
@@ -24,7 +24,7 @@ object RunningLockCmd extends ActionCMDBase {
             conf.getInt(
               POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT
             ),
-            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY),
+            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY,POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_DEFAULT),
             conf.get("spark.app.name")
           )
           case lockType => throw new Exception(s"Lock not supported -> $lockType")
@@ -51,7 +51,7 @@ object RunningLockCmd extends ActionCMDBase {
             conf.getInt(
               POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT
             ),
-            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY),
+            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY,POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_DEFAULT),
             conf.get("spark.app.name")
           )
           case lockType => throw new Exception(s"Lock not supported -> $lockType")

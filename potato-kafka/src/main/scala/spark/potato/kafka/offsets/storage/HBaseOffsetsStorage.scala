@@ -6,7 +6,7 @@ import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{CellUtil, HBaseConfiguration, TableName}
 import org.apache.spark.internal.Logging
-import spark.potato.kafka.conf.KafkaConfigKeys._
+import spark.potato.kafka.conf._
 
 /**
  * 建表语句参考

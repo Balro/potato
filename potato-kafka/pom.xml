@@ -11,25 +11,19 @@
 
     <artifactId>potato-kafka</artifactId>
 
-    <properties>
-        <hbase.version>1.2.0-cdh5.14.4</hbase.version>
-    </properties>
-
     <dependencies>
+        <dependency>
+            <groupId>spark.potato</groupId>
+            <artifactId>potato-common</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-streaming-kafka-0-8_${scala.binary.version}</artifactId>
-            <version>${spark.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.hbase</groupId>
             <artifactId>hbase-client</artifactId>
-            <version>${hbase.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>spark.potato</groupId>
-            <artifactId>potato-common</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 

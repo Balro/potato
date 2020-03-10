@@ -1,6 +1,5 @@
 package spark.potato.kafka
 
-import kafka.message.MessageAndMetadata
 import kafka.serializer.Decoder
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
@@ -12,6 +11,8 @@ import scala.reflect.ClassTag
  */
 package object source {
   type OffsetsManager = spark.potato.kafka.offsets.manager.OffsetsManager
+  type StringDecoder = kafka.serializer.StringDecoder
+  type MessageAndMetadata[K, V] = kafka.message.MessageAndMetadata[K, V]
 
   def createDStreamWithOffsetsManager[
     K: ClassTag, V: ClassTag,

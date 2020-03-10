@@ -4,7 +4,7 @@ import kafka.common.InvalidConfigException
 import org.apache.spark.SparkConf
 import org.junit.Test
 import spark.potato.kafka.offsets.manager.OffsetsManagerConf
-import spark.potato.kafka.conf.KafkaConfigKeys._
+import spark.potato.kafka.conf._
 
 class OffsetsManagerConfTest {
   @Test

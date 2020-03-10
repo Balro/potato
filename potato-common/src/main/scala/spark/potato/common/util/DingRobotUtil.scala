@@ -1,8 +1,9 @@
 package spark.potato.common.util
 
 import org.apache.spark.internal.Logging
-import org.json.JSONObject
 import scalaj.http.Http
+import org.json4s.JsonDSL._
+import org.json4s.jackson.JsonMethods._
 
 /**
  * 钉钉机器人工具。
@@ -33,16 +34,11 @@ object DingRobotUtil extends Logging {
   }
 
   private def mkMsg(msg: String, atAll: Boolean, phones: Array[String]): String = {
-    import scala.collection.JavaConversions.mapAsJavaMap
-    new JSONObject(mapAsJavaMap(Map(
-      "msgtype" -> "text",
-      "text" -> mapAsJavaMap(Map(
-        "content" -> msg))
-      ,
-      "at" -> mapAsJavaMap(Map(
-        "atMobiles" -> phones,
-        "isAtAll" -> atAll
-      ))
-    ))).toString
+    compact(("msgtype" -> "text") ~
+      ("text" -> ("content" -> msg)) ~
+      ("at" -> (
+        ("atMobiles" -> phones.toSeq) ~
+          ("isAtAll" -> atAll)
+        )))
   }
 }

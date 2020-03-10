@@ -2,13 +2,14 @@ package spark.potato.monitor.backlog
 
 import java.text.SimpleDateFormat
 import java.util.Date
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicLong}
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.scheduler._
+import spark.potato.common.context.StreamingContextUtil
 import spark.potato.common.exception.PotatoException
 import spark.potato.common.service.StreamingService
 import spark.potato.common.tools.DaemonThreadFactory
@@ -17,23 +18,32 @@ import spark.potato.monitor.reporter.{DingReporter, Reporter}
 /**
  * streaming积压监控服务。
  */
-class BacklogMonitor extends StreamingService with StreamingListener with Runnable with Logging {
+class BacklogMonitorService extends StreamingService with StreamingListener with Runnable with Logging {
   private var ssc: StreamingContext = _
+  private var conf: BacklogMonitorConfig = _
+  private var checkInterval: Long = _
+  private var reporter: Reporter = _
 
-  override def serve(ssc: StreamingContext): BacklogMonitor = {
+  override def serve(ssc: StreamingContext): BacklogMonitorService = {
     this.ssc = ssc
+    conf = BacklogMonitorConfig.parse(ssc.sparkContext.getConf)
+    checkInterval = {
+      if (conf.checkInterval < 0)
+        StreamingContextUtil.getBatchDuration(ssc).milliseconds
+      else conf.checkInterval
+    }
+    reporter = conf.reporter match {
+      case "ding" => new DingReporter(ssc.sparkContext.getConf.getAll.toMap)
+      case unknown => throw new PotatoException(s"Unknown reporter $unknown")
+    }
+
     ssc.addStreamingListener(this)
     this
   }
 
   private val delayBatch = new AtomicLong(0)
-  private var lastBatchTime: Long = -1
+  private var lastBatchTime: Long = System.currentTimeMillis()
   private val executor: ScheduledExecutorService = Executors.newSingleThreadScheduledExecutor(DaemonThreadFactory)
-  private val conf = BacklogMonitorConfig.parse(ssc.sparkContext.getConf)
-  private val reporter: Reporter = conf.reporter match {
-    case "ding" => new DingReporter(ssc.sparkContext.getConf.getAll.toMap)
-    case unknown => throw new PotatoException(s"Unknown reporter $unknown")
-  }
 
   /**
    * 初始化上次批次执行时间戳。
@@ -57,9 +67,16 @@ class BacklogMonitor extends StreamingService with StreamingListener with Runnab
     delayBatch.decrementAndGet()
   }
 
-  def start(): Unit = {
+  private val started = new AtomicBoolean(false)
+
+  override def start(): Unit = {
+    if (started.get()) {
+      logWarning("Service BacklogMonitor already started.")
+      return
+    }
     logInfo("Start BacklogMonitor.")
-    executor.scheduleAtFixedRate(this, conf.checkInterval, conf.checkInterval, TimeUnit.MILLISECONDS)
+    started.set(true)
+    executor.scheduleAtFixedRate(this, checkInterval, checkInterval, TimeUnit.MILLISECONDS)
     logInfo("BacklogMonitor started.")
   }
 
@@ -77,10 +94,6 @@ class BacklogMonitor extends StreamingService with StreamingListener with Runnab
   private var lastReportedTime = -1L
 
   override def run(): Unit = {
-    if (lastBatchTime < 0) {
-      logWarning("LastSuccessTime is not initialized.")
-      return
-    }
     val current = System.currentTimeMillis()
     val currentDelay = current - lastBatchTime
     if (
@@ -142,13 +155,13 @@ case class BacklogMonitorConfig(reporter: String,
 
 object BacklogMonitorConfig {
   def parse(conf: SparkConf): BacklogMonitorConfig = {
-    import spark.potato.common.conf.CommonConfigKeys.POTATO_STREAMING_BATCH_DURATION_SECONDS_KEY
-    import spark.potato.monitor.conf.MonitorConfigKeys._
+    import spark.potato.common.conf.POTATO_STREAMING_BATCH_DURATION_MS_KEY
+    import spark.potato.monitor.conf._
     BacklogMonitorConfig(
       conf.get(POTATO_MONITOR_BACKLOG_REPORTER_TYPE_KEY, POTATO_MONITOR_BACKLOG_REPORTER_TYPE_DEFAULT),
-      conf.get(POTATO_MONITOR_BACKLOG_DELAY_SECONDS_KEY).toLong * 1000,
-      conf.get(POTATO_STREAMING_BATCH_DURATION_SECONDS_KEY).toLong * 1000,
-      conf.getLong(POTATO_MONITOR_BACKLOG_REPORTER_INTERVAL_SECOND_KEY, POTATO_MONITOR_BACKLOG_REPORTER_INTERVAL_SECOND_DEFAULT) * 1000,
+      conf.get(POTATO_MONITOR_BACKLOG_DELAY_MS_KEY).toLong,
+      conf.getLong(POTATO_STREAMING_BATCH_DURATION_MS_KEY, -1L),
+      conf.getLong(POTATO_MONITOR_BACKLOG_REPORTER_INTERVAL_MS_KEY, POTATO_MONITOR_BACKLOG_REPORTER_INTERVAL_MS_DEFAULT),
       conf.getInt(POTATO_MONITOR_BACKLOG_REPORTER_MAX_KEY, POTATO_MONITOR_BACKLOG_REPORTER_MAX_DEFAULT)
     )
   }

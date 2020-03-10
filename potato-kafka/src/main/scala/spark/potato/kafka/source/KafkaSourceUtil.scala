@@ -1,6 +1,5 @@
 package spark.potato.kafka.source
 
-import kafka.message.MessageAndMetadata
 import kafka.serializer.Decoder
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext

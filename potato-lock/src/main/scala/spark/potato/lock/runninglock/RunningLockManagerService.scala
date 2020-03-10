@@ -1,37 +1,48 @@
 package spark.potato.lock.runninglock
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
+import com.fasterxml.jackson.core.JsonParseException
 import org.apache.spark.internal.Logging
 import org.apache.spark.{SparkConf, SparkContext}
-import org.json.{JSONException, JSONObject}
+import org.json4s._
+import org.json4s.JsonDSL._
+import org.json4s.jackson.JsonMethods._
 import spark.potato.common.exception.PotatoException
-import spark.potato.common.service.Service
+import spark.potato.common.service.ContextService
 import spark.potato.common.tools.DaemonThreadFactory
-import spark.potato.lock.conf.LockConfigKeys._
+import spark.potato.lock.conf._
 import spark.potato.lock.exception.{CannotGetRunningLockException, LockMismatchException}
 
-import scala.collection.JavaConversions
 
 /**
  * running lock管理工具。
  * running lock为了解决作业重复启动的问题，当已有作业获取锁时，新作业无法再次提交。
  * 或者新作业可以直接停止旧作业，代替旧作业运行。
  */
-class RunningLockManager2(sc: SparkContext) extends Service with Logging {
+class RunningLockManagerService extends ContextService with Logging {
+  implicit val formats: Formats = DefaultFormats
+  private var sc: SparkContext = _
+  private var conf: SparkConf = _
+  private[runninglock] var lock: RunningLock = _
 
-  val conf: SparkConf = sc.getConf
-  val lock: RunningLock = conf.get(
-    POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
-  ) match {
-    case "zookeeper" => new ZookeeperRunningLock(
-      this,
-      conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY),
-      conf.getInt(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT),
-      conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY),
-      sc.appName
-    )
-    case t => throw new PotatoException(s"Running lock type -> $t not supported.")
+  override def serve(sc: SparkContext): RunningLockManagerService = {
+    this.sc = sc
+    conf = sc.getConf
+    lock = conf.get(
+      POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
+    ) match {
+      case "zookeeper" => new ZookeeperRunningLock(
+        this,
+        conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY),
+        conf.getInt(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT),
+        conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_DEFAULT),
+        sc.appName
+      )
+      case t => throw new PotatoException(s"Running lock type -> $t not supported.")
+    }
+    this
   }
 
   private var locked: Boolean = false
@@ -108,7 +119,7 @@ class RunningLockManager2(sc: SparkContext) extends Service with Logging {
         }
       }
     }, 0,
-      conf.getLong(POTATO_RUNNING_LOCK_HEARTBEAT_INTERVAL_MS_KEY, POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_DEFAULT),
+      conf.getLong(POTATO_RUNNING_LOCK_HEARTBEAT_INTERVAL_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_INTERVAL_MS_DEFAULT),
       TimeUnit.MILLISECONDS)
   }
 
@@ -127,11 +138,11 @@ class RunningLockManager2(sc: SparkContext) extends Service with Logging {
       val (isLocked, msg) = {
         val (l, m) = lock.getLock
         oldMsg = m
-        l -> new JSONObject(m)
+        l -> parse(m)
       }
 
-      val oldAppName = msg.get("appName")
-      val oldApplicationId = msg.get("applicationId")
+      val oldAppName = msg.\("appName").extract[String]
+      val oldApplicationId = msg.\("applicationId").extract[String]
       val curAppName = sc.appName
       val curApplicationId = sc.applicationId
 
@@ -140,7 +151,7 @@ class RunningLockManager2(sc: SparkContext) extends Service with Logging {
         return
       }
     } catch {
-      case e: JSONException => logWarning(s"Oldmsg is not valid -> $oldMsg", e)
+      case e: JsonParseException => logWarning(s"Oldmsg is not valid -> $oldMsg", e)
     }
     // 如现有锁与当前作业信息不匹配，则抛出异常。
     throw LockMismatchException(s"Lock mismatch, current: $createMsg -> old: $oldMsg")
@@ -159,7 +170,7 @@ class RunningLockManager2(sc: SparkContext) extends Service with Logging {
    * webUri
    */
   def createMsg: String = {
-    new JSONObject(JavaConversions.mapAsJavaMap(Map(
+    compact(Map(
       "appName" -> sc.appName.toString,
       "applicationId" -> sc.applicationId.toString,
       "applicationAttemptId" -> sc.applicationAttemptId.getOrElse("-1"),
@@ -169,7 +180,7 @@ class RunningLockManager2(sc: SparkContext) extends Service with Logging {
       "startTime" -> sc.startTime.toString,
       "user" -> sc.sparkUser,
       "webUri" -> sc.uiWebUrl.getOrElse("null")
-    ))).toString
+    ))
   }
 
   override def stop(): Unit = {
@@ -178,7 +189,13 @@ class RunningLockManager2(sc: SparkContext) extends Service with Logging {
     logInfo("RunningLockManager stopped.")
   }
 
+  private val started = new AtomicBoolean(false)
+
   override def start(): Unit = {
+    if (started.get()) {
+      logWarning("Service RunningLockManager already started.")
+      return
+    }
     logInfo("Start RunningLockManager.")
     startHeartbeat()
     logInfo("RunningLockManager started.")

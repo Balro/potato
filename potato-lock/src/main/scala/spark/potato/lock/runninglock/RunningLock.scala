@@ -46,7 +46,7 @@ trait RunningLock {
  * @param path    锁路径。
  * @param appName 作业名。
  */
-class ZookeeperRunningLock(manager: RunningLockManager, addr: String, timeout: Int, path: String, appName: String) extends RunningLock
+class ZookeeperRunningLock(manager: RunningLockManagerService, addr: String, timeout: Int, path: String, appName: String) extends RunningLock
   with Watcher with Logging {
   val zookeeper = new ZooKeeper(addr, timeout, this)
   val lockPath: String = path + "/" + appName + ".lock"

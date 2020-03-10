@@ -11,16 +11,10 @@
 
     <artifactId>potato-hadoop</artifactId>
 
-    <properties>
-        <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
             <artifactId>hadoop-common</artifactId>
-            <version>${hadoop.version}</version>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 

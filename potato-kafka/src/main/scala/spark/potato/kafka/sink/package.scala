@@ -5,7 +5,7 @@ import java.util.Properties
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
-import spark.potato.kafka.conf.KafkaConfigKeys.POTATO_KAFKA_PRODUCER_CONF_PREFIX
+import spark.potato.kafka.conf.POTATO_KAFKA_PRODUCER_CONF_PREFIX
 
 /**
  * 提供数据写kafka的隐式转换。

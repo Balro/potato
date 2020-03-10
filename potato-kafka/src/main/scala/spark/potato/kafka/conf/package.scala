@@ -1,9 +1,9 @@
-package spark.potato.kafka.conf
+package spark.potato.kafka
 
-import spark.potato.common.conf.CommonConfigKeys
+import spark.potato.common.conf.POTATO_PREFIX
 
-object KafkaConfigKeys {
-  val POTATO_KAFKA_PREFIX: String = CommonConfigKeys.POTATO_PREFIX + "kafka."
+package object conf {
+  val POTATO_KAFKA_PREFIX: String = POTATO_PREFIX + "kafka."
 
   val POTATO_KAFKA_CONSUMER_CONF_PREFIX: String = POTATO_KAFKA_PREFIX + "consumer.conf."
   val POTATO_KAFKA_CONSUMER_GROUP_ID_KEY: String = POTATO_KAFKA_CONSUMER_CONF_PREFIX + "group.id"

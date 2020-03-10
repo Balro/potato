@@ -6,17 +6,17 @@ import org.apache.spark.streaming.StreamingContext
 import spark.potato.common.context.PotatoContextUtil
 import spark.potato.common.exception.SparkContextNotInitializedException
 import spark.potato.common.service.Service
-import spark.potato.lock.conf.LockConfigKeys._
-import spark.potato.lock.runninglock.RunningLockManager
-import spark.potato.monitor.backlog.BacklogMonitor
-import spark.potato.monitor.conf.MonitorConfigKeys._
+import spark.potato.lock.conf._
+import spark.potato.lock.runninglock.RunningLockManagerService
+import spark.potato.monitor.backlog.BacklogMonitorService
+import spark.potato.monitor.conf._
 
 import scala.collection.mutable.ListBuffer
 
 /**
  * Streaming快捷模板，通过继承该抽象类快速构建Streaming作业。
  */
-abstract class GeneralStreamingTemplate extends Logging {
+abstract class StreamingTemplate extends Logging {
   protected var cmdArgs: Array[String] = _
   lazy val ssc: StreamingContext = createContext(cmdArgs)
   lazy val conf: SparkConf = createConf(cmdArgs)
@@ -42,7 +42,6 @@ abstract class GeneralStreamingTemplate extends Logging {
       afterStart(args)
       ssc.awaitTermination()
     } finally {
-      stopServices()
       afterStop(args)
     }
   }

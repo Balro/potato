@@ -1,12 +1,10 @@
-package spark.potato.lock.conf
+package spark.potato.lock
 
-import spark.potato.common.conf.CommonConfigKeys.POTATO_PREFIX
+import spark.potato.common.conf.POTATO_PREFIX
 
-object LockConfigKeys {
+package object conf {
   val POTATO_RUNNING_LOCK_PREFIX: String = POTATO_PREFIX + "lock.running."
 
-  val POTATO_RUNNING_LOCK_ENABLE_KEY: String = POTATO_RUNNING_LOCK_PREFIX + "enable"
-  val POTATO_RUNNING_LOCK_ENABLE_DEFAULT: Boolean = true
   val POTATO_RUNNING_LOCK_TRY_MAX_KEY: String = POTATO_RUNNING_LOCK_PREFIX + "try.max"
   val POTATO_RUNNING_LOCK_TRY_MAX_DEFAULT: Int = 3
   val POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_KEY: String = POTATO_RUNNING_LOCK_PREFIX + "try.interval.ms"
@@ -23,4 +21,5 @@ object LockConfigKeys {
   val POTATO_RUNNING_LOCK_ZOOKEEPER_PREFIX: String = POTATO_RUNNING_LOCK_PREFIX + "zookeeper."
   val POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY: String = POTATO_RUNNING_LOCK_ZOOKEEPER_PREFIX + "addr"
   val POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY: String = POTATO_RUNNING_LOCK_ZOOKEEPER_PREFIX + "path"
+  val POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_DEFAULT: String = "/potato/lock/running"
 }

@@ -1,6 +1,7 @@
 package spark.potato.common
 
 package object conf {
+  val POTATO_APP_NAME_KEY = "spark.app.name"
   val POTATO_PREFIX = "spark.potato."
   val POTATO_COMMON_PREFIX: String = POTATO_PREFIX + "common."
   // spark streaming 批次间隔key。

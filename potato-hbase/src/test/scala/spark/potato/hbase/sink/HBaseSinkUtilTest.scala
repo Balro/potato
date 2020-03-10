@@ -10,7 +10,7 @@ class HBaseSinkUtilTest {
   @Test
   def saveToHbaseTest(): Unit = {
     val conf = new SparkConf().setAppName("HBaseSinkUtilTest").setMaster("local")
-    conf.set(POTATO_HBASE_CONF_ZOOKEEPER_QUORUM, "test01,test02")
+    conf.set(POTATO_HBASE_CONF_ZOOKEEPER_QUORUM_KEY, "test01,test02")
     val sc = SparkContext.getOrCreate(conf)
     val rdd = sc.makeRDD(0 until 10).map { f =>
       MutationAction(MutationType.PUT, new Put(Bytes.toBytes(f.toString)).addColumn(
@@ -26,7 +26,7 @@ class HBaseSinkUtilTest {
   @Test
   def hbaseSinkTest(): Unit = {
     val conf = new SparkConf().setAppName("HBaseSinkUtilTest").setMaster("local")
-    conf.set(POTATO_HBASE_CONF_ZOOKEEPER_QUORUM, "test01,test02")
+    conf.set(POTATO_HBASE_CONF_ZOOKEEPER_QUORUM_KEY, "test01,test02")
     val sc = SparkContext.getOrCreate(conf)
     val rdd = sc.makeRDD(0 until 10).map { f =>
       MutationAction(MutationType.PUT, new Put(Bytes.toBytes(f.toString)).addColumn(

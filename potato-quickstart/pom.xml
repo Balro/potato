@@ -6,7 +6,7 @@
 
     <groupId>spark.potato</groupId>
     <artifactId>potato-quickstart</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
 
     <repositories>
         <repository>
@@ -50,12 +50,12 @@
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-template</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-hbase</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.elasticsearch</groupId>

@@ -116,7 +116,15 @@
                 <exclusions>
                     <exclusion>
                         <groupId>org.apache.hadoop</groupId>
-                        <artifactId>*</artifactId>
+                        <artifactId>hadoop-auth</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-common</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -175,6 +183,7 @@
                 <configuration>
                     <excludes>
                         <exclude>log4j.properties</exclude>
+                        <exclude>template.properties</exclude>
                     </excludes>
                 </configuration>
             </plugin>

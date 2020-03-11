@@ -20,7 +20,7 @@ class OffsetsManagerConfTest {
   def mapKeyTest(): Unit = {
     val mconf = Map[String, String](
       POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
-      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test",
+      POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY -> "test",
       POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test",
       POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY -> "earliest",
       POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test01:9092"
@@ -34,7 +34,7 @@ class OffsetsManagerConfTest {
   def kvTest(): Unit = {
     val mconf = Map[String, String](
       POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "zookeeper",
-      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
+      POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY -> "test1,test2",
       POTATO_KAFKA_CONSUMER_GROUP_ID_KEY -> "test",
       POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY -> "earliest",
       POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY -> "test01:9092"

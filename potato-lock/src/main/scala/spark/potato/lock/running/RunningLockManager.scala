@@ -1,41 +1,78 @@
-package spark.potato.lock.runninglock
+package spark.potato.lock.running
 
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
 import com.fasterxml.jackson.core.JsonParseException
+import org.apache.spark.SparkContext
 import org.apache.spark.internal.Logging
-import org.apache.spark.{SparkConf, SparkContext}
-import org.json4s._
+import org.apache.spark.streaming.StreamingContext
 import org.json4s.JsonDSL._
+import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import spark.potato.common.exception.PotatoException
-import spark.potato.common.service.ContextService
+import spark.potato.common.service.{ContextService, Service, StreamingService}
 import spark.potato.common.tools.DaemonThreadFactory
 import spark.potato.lock.conf._
 import spark.potato.lock.exception.{CannotGetRunningLockException, LockMismatchException}
 
+/**
+ * 区分StreamingContext和SparkContext，避免停止了SparkContext而未停止StreamingContext导致报错。
+ */
+class StreamingRunningLockService extends RunningLockManager with StreamingService with Logging {
+  private var ssc: StreamingContext = _
+
+  override def stopSpark(): Unit = ssc.stop()
+
+  /**
+   * 初始化服务。
+   */
+  override def serve(ssc: StreamingContext): StreamingService = {
+    this.ssc = ssc
+    this.sc = ssc.sparkContext
+    init()
+    this
+  }
+}
+
+/**
+ * 使用于SparkContext，不可用于StreamingContext，否则在yarn模式下降导致StreamingContext报错而意外重启。
+ */
+class ContextRunningLockService extends RunningLockManager with ContextService with Logging {
+
+  override def stopSpark(): Unit = sc.stop()
+
+  /**
+   * 初始化服务。
+   */
+  override def serve(sc: SparkContext): ContextRunningLockService = {
+    this.sc = sc
+    init()
+    this
+  }
+}
 
 /**
  * running lock管理工具。
  * running lock为了解决作业重复启动的问题，当已有作业获取锁时，新作业无法再次提交。
  * 或者新作业可以直接停止旧作业，代替旧作业运行。
  */
-class RunningLockManagerService extends ContextService with Logging {
+abstract class RunningLockManager extends Service with Logging {
   implicit val formats: Formats = DefaultFormats
-  private var sc: SparkContext = _
-  private var conf: SparkConf = _
-  private[runninglock] var lock: RunningLock = _
+  protected var sc: SparkContext = _
 
-  override def serve(sc: SparkContext): RunningLockManagerService = {
-    this.sc = sc
-    conf = sc.getConf
+  private def conf = sc.getConf
+
+  private[running] var lock: RunningLock = _
+
+  def stopSpark(): Unit
+
+  def init(): RunningLockManager = {
     lock = conf.get(
       POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
     ) match {
       case "zookeeper" => new ZookeeperRunningLock(
         this,
-        conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY),
+        conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY),
         conf.getInt(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT),
         conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_DEFAULT),
         sc.appName
@@ -85,7 +122,7 @@ class RunningLockManagerService extends ContextService with Logging {
   }
 
   def release(): Unit = {
-    sc.stop()
+    stopSpark()
     executor.shutdown()
     if (!executor.awaitTermination(5, TimeUnit.SECONDS))
       executor.shutdownNow()
@@ -189,13 +226,7 @@ class RunningLockManagerService extends ContextService with Logging {
     logInfo("RunningLockManager stopped.")
   }
 
-  private val started = new AtomicBoolean(false)
-
   override def start(): Unit = {
-    if (started.get()) {
-      logWarning("Service RunningLockManager already started.")
-      return
-    }
     logInfo("Start RunningLockManager.")
     startHeartbeat()
     logInfo("RunningLockManager started.")

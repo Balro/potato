@@ -1,4 +1,4 @@
-package spark.potato.lock.runninglock
+package spark.potato.lock.running
 
 import org.apache.spark.internal.Logging
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException, SessionExpiredException}
@@ -41,14 +41,14 @@ trait RunningLock {
  * RunningLock的zookeeper实现。
  *
  * @param manager 用于在锁异常时对manager进行反馈。
- * @param addr    zookeeper地址。
+ * @param quorum    zookeeper地址。
  * @param timeout zookeeper连接超时时间。
  * @param path    锁路径。
  * @param appName 作业名。
  */
-class ZookeeperRunningLock(manager: RunningLockManagerService, addr: String, timeout: Int, path: String, appName: String) extends RunningLock
+class ZookeeperRunningLock(manager: RunningLockManager, quorum: String, timeout: Int, path: String, appName: String) extends RunningLock
   with Watcher with Logging {
-  val zookeeper = new ZooKeeper(addr, timeout, this)
+  val zookeeper = new ZooKeeper(quorum, timeout, this)
   val lockPath: String = path + "/" + appName + ".lock"
   checkPath(path)
 

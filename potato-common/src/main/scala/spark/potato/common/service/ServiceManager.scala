@@ -116,16 +116,28 @@ class ServiceManager extends Logging {
     }
   }
 
-  def stop(servicesName: Seq[String] = Seq.empty[String]): Unit = {
+  /**
+   * 停止托管服务。
+   *
+   * @param servicesName 要停止的服务名称，若为空，则停止所有托管服务。
+   * @param check        是否调用checkAndStop()方法，否则直接调用stop()。
+   */
+  def stop(servicesName: Seq[String] = Seq.empty[String], check: Boolean = true): Unit = {
+    def internalStop(service: Service, check: Boolean): Unit = {
+      if (check)
+        service.checkAndStop()
+      else
+        service.stop()
+      logInfo(s"Stop service $service")
+    }
+
     if (servicesName.isEmpty) {
       services.foreach { service =>
-        service._2.stop()
-        logInfo(s"Stop service $service")
+        internalStop(service._2, check)
       }
     } else {
       servicesName.foreach { name =>
-        services.getOrElse(name, throw new NoSuchElementException(s"Service not served $name")).stop()
-        logInfo(s"Stop service $name")
+        internalStop(services.getOrElse(name, throw new NoSuchElementException(s"Service not served $name")), check)
       }
     }
   }

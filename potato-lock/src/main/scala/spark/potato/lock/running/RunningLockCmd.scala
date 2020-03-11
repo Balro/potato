@@ -1,4 +1,4 @@
-package spark.potato.lock.runninglock
+package spark.potato.lock.running
 
 import org.apache.spark.SparkConf
 import spark.potato.common.cmd.ActionCMDBase
@@ -21,7 +21,7 @@ object RunningLockCmd extends ActionCMDBase {
           POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
         ) match {
           case "zookeeper" => new ZookeeperRunningLock(null,
-            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY),
+            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY),
             conf.getInt(
               POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT
             ),
@@ -48,7 +48,7 @@ object RunningLockCmd extends ActionCMDBase {
           POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
         ) match {
           case "zookeeper" => new ZookeeperRunningLock(null,
-            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY),
+            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY),
             conf.getInt(
               POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT
             ),

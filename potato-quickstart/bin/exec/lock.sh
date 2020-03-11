@@ -1,11 +1,11 @@
 #!/bin/echo
 
-module_main_class=spark.streaming.potato.plugins.lock.RunningLockCmd
+module_main_class=spark.potato.lock.running.RunningLockCmd
 
 module_usage() {
   cat <<EOF
 Usage:
-  $(basename "$0") <potato_conf_file> lock <args>
+  $(basename "$0") -p <potato_conf_file> -m lock <args>
   args:
     clear -> clear old lock to stop app.
     state -> show lock status.

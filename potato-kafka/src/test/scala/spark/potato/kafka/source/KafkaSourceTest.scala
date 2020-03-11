@@ -11,7 +11,7 @@ class KafkaSourceTest {
     val conf = new SparkConf().setMaster("local[2]").setAppName("test")
     conf.setAll(Map(
       POTATO_KAFKA_OFFSETS_STORAGE_KEY -> "kafka",
-      POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY -> "test",
+      POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY -> "test",
       POTATO_KAFKA_OFFSETS_AUTO_UPDATE_KEY -> "true"
     ))
 

@@ -1,11 +1,11 @@
 #!/bin/echo
 
-module_main_class=spark.streaming.potato.plugins.kafka.source.offsets.OffsetsCmd
+module_main_class=spark.potato.kafka.offsets.cmd.OffsetsCmd
 
 module_usage() {
   cat <<EOF
 Usage:
-  $(basename "$0") <potato_conf_file> offsets <args>
+  $(basename "$0") -p <potato_conf_file> -m offsets <args>
   args:
     list  -> clear old lock to stop app.
     lag   -> show current lag.

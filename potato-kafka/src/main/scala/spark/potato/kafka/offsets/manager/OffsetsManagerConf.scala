@@ -28,7 +28,7 @@ class OffsetsManagerConf(conf: Map[String, String], kafkaParams: Map[String, Str
   private val requiredKey = Set(
     POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY,
     POTATO_KAFKA_CONSUMER_GROUP_ID_KEY,
-    POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY,
+    POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY,
     POTATO_KAFKA_OFFSETS_STORAGE_KEY,
     POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY
   )
@@ -78,7 +78,7 @@ class OffsetsManagerConf(conf: Map[String, String], kafkaParams: Map[String, Str
 
   val bootstrapServers: String = cleanedConf(POTATO_KAFKA_CONSUMER_BOOTSTRAP_SERVERS_KEY)
   val groupId: String = cleanedConf(POTATO_KAFKA_CONSUMER_GROUP_ID_KEY)
-  val subscribeTopics: Set[String] = cleanedConf(POTATO_KAFKA_SUBSCRIBE_TOPICS_KEY)
+  val subscribeTopics: Set[String] = cleanedConf(POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY)
     .split(",").map(_.trim).toSet
   val storageType: String = cleanedConf(POTATO_KAFKA_OFFSETS_STORAGE_KEY)
   val offsetResetPolicy: String = cleanedConf(POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY)

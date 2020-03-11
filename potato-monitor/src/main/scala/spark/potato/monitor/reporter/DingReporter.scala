@@ -9,13 +9,13 @@ import spark.potato.monitor.conf._
  */
 class DingReporter(conf: Map[String, String]) extends Reporter with Logging {
   val token: String = conf(POTATO_MONITOR_BACKLOG_REPORTER_DING_TOKEN_KEY)
-  val atAll: Boolean = conf.get(POTATO_MONITOR_BACKLOG_REPORTER_DING_ATALL_KEY) match {
+  val atAll: Boolean = conf.get(POTATO_MONITOR_BACKLOG_REPORTER_DING_AT_ALL_KEY) match {
     case Some(bool) => bool.toBoolean
-    case None => POTATO_MONITOR_BACKLOG_REPORTER_DING_ATALL_DEFAULT
+    case None => POTATO_MONITOR_BACKLOG_REPORTER_DING_AT_ALL_DEFAULT
   }
-  val atPhones: Array[String] = conf.get(POTATO_MONITOR_BACKLOG_REPORTER_DING_ATPHONEs_KEY) match {
+  val atPhones: Array[String] = conf.get(POTATO_MONITOR_BACKLOG_REPORTER_DING_AT_PHONES_KEY) match {
     case Some(phones) => phones.split(",")
-    case None => POTATO_MONITOR_BACKLOG_REPORTER_DING_ATPHONEs_DEFAULT
+    case None => POTATO_MONITOR_BACKLOG_REPORTER_DING_AT_PHONES_DEFAULT
   }
 
   override def report(msg: String): Unit = {

@@ -12,7 +12,7 @@ trait Service extends Logging {
 
   /**
    * 建议实现为幂等操作，有可能多次调用start方法。
-   * 或者直接调用checkAndStart()。
+   * 或者直接调用checkAndStart()方法。
    */
   def start(): Unit
 
@@ -25,12 +25,23 @@ trait Service extends Logging {
       return
     }
     start()
+    started.set(true)
   }
 
   /**
    * 建议实现为幂等操作，有可能多次调用stop方法。
+   * 或者直接调用checkAndStop()方法。
    */
   def stop(): Unit
+
+  def checkAndStop(): Unit = this.synchronized {
+    if (started.get()) {
+      stop()
+      started.set(false)
+      return
+    }
+    logWarning(s"Service $this already stopped.")
+  }
 
   private val registeredStopOnJVMExit = new AtomicBoolean(false)
 

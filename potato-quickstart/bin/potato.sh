@@ -17,13 +17,14 @@ Usage:
   $(basename "$0") <opts> -- [module args]
 
   opts:
-    -p,--prop <prop_file>  ->  properties file for spark-submit
+    -h,--help   <module>   ->  show module usage
     -m,--module <module>   ->  module to be launched
+    -p,--prop <prop_file>  ->  properties file for spark-submit
 
   modules:
     submit   ->  submit app to cluster.
     lock     ->  manage app lock.
-    offsets  ->  manage offsets.
+    offsets  ->  manage kafka offsets.
 EOF
 }
 
@@ -85,6 +86,13 @@ argparse() {
         exit 1
       fi
       ;;
+    "-h" | "--help")
+      shift
+      if [[ "$1" && ! "$1" =~ ^-.* ]]; then
+        export module_name="$1"
+      fi
+      export show_usage=1
+      ;;
     "--")
       shift
       export module_args="$*"
@@ -107,6 +115,10 @@ main() {
   if [ -f "$module_file" ]; then
     source $module_file
     shift
+    if [ "$show_usage" -gt 0 ]; then
+      module_usage
+      return
+    fi
     do_work "$module_args" || module_usage
   else
     echo "module not found"

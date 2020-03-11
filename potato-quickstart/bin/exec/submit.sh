@@ -3,7 +3,7 @@
 module_usage() {
   cat <<EOF
 Usage:
-  $(basename "$0") <potato_conf_file> submit [-s] [main jar args]
+  $(basename "$0") -p <potato_conf_file> -m submit [-s] [main jar args]
 Args:
   -s  start app silently，log msg to logfile.
 EOF
@@ -11,8 +11,8 @@ EOF
 
 export_module_params() {
   export_prop spark.potato.submit.bin submit_bin
-  export_prop spark.potato.main.class main_class
-  export_prop spark.potato.main.jar main_jar
+  export_prop spark.potato.submit.main.class main_class
+  export_prop spark.potato.submit.main.jar main_jar
 }
 
 export_module_main_jar() {

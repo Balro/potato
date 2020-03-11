@@ -1,4 +1,4 @@
-package spark.potato.lock.runninglock
+package spark.potato.lock.running
 
 import java.util.concurrent.TimeUnit
 
@@ -15,26 +15,28 @@ class RunningLockManagerTest {
   def initTest(): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[8]").setAppName("test")
-    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY, "test02:2181")
+    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY, "test02:2181")
     conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    //    new RunningLockManager().serve(ssc.sparkContext)
-    new ServiceManager().ssc(ssc).serve(classOf[RunningLockManagerService])
+    val manager = new ServiceManager().ssc(ssc).serve(classOf[StreamingRunningLockService])
+    //  val manager =  new ServiceManager().ssc(ssc).serve(classOf[ContextRunningLockService])
+
+    TimeUnit.SECONDS.sleep(10)
+    manager.stop()
   }
 
   @Test
   def tryLockTest(): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[8]").setAppName("test")
-    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY, "test02:2181")
+    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY, "test02:2181")
     conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    //    val lockManager = new RunningLockManagerService().serve(ssc.sparkContext)
-    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManagerService]).asInstanceOf[RunningLockManagerService]
+    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManager]).asInstanceOf[RunningLockManager]
 
     println(lockManager.isLocked)
 
@@ -49,13 +51,13 @@ class RunningLockManagerTest {
   def releaseTest(): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[8]").setAppName("test")
-    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY, "test02:2181")
+    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY, "test02:2181")
     conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
     //    val lockManager: RunningLockManagerService = new RunningLockManagerService().serve(ssc.sparkContext)
-    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManagerService]).asInstanceOf[RunningLockManagerService]
+    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManager]).asInstanceOf[RunningLockManager]
 
     println(lockManager.isLocked + lockManager.lock.getLock.toString())
     lockManager.tryLock(3, 5000)
@@ -71,7 +73,7 @@ object HeartbeatTest {
   def main(args: Array[String]): Unit = {
     val conf = new SparkConf()
     conf.setMaster("local[8]").setAppName("test")
-    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_ADDR_KEY, "test01:2181")
+    conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY, "test01:2181")
     conf.set(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
     conf.set(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, "90000")
     conf.set(POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_KEY, "5000")
@@ -80,7 +82,7 @@ object HeartbeatTest {
     val ssc = new StreamingContext(conf, Seconds(10))
 
     //    val lockManager = new RunningLockManagerService().serve(ssc.sparkContext)
-    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManagerService])
+    val lockManager = new ServiceManager().ssc(ssc).serve(classOf[RunningLockManager])
 
     lockManager.startAndStopOnJVMExit()
 

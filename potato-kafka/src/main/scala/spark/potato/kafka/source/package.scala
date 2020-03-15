@@ -20,9 +20,7 @@ package object source {
     R: ClassTag
   ](ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty)(
     messageHandler: MessageAndMetadata[K, V] => R): (DStream[R], OffsetsManager) =
-    KafkaSourceUtil.createDStreamWithOffsetsManager[K, V, KD, VD, R](ssc, kafkaParams) {
-      messageHandler
-    }
+    KafkaSourceUtil.createDStreamWithOffsetsManager[K, V, KD, VD, R](ssc, kafkaParams)(messageHandler)
 
   /**
    * 将MessageAndMetadata进行全解析，返回(topic,partition,offset,key,value)。

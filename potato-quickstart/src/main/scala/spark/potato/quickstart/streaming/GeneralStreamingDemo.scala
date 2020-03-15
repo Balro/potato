@@ -4,8 +4,6 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 import org.apache.spark.rdd.RDD
-import org.junit.Test
-import spark.potato.common.util.LocalLauncherUtil
 import spark.potato.template.streaming.StreamingTemplate
 
 import scala.collection.mutable
@@ -27,9 +25,3 @@ object GeneralStreamingDemo extends StreamingTemplate {
   }
 }
 
-class GeneralStreamingDemo {
-  @Test
-  def test(): Unit = {
-    LocalLauncherUtil.test(GeneralStreamingDemo, "/template.properties")
-  }
-}

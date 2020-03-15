@@ -9,7 +9,10 @@ import scala.reflect.ClassTag
 
 /**
  * 在StreamingTemplate上封装了KafkaSource。泛型参数对应Spark的KafkaUtils.createDirectStream方法。
+ *
+ * @deprecated 用着不方便，还不如直接用StreamingTemplate。
  */
+@Deprecated
 abstract class KafkaSourceStreamingTemplate[
   K: ClassTag, V: ClassTag, KD <: Decoder[K] : ClassTag, VD <: Decoder[V] : ClassTag, R: ClassTag
 ] extends StreamingTemplate with Logging {

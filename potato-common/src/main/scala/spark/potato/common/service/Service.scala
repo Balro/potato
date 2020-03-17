@@ -3,6 +3,7 @@ package spark.potato.common.service
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.apache.spark.internal.Logging
+import spark.potato.common.util.CleanUtil
 
 /**
  * service特质，用于创建附加服务。
@@ -50,13 +51,13 @@ trait Service extends Logging {
    */
   def stopOnJVMExit(): Unit = {
     if (registeredStopOnJVMExit.get()) {
-      logInfo(s"Service ${this.getClass} already registered stop on jvm exit, no longer")
+      logInfo(s"Service ${this.getClass} already registered stop on jvm exit.")
       return
     }
     logInfo(s"Service ${this.getClass} registered stop on jvm exit.")
-    Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
-      override def run(): Unit = stop()
-    }))
+    CleanUtil.cleanWhenShutdown(s"${this.getClass}", {
+      stop()
+    })
   }
 
   /**

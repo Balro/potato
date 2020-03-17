@@ -155,12 +155,12 @@ case class BacklogMonitorConfig(reporter: String,
 
 object BacklogMonitorConfig {
   def parse(conf: SparkConf): BacklogMonitorConfig = {
-    import spark.potato.common.conf.POTATO_STREAMING_BATCH_DURATION_MS_KEY
+    import spark.potato.common.conf._
     import spark.potato.monitor.conf._
     BacklogMonitorConfig(
       conf.get(POTATO_MONITOR_BACKLOG_REPORTER_TYPE_KEY, POTATO_MONITOR_BACKLOG_REPORTER_TYPE_DEFAULT),
       conf.get(POTATO_MONITOR_BACKLOG_DELAY_MS_KEY).toLong,
-      conf.getLong(POTATO_STREAMING_BATCH_DURATION_MS_KEY, -1L),
+      conf.getLong(POTATO_COMMON_STREAMING_BATCH_DURATION_MS_KEY, -1L),
       conf.getLong(POTATO_MONITOR_BACKLOG_REPORTER_INTERVAL_MS_KEY, POTATO_MONITOR_BACKLOG_REPORTER_INTERVAL_MS_DEFAULT),
       conf.getInt(POTATO_MONITOR_BACKLOG_REPORTER_MAX_KEY, POTATO_MONITOR_BACKLOG_REPORTER_MAX_DEFAULT)
     )

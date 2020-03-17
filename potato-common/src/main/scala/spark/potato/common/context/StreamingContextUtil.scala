@@ -2,7 +2,7 @@ package spark.potato.common.context
 
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Duration, Milliseconds, StreamingContext}
-import spark.potato.common.conf.POTATO_STREAMING_BATCH_DURATION_MS_KEY
+import spark.potato.common.conf._
 import spark.potato.common.exception.ConfigNotFoundException
 
 object StreamingContextUtil {
@@ -28,10 +28,10 @@ object StreamingContextUtil {
    */
   def createStreamingContextWithDuration(conf: SparkConf, duration: Long = -1L): StreamingContext = {
     if (duration <= 0) {
-      if (conf.contains(POTATO_STREAMING_BATCH_DURATION_MS_KEY))
-        new StreamingContext(conf, Milliseconds(conf.get(POTATO_STREAMING_BATCH_DURATION_MS_KEY).toLong))
+      if (conf.contains(POTATO_COMMON_STREAMING_BATCH_DURATION_MS_KEY))
+        new StreamingContext(conf, Milliseconds(conf.get(POTATO_COMMON_STREAMING_BATCH_DURATION_MS_KEY).toLong))
       else
-        throw ConfigNotFoundException(s"Config: $POTATO_STREAMING_BATCH_DURATION_MS_KEY not found.")
+        throw ConfigNotFoundException(s"Config: $POTATO_COMMON_STREAMING_BATCH_DURATION_MS_KEY not found.")
     } else {
       new StreamingContext(conf, Milliseconds(duration))
     }

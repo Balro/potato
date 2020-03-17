@@ -1,87 +1,50 @@
 package spark.potato.template.streaming
 
-import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.internal.Logging
-import org.apache.spark.streaming.StreamingContext
-import spark.potato.common.context.StreamingContextUtil
-import spark.potato.common.service.ServiceManager
-import spark.potato.template.GeneralTemplate
-import spark.potato.template.conf._
+import org.apache.spark.SparkConf
+import org.apache.spark.streaming.{Milliseconds, StreamingContext}
+import spark.potato.common.conf._
+import spark.potato.template.Template
 
 /**
- * 通用streaming作业模板。继承此抽象类使用。
+ * 流处理模板。
  */
-abstract class StreamingTemplate extends GeneralTemplate with Logging {
-  protected var cmdArgs: Seq[String] = _
-  protected var ssc: StreamingContext = _
-  protected val serviceManager = new ServiceManager()
-
-  protected def sc: SparkContext = ssc.sparkContext
-
-  protected def conf: SparkConf = sc.getConf
-
-  /**
-   * 主流程:
-   * 1.保存命令行参数。
-   * 2.初始化init()，包含创建SparkConf的createConf()，注册附加服务initAdditionalServices()。
-   * 3.业务逻辑代码doWork()，无默认实现。
-   * 4.启动StreamingContext。
-   * 5.启动后续工作afterStart()。
-   * 6.进行清理clear()，默认停止附加服务管理器。
-   */
-  def main(args: Array[String]): Unit = {
+abstract class StreamingTemplate extends Template {
+  override def main(args: Array[String]): Unit = {
     cmdArgs = args
-    try {
-      init()
-      doWork()
-      ssc.start()
-      afterStart()
-      ssc.awaitTermination()
-    } finally {
-      clear()
-    }
+    doWork()
   }
 
   /**
-   * 创建SparkConf的createConf()，注册附加服务initAdditionalServices()。
+   * 请在doWork方法或者业务方法中调用此方法以启动ssc。
    */
-  override def init(): Unit = {
-    logInfo("Init method called.")
-    ssc = StreamingContextUtil.createStreamingContextWithDuration(createConf())
-    serviceManager.ssc(ssc)
-    initAdditionalServices()
+  def start(ssc: StreamingContext): Unit = {
+    beforeStart(ssc)
+    ssc.start()
+    afterStart(ssc)
+    ssc.awaitTermination()
   }
 
   /**
-   * 创建SparkConf，默认 new SparkConf()。
+   * 启动ssc前执行的操作。默认用来启动附加服务。
    */
-  def createConf(): SparkConf = {
-    new SparkConf()
+  def beforeStart(ssc: StreamingContext): Unit = {
+    serviceManager.ssc(ssc).registerAdditionalServices(ssc.sparkContext.getConf)
   }
 
   /**
-   * 初始化附加服务管理器，并启动。
+   * 启动ssc后执行的操作。默认误操作。
    */
-  def initAdditionalServices(): Unit = {
-    if (conf.contains(POTATO_TEMPLATE_ADDITIONAL_SERVICES_KEY)) {
-      logInfo("InitAdditionalServices method called.")
-      conf.get(POTATO_TEMPLATE_ADDITIONAL_SERVICES_KEY)
-        .split(",")
-        .map(_.trim)
-        .foreach(serviceManager.serve)
-      serviceManager.start()
-    }
-  }
-
-  def afterStart(): Unit = {
-    logInfo("AfterStart method called.")
-  }
+  def afterStart(ssc: StreamingContext): Unit = {}
 
   /**
-   * 停止附加服务管理器。
+   * 如durMs未指定，从SparkConf中提取批处理间隔，并返回StreamingContext。
+   *
+   * @param durMS 批处理间隔，单位毫秒。
    */
-  override def clear(): Unit = {
-    logInfo("Clear method called.")
-    serviceManager.stop()
+  override def createStreamingContext(conf: SparkConf = createConf(), durMS: Long = -1): StreamingContext = {
+    val dur = Milliseconds(
+      if (durMS < 0) conf.getLong(POTATO_COMMON_STREAMING_BATCH_DURATION_MS_KEY, -1)
+      else durMS)
+    new StreamingContext(conf, dur)
   }
 }

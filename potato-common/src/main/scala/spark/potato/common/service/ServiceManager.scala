@@ -6,6 +6,7 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.{SparkConf, SparkContext}
 import spark.potato.common.exception.UnknownServiceException
+import spark.potato.common.conf._
 
 import scala.collection.mutable
 
@@ -93,28 +94,29 @@ class ServiceManager extends Logging {
    * @param check         是否调用checkAndStart()方法，否则直接调用start()。
    * @param stopOnJVMExit 启动的服务是否在jvm退出时停止。
    */
-  def start(servicesName: Seq[String] = Seq.empty[String], check: Boolean = true, stopOnJVMExit: Boolean = true): Unit = {
-    def internalStart(service: Service, check: Boolean, stopOnJVMExit: Boolean): Unit = {
-      if (stopOnJVMExit) {
-        service.startAndStopOnJVMExit(check)
-        logInfo(s"Start service with jvmexit $service")
-      } else {
-        if (check)
-          service.checkAndStart()
-        else
-          service.start()
-        logInfo(s"Start service $service")
+  def start(servicesName: Seq[String] = Seq.empty[String], check: Boolean = true, stopOnJVMExit: Boolean = true): Unit =
+    this.synchronized {
+      def internalStart(service: Service, check: Boolean, stopOnJVMExit: Boolean): Unit = {
+        if (stopOnJVMExit) {
+          service.startAndStopOnJVMExit(check)
+          logInfo(s"Start service with jvmexit $service")
+        } else {
+          if (check)
+            service.checkAndStart()
+          else
+            service.start()
+          logInfo(s"Start service $service")
+        }
       }
-    }
 
-    if (servicesName.isEmpty) {
-      services.foreach(service => internalStart(service._2, check, stopOnJVMExit))
-    } else {
-      servicesName.foreach { name =>
-        internalStart(services.getOrElse(name, throw new NoSuchElementException(s"Service not served $name")), check, stopOnJVMExit)
+      if (servicesName.isEmpty) {
+        services.foreach(service => internalStart(service._2, check, stopOnJVMExit))
+      } else {
+        servicesName.foreach { name =>
+          internalStart(services.getOrElse(name, throw new NoSuchElementException(s"Service not served $name")), check, stopOnJVMExit)
+        }
       }
     }
-  }
 
   /**
    * 停止托管服务。
@@ -122,7 +124,7 @@ class ServiceManager extends Logging {
    * @param servicesName 要停止的服务名称，若为空，则停止所有托管服务。
    * @param check        是否调用checkAndStop()方法，否则直接调用stop()。
    */
-  def stop(servicesName: Seq[String] = Seq.empty[String], check: Boolean = true): Unit = {
+  def stop(servicesName: Seq[String] = Seq.empty[String], check: Boolean = true): Unit = this.synchronized {
     def internalStop(service: Service, check: Boolean): Unit = {
       if (check)
         service.checkAndStop()
@@ -140,5 +142,29 @@ class ServiceManager extends Logging {
         internalStop(services.getOrElse(name, throw new NoSuchElementException(s"Service not served $name")), check)
       }
     }
+  }
+
+  /**
+   * 初始化附加服务管理器，并启动。
+   *
+   * @param conf     提取附加服务列表的SparkConf。
+   * @param startNow 是否即时启动附加服务，如配置为false，则须在注册完毕后手动启动serviceManager。
+   */
+  def registerAdditionalServices(conf: SparkConf, startNow: Boolean = true): Unit = {
+    if (!conf.contains(POTATO_COMMON_ADDITIONAL_SERVICES_KEY)) {
+      logWarning(s"Register additional service failed because conf key $POTATO_COMMON_ADDITIONAL_SERVICES_KEY not found.")
+      return
+    } else if (conf.get(POTATO_COMMON_ADDITIONAL_SERVICES_KEY).toUpperCase() == "FALSE") {
+      logWarning(s"Register additional service failed because conf key $POTATO_COMMON_ADDITIONAL_SERVICES_KEY is false.")
+      return
+    }
+    logInfo("InitAdditionalServices method called.")
+    conf.get(POTATO_COMMON_ADDITIONAL_SERVICES_KEY)
+      .split(",")
+      .map(_.trim)
+      .foreach { f =>
+        serve(f)
+      }
+    if (startNow) start()
   }
 }

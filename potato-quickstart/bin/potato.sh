@@ -115,7 +115,7 @@ main() {
   if [ -f "$module_file" ]; then
     source $module_file
     shift
-    if [ "$show_usage" -gt 0 ]; then
+    if [ -n "$show_usage" ] && [ "$show_usage" -gt 0 ]; then
       module_usage
       return
     fi

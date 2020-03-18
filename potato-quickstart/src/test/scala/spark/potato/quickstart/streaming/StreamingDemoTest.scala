@@ -4,9 +4,9 @@ import org.junit.Test
 import spark.potato.common.util.LocalLauncherUtil
 
 
-class GeneralStreamingDemoTest {
+class StreamingDemoTest {
   @Test
   def localTest(): Unit = {
-    LocalLauncherUtil.test(GeneralStreamingDemo, "/streaming/GeneralStreamingDemo.properties")
+    LocalLauncherUtil.test(StreamingDemo, "/streaming/StreamingDemo.properties")
   }
 }

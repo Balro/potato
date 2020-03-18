@@ -3,12 +3,12 @@ package spark.potato.template.streaming
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Milliseconds, StreamingContext}
 import spark.potato.common.conf._
-import spark.potato.template.Template
+import spark.potato.template.{StreamingContextFunc, Template}
 
 /**
  * 流处理模板。
  */
-abstract class StreamingTemplate extends Template {
+abstract class StreamingTemplate extends Template with StreamingContextFunc {
   override def main(args: Array[String]): Unit = {
     cmdArgs = args
     doWork()
@@ -16,8 +16,9 @@ abstract class StreamingTemplate extends Template {
 
   /**
    * 请在doWork方法或者业务方法中调用此方法以启动ssc。
+   * 该方法会进入阻塞状态直到ssc停止，需要在ssc启动后调用的方法请复写afterStart()方法。
    */
-  def start(ssc: StreamingContext): Unit = {
+  override def start(ssc: StreamingContext): Unit = {
     ssc.start()
     afterStart(ssc)
     ssc.awaitTermination()
@@ -26,7 +27,7 @@ abstract class StreamingTemplate extends Template {
   /**
    * 启动ssc后执行的操作。默认误操作。
    */
-  def afterStart(ssc: StreamingContext): Unit = {}
+  override def afterStart(ssc: StreamingContext): Unit = {}
 
   /**
    * 如durMs未指定，从SparkConf中提取参数值，并返回StreamingContext。

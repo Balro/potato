@@ -5,7 +5,7 @@ module_usage() {
 Usage:
   $(basename "$0") -p <potato_conf_file> -m submit [-s] [main jar args]
 Args:
-  -s  start app silently，log msg to logfile.
+  -s  start app silently and log msg to logfile.
 EOF
 }
 
@@ -41,7 +41,7 @@ do_work() {
   if [ "$1" = "-s" ]; then
     shift
     export -f module_submit
-    nohup bash -c "module_submit \"$*\"" > "$POTATO_LOG_DIR/$main_jar-$main_class-$(date +'%Y%m%d_%H%M%S').out" 2>&1 &
+    nohup bash -c "module_submit \"$*\"" >"$POTATO_LOG_DIR/$main_jar-$main_class-$(date +'%Y%m%d_%H%M%S').out" 2>&1 &
   else
     module_submit "$@"
   fi

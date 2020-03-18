@@ -41,7 +41,7 @@ trait RunningLock {
  * RunningLock的zookeeper实现。
  *
  * @param manager 用于在锁异常时对manager进行反馈。
- * @param quorum    zookeeper地址。
+ * @param quorum  zookeeper地址。
  * @param timeout zookeeper连接超时时间。
  * @param path    锁路径。
  * @param appName 作业名。
@@ -118,9 +118,11 @@ class ZookeeperRunningLock(manager: RunningLockManager, quorum: String, timeout:
       if (event.getType == Watcher.Event.EventType.NodeDeleted) {
         logError("Lock has been deleted, stop app.")
         manager.release()
+        return
       } else if (event.getState == Watcher.Event.KeeperState.Expired) {
         logError("Lock has been expired, stop app.")
         manager.release()
+        return
       }
 
       var registered = false

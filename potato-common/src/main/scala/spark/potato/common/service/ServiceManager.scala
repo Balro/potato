@@ -22,7 +22,7 @@ class ServiceManager extends Logging {
   /**
    * 初始化可用配置参数，用于创建service实例。
    */
-  def conf(conf: Map[String, String]): ServiceManager = {
+  def conf(conf: Map[String, String]): ServiceManager = this.synchronized {
     this.conf = conf
     this
   }
@@ -30,7 +30,7 @@ class ServiceManager extends Logging {
   /**
    * 初始化可用配置参数，用于创建service实例。
    */
-  def conf(conf: SparkConf): ServiceManager = {
+  def conf(conf: SparkConf): ServiceManager = this.synchronized {
     this.conf = conf.getAll.toMap
     this
   }
@@ -38,7 +38,7 @@ class ServiceManager extends Logging {
   /**
    * 初始化可用配置参数，用于创建service实例。
    */
-  def sc(sc: SparkContext, overrideConf: Boolean = true): ServiceManager = {
+  def sc(sc: SparkContext, overrideConf: Boolean = true): ServiceManager = this.synchronized {
     this.sc = sc
     if (overrideConf)
       conf = sc.getConf.getAll.toMap
@@ -48,7 +48,7 @@ class ServiceManager extends Logging {
   /**
    * 初始化可用配置参数，用于创建service实例。
    */
-  def ssc(ssc: StreamingContext, overrideConf: Boolean = true): ServiceManager = {
+  def ssc(ssc: StreamingContext, overrideConf: Boolean = true): ServiceManager = this.synchronized {
     this.ssc = ssc
     sc = ssc.sparkContext
     if (overrideConf)
@@ -59,7 +59,7 @@ class ServiceManager extends Logging {
   /**
    * 通过类型创建service实例。
    */
-  def serve(clazz: Class[_]): Service = {
+  def serve(clazz: Class[_]): Service = this.synchronized {
     val service = if (classOf[GeneralService].isAssignableFrom(clazz)) {
       clazz.newInstance().asInstanceOf[GeneralService].serve(checkNullable(conf))
     } else if (classOf[ContextService].isAssignableFrom(clazz)) {
@@ -77,7 +77,7 @@ class ServiceManager extends Logging {
   /**
    * 通过类型名称创建service实例。
    */
-  def serve(clazzName: String): Service = {
+  def serve(clazzName: String): Service = this.synchronized {
     serve(Class.forName(clazzName))
   }
 
@@ -150,7 +150,7 @@ class ServiceManager extends Logging {
    * @param conf     提取附加服务列表的SparkConf。
    * @param startNow 是否即时启动附加服务，如配置为false，则须在注册完毕后手动启动serviceManager。
    */
-  def registerAdditionalServices(conf: SparkConf, startNow: Boolean = true): Unit = {
+  def registerAdditionalServices(conf: SparkConf, startNow: Boolean = true): Unit = this.synchronized {
     if (!conf.contains(POTATO_COMMON_ADDITIONAL_SERVICES_KEY)) {
       logWarning(s"Register additional service failed because conf key $POTATO_COMMON_ADDITIONAL_SERVICES_KEY not found.")
       return

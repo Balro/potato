@@ -23,7 +23,7 @@ abstract class Template extends Logging {
   /**
    * 业务逻辑。
    */
-  def doWork(): Unit
+  protected def doWork(): Unit
 
   /**
    * 注册清理方法，清理方法按cleanInOrder调用顺序调用。
@@ -39,7 +39,7 @@ abstract class Template extends Logging {
   /**
    * 按须调用所有已注册清理方法。
    */
-  def clean(): Unit = {
+  protected def clean(): Unit = {
     cleaner.clean()
   }
 
@@ -54,9 +54,21 @@ abstract class Template extends Logging {
     CleanUtil.cleanWhenShutdown(name, cleanFunc)
   }
 
-  def createConf(): SparkConf = new SparkConf()
+  protected def createConf(): SparkConf = new SparkConf()
 
-  def createContext(conf: SparkConf = createConf()): SparkContext = ???
+  protected def createContext(conf: SparkConf = createConf()): SparkContext = ???
 
-  def createStreamingContext(conf: SparkConf, durMS: Long): StreamingContext = ???
+  protected def createStreamingContext(conf: SparkConf, durMS: Long): StreamingContext = ???
+
+  // 注册附加服务。
+  def registerAdditionalServices(sc: SparkContext): SparkContext = {
+    serviceManager.sc(sc).registerAdditionalServices(sc.getConf)
+    sc
+  }
+
+  // 注册附加服务。
+  def registerAdditionalServices(ssc: StreamingContext): StreamingContext = {
+    serviceManager.ssc(ssc).registerAdditionalServices(ssc.sparkContext.getConf)
+    ssc
+  }
 }

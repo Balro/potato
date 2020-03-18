@@ -15,5 +15,8 @@ abstract class BatchTemplate extends Template {
 
   override def doWork(): Unit
 
-  override def createContext(conf: SparkConf): SparkContext = SparkContext.getOrCreate(conf)
+  override def createContext(conf: SparkConf): SparkContext = {
+    val sc = SparkContext.getOrCreate(conf)
+    registerAdditionalServices(sc)
+  }
 }

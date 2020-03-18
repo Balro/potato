@@ -18,17 +18,9 @@ abstract class StreamingTemplate extends Template {
    * 请在doWork方法或者业务方法中调用此方法以启动ssc。
    */
   def start(ssc: StreamingContext): Unit = {
-    beforeStart(ssc)
     ssc.start()
     afterStart(ssc)
     ssc.awaitTermination()
-  }
-
-  /**
-   * 启动ssc前执行的操作。默认用来启动附加服务。
-   */
-  def beforeStart(ssc: StreamingContext): Unit = {
-    serviceManager.ssc(ssc).registerAdditionalServices(ssc.sparkContext.getConf)
   }
 
   /**
@@ -37,7 +29,9 @@ abstract class StreamingTemplate extends Template {
   def afterStart(ssc: StreamingContext): Unit = {}
 
   /**
-   * 如durMs未指定，从SparkConf中提取批处理间隔，并返回StreamingContext。
+   * 如durMs未指定，从SparkConf中提取参数值，并返回StreamingContext。
+   * 创建StreamingContext会默认会使用ServiceManager注册所有配置服务。
+   * 如无需注册附加服务，请不要配置spark.potato.common.additional.services或者将该参数值设置为false。
    *
    * @param durMS 批处理间隔，单位毫秒。
    */
@@ -45,6 +39,7 @@ abstract class StreamingTemplate extends Template {
     val dur = Milliseconds(
       if (durMS < 0) conf.getLong(POTATO_COMMON_STREAMING_BATCH_DURATION_MS_KEY, -1)
       else durMS)
-    new StreamingContext(conf, dur)
+    val ssc = new StreamingContext(conf, dur)
+    registerAdditionalServices(ssc)
   }
 }

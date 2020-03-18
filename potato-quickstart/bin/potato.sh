@@ -1,24 +1,30 @@
 #!/usr/bin/env bash
-export POTATO_BASE_DIR=$(
-  cd -P $(dirname $0)/../
+POTATO_BASE_DIR=$(
+  cd -P "$(dirname "$0")/../" || exit
   pwd
 )
+export POTATO_BASE_DIR
 export POTATO_BIN_DIR=$POTATO_BASE_DIR/bin
 export POTATO_LIB_DIR=$POTATO_BASE_DIR/lib
 export POTATO_LOG_DIR=$POTATO_BASE_DIR/logs
-mkdir -p $POTATO_LOG_DIR
+mkdir -p "$POTATO_LOG_DIR"
 
 export SPARK_HOME=/opt/cloudera/parcels/SPARK2/lib/spark2
 
 usage() {
   cat <<EOF
 Usage:
-    $(basename $0) <potato_conf_file> <service> [service args]
+  $(basename "$0") <opts> -- [module args]
 
-    modules:
-        submit   ->  submit app to cluster.
-        lock     ->  manage app lock.
-        offsets  ->  manage offsets.
+  opts:
+    -h,--help   <module>   ->  show module usage
+    -m,--module <module>   ->  module to be launched
+    -p,--prop <prop_file>  ->  properties file for spark-submit
+
+  modules:
+    submit   ->  submit app to cluster.
+    lock     ->  manage app lock.
+    offsets  ->  manage kafka offsets.
 EOF
 }
 
@@ -27,22 +33,14 @@ source_env() {
   test -f ~/.bash_profile && source ~/.bash_profile
 }
 
-locate_conf() {
-  test $# -gt 0 && test -f $1 && export potato_conf_file=$1 || {
-    echo "conf file not valid." >&2
-    usage >&2
-    exit 1
-  }
-}
-
 export_prop() {
-  eval local ${2}_=\"$(grep "^$1" $potato_conf_file | tail -n 1 | awk -F '=' '{print $2}')\"
-  test "$(eval echo \$${2}_)" && {
-    eval export $2=\$${2}_
+  eval "local ${2}_=\"$(grep "^$1=" "$potato_conf_file" | tail -n 1 | awk -F '=' '{print $2}')\""
+  test "$(eval echo \$"${2}"_)" && {
+    eval export "$2"=\$"${2}"_
     return
   }
   test "$3" && {
-    export $2="$3"
+    export "$2"="$3"
     return
   }
   echo "prop $2 not found in $potato_conf_file"
@@ -51,9 +49,9 @@ export_prop() {
 
 export_global_jars() {
   local jars_=
-  for f in $(ls $POTATO_LIB_DIR/); do
-    test -f $POTATO_LIB_DIR/$f && {
-      test "$jars_" && jars_=$POTATO_LIB_DIR/$f,$jars_ || jars_=$POTATO_LIB_DIR/$f
+  for f in "$POTATO_LIB_DIR"/*; do
+    test -f "$f" && {
+      test "$jars_" && jars_="$f,$jars_" || jars_="$f"
     }
   done
   test "$jars_" || {
@@ -63,20 +61,69 @@ export_global_jars() {
   export global_jars="$jars_"
 }
 
+argparse() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    "-m" | "--module")
+      shift
+      if [ "$1" ]; then
+        export module_name="$1"
+        echo "launch module $module_name"
+      else
+        echo "module must be specified" >&2
+        usage >&2
+        exit 1
+      fi
+      ;;
+    "-p" | "--prop")
+      shift
+      if [ -f "$1" ]; then
+        export potato_conf_file="$1"
+        echo "use property file $potato_conf_file"
+      else
+        echo "conf file not valid" >&2
+        usage >&2
+        exit 1
+      fi
+      ;;
+    "-h" | "--help")
+      shift
+      if [[ "$1" && ! "$1" =~ ^-.* ]]; then
+        export module_name="$1"
+      fi
+      export show_usage=1
+      ;;
+    "--")
+      shift
+      export module_args="$*"
+      echo "modulem args: $module_args"
+      return
+      ;;
+    *)
+      echo "unparsed args"
+      ;;
+    esac
+    shift
+  done
+}
+
 main() {
   source_env
-  locate_conf $1
-  shift
+  argparse "$@"
 
-  local source_file=$POTATO_BIN_DIR/exec/$1.sh
-  test -f $source_file && {
-    source $source_file
+  local module_file=$POTATO_BIN_DIR/exec/$module_name.sh
+  if [ -f "$module_file" ]; then
+    source $module_file
     shift
-    do_work "$@" || module_usage
-  } || {
+    if [ -n "$show_usage" ] && [ "$show_usage" -gt 0 ]; then
+      module_usage
+      return
+    fi
+    do_work "$module_args" || module_usage
+  else
     echo "module not found"
     usage
-  }
+  fi
 }
 
 main "$@"

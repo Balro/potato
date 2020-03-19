@@ -6,7 +6,7 @@
 
     <groupId>quickstart.spark.potato</groupId>
     <artifactId>potato-quickstart</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.2-SNAPSHOT</version>
 
     <repositories>
         <repository>
@@ -23,7 +23,7 @@
         <scala.version>${scala.binary.version}.12</scala.version>
         <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
         <spark.version>2.2.0.cloudera2</spark.version>
-        <potato.version>0.1.1-SNAPSHOT</potato.version>
+        <potato.version>0.1.2-SNAPSHOT</potato.version>
     </properties>
 
     <dependencies>

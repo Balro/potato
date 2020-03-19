@@ -7,9 +7,13 @@ class ServiceManagerTest {
   @Test
   def serveConfTest(): Unit = {
     val sm = new ServiceManager().conf(Map("a" -> "1", "b" -> "2"))
-    val service = sm.serve(classOf[TestGeneralService])
-    service.start()
-    service.stop()
+    sm.registerByClass("test", classOf[TestGeneralService])
+    sm.start()
+    sm.stop()
+    sm.clear()
+    sm.registerByClass("test", classOf[TestGeneralService])
+    sm.start()
+    sm.stop()
   }
 
   @Test
@@ -18,9 +22,9 @@ class ServiceManagerTest {
     conf.setMaster("local").setAppName("ServeScTest")
     //    val sm = new ServiceManager().conf(conf)
     val sm = new ServiceManager().sc(SparkContext.getOrCreate(conf))
-    val service = sm.serve(classOf[TestContextService].getName)
-    service.start()
-    service.stop()
+    sm.registerByClass("test", classOf[TestContextService])
+    sm.start()
+    sm.stop()
   }
 }
 
@@ -39,6 +43,8 @@ class TestGeneralService extends GeneralService {
   override def stop(): Unit = {
     println("Service stopped.")
   }
+
+  override val serviceName: String = "TestGeneralService"
 }
 
 class TestContextService extends ContextService {
@@ -57,4 +63,6 @@ class TestContextService extends ContextService {
     sc.stop()
     println("Service stopped.")
   }
+
+  override val serviceName: String = "TestContextService"
 }

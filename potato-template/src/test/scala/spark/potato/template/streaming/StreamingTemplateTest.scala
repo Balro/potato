@@ -44,10 +44,15 @@ object StreamingTemplateTest extends StreamingTemplate {
       // additional service
       .set(POTATO_COMMON_ADDITIONAL_SERVICES_KEY,
         Seq(
-          classOf[StreamingRunningLockService],
-          classOf[BacklogMonitorService]
-        )
-          .map(_.getName).mkString(","))
+          POTATO_MONITOR_BACKLOG_MONITOR_SERVICE_NAME,
+          POTATO_LOCK_RUNNING_STREAMING_SERVICE_NAME
+        ).mkString(","))
+
+      //      .set(POTATO_COMMON_CUSTOM_SERVICES_CLASS_KEY,
+      //        Seq(
+      //          classOf[BacklogMonitorService],
+      //          classOf[StreamingRunningLockService]
+      //        ).map(_.getName).mkString(","))
 
       // backlog monitor
       .set(POTATO_MONITOR_BACKLOG_DELAY_MS_KEY, "1")
@@ -56,11 +61,11 @@ object StreamingTemplateTest extends StreamingTemplate {
       .set(POTATO_MONITOR_BACKLOG_REPORTER_DING_TOKEN_KEY, "https://oapi.dingtalk.com/robot/send?access_token=2aa713587501102395004b0f87650cc5509b0d99af25868921d6509020785483")
 
       // running lock
-      .set(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY, "test01:2181")
-      .set(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
-      .set(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, "90000")
-      .set(POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_KEY, "5000")
-      .set(POTATO_RUNNING_LOCK_HEARTBEAT_INTERVAL_MS_KEY, "5000")
+      .set(POTATO_LOCK_RUNNING_ZOOKEEPER_QUORUM_KEY, "test01:2181")
+      .set(POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
+      .set(POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, "90000")
+      .set(POTATO_LOCK_RUNNING_TRY_INTERVAL_MS_KEY, "5000")
+      .set(POTATO_LOCK_RUNNING_HEARTBEAT_INTERVAL_MS_KEY, "5000")
   }
 }
 

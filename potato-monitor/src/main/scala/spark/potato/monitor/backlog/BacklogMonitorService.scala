@@ -14,11 +14,14 @@ import spark.potato.common.exception.PotatoException
 import spark.potato.common.service.StreamingService
 import spark.potato.common.tools.DaemonThreadFactory
 import spark.potato.monitor.reporter.{DingReporter, Reporter}
+import spark.potato.monitor.conf._
 
 /**
  * streaming积压监控服务。
  */
 class BacklogMonitorService extends StreamingService with StreamingListener with Runnable with Logging {
+  override val serviceName: String = POTATO_MONITOR_BACKLOG_MONITOR_SERVICE_NAME
+
   private var ssc: StreamingContext = _
   private var conf: BacklogMonitorConfig = _
   private var checkInterval: Long = _

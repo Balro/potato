@@ -16,7 +16,7 @@ object BacklogMonitorServiceTest {
     conf.set(POTATO_MONITOR_BACKLOG_REPORTER_DING_TOKEN_KEY, "https://oapi.dingtalk.com/robot/send?access_token=2aa713587501102395004b0f87650cc5509b0d99af25868921d6509020785483")
 
     val ssc = new StreamingContext(conf, Seconds(10))
-    val monitor = new ServiceManager().ssc(ssc).serve(classOf[BacklogMonitorService])
+    val monitor = new ServiceManager().ssc(ssc).registerByClass("StreamingBacklogMonitor", classOf[BacklogMonitorService])
     monitor.start()
 
     TimeUnit.MINUTES.sleep(10)

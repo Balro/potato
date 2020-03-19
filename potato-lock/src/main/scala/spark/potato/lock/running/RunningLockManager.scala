@@ -19,6 +19,8 @@ import spark.potato.lock.exception.{CannotGetRunningLockException, LockMismatchE
  * 区分StreamingContext和SparkContext，避免停止了SparkContext而未停止StreamingContext导致报错。
  */
 class StreamingRunningLockService extends RunningLockManager with StreamingService with Logging {
+  override val serviceName: String = POTATO_LOCK_RUNNING_STREAMING_SERVICE_NAME
+
   private var ssc: StreamingContext = _
 
   override def stopSpark(): Unit = ssc.stop()
@@ -38,6 +40,7 @@ class StreamingRunningLockService extends RunningLockManager with StreamingServi
  * 使用于SparkContext，不可用于StreamingContext，否则在yarn模式下降导致StreamingContext报错而意外重启。
  */
 class ContextRunningLockService extends RunningLockManager with ContextService with Logging {
+  override val serviceName: String = POTATO_LOCK_RUNNING_CONTEXT_SERVICE_NAME
 
   override def stopSpark(): Unit = sc.stop()
 
@@ -68,13 +71,13 @@ abstract class RunningLockManager extends Service with Logging {
 
   def init(): RunningLockManager = {
     lock = conf.get(
-      POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
+      POTATO_LOCK_RUNNING_TYPE_KEY, POTATO_LOCK_RUNNING_TYPE_DEFAULT
     ) match {
       case "zookeeper" => new ZookeeperRunningLock(
         this,
-        conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY),
-        conf.getInt(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT),
-        conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_DEFAULT),
+        conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_QUORUM_KEY),
+        conf.getInt(POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_DEFAULT),
+        conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_KEY, POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_DEFAULT),
         sc.appName
       )
       case t => throw new PotatoException(s"Running lock type -> $t not supported.")
@@ -96,9 +99,9 @@ abstract class RunningLockManager extends Service with Logging {
    * @param interval 尝试加锁重试间隔。
    * @param force    是否强制加锁。
    */
-  def tryLock(maxTry: Int = conf.getInt(POTATO_RUNNING_LOCK_TRY_MAX_KEY, POTATO_RUNNING_LOCK_TRY_MAX_DEFAULT),
-              interval: Long = conf.getLong(POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_KEY, POTATO_RUNNING_LOCK_TRY_INTERVAL_MS_DEFAULT),
-              force: Boolean = conf.getBoolean(POTATO_RUNNING_LOCK_FORCE_KEY, POTATO_RUNNING_LOCK_FORCE_DEFAULT)
+  def tryLock(maxTry: Int = conf.getInt(POTATO_LOCK_RUNNING_TRY_MAX_KEY, POTATO_LOCK_RUNNING_TRY_MAX_DEFAULT),
+              interval: Long = conf.getLong(POTATO_LOCK_RUNNING_TRY_INTERVAL_MS_KEY, POTATO_LOCK_RUNNING_TRY_INTERVAL_MS_DEFAULT),
+              force: Boolean = conf.getBoolean(POTATO_LOCK_RUNNING_FORCE_KEY, POTATO_LOCK_RUNNING_FORCE_DEFAULT)
              ): Unit = {
     this.synchronized {
       var tried = 0
@@ -135,7 +138,7 @@ abstract class RunningLockManager extends Service with Logging {
    */
   def startHeartbeat(): Unit = {
     if (!locked) tryLock()
-    val timeout = conf.getLong(POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT)
+    val timeout = conf.getLong(POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_DEFAULT)
     var lastHeartbeat = System.currentTimeMillis()
     executor.scheduleAtFixedRate(new Runnable {
       override def run(): Unit = {
@@ -156,7 +159,7 @@ abstract class RunningLockManager extends Service with Logging {
         }
       }
     }, 0,
-      conf.getLong(POTATO_RUNNING_LOCK_HEARTBEAT_INTERVAL_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_INTERVAL_MS_DEFAULT),
+      conf.getLong(POTATO_LOCK_RUNNING_HEARTBEAT_INTERVAL_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_INTERVAL_MS_DEFAULT),
       TimeUnit.MILLISECONDS)
   }
 

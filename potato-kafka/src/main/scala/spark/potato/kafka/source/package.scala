@@ -35,7 +35,6 @@ package object source {
       otherParams ++ Map(POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY -> topics.mkString(",")),
       kafkaParams)(messageHandler)
 
-
   /**
    * 将MessageAndMetadata进行全解析，返回(topic,partition,offset,key,value)。
    */

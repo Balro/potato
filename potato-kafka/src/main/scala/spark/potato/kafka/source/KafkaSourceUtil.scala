@@ -16,10 +16,10 @@ import scala.reflect.ClassTag
  */
 object KafkaSourceUtil extends Logging {
   def createDStreamWithOffsetsManager[K: ClassTag, V: ClassTag, KD <: Decoder[K] : ClassTag, VD <: Decoder[V] : ClassTag, R: ClassTag
-  ](ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty)(
+  ](ssc: StreamingContext, otherParams: Map[String, String] = Map.empty, kafkaParams: Map[String, String] = Map.empty)(
     messageHandler: MessageAndMetadata[K, V] => R)
   : (DStream[R], OffsetsManager) = {
-    val offsetsManagerConf = new OffsetsManagerConf(ssc.sparkContext.getConf, kafkaParams)
+    val offsetsManagerConf = new OffsetsManagerConf(ssc.sparkContext.getConf.getAll.toMap ++ otherParams, kafkaParams)
 
     val offsetsManager = new manager.OffsetsManager(offsetsManagerConf)
 

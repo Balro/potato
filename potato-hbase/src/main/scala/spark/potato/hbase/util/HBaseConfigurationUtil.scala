@@ -10,7 +10,7 @@ object HBaseConfigurationUtil {
   /**
    * 用于从SparkConf加载HBaseConfiguration。
    */
-  def readSparkConf(conf: SparkConf, prefix: String = POTATO_HBASE_CONF_PREFIX): Configuration = {
+  def sparkToConfiguration(conf: SparkConf, prefix: String = POTATO_HBASE_CONF_PREFIX): Configuration = {
     HBaseConfiguration.addHbaseResources(
       SerializedConfiguration.readSparkConf(conf, prefix)
     )

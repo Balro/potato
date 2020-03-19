@@ -15,6 +15,7 @@
         <module>potato-lock</module>
         <module>potato-monitor</module>
         <module>potato-template</module>
+        <module>potato-hive</module>
     </modules>
 
     <repositories>

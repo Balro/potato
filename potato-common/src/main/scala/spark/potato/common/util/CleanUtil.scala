@@ -21,6 +21,11 @@ object CleanUtil extends Logging {
   def cleanWhenShutdown(desc: String, func: => Unit): Unit = {
     logInfo(s"Registered clean function when shutdown: $desc.")
 
+    //    sys.addShutdownHook({
+    //      logInfo(s"Invoke clean shutdownhook: $desc")
+    //      func
+    //    })
+
     Runtime.getRuntime.addShutdownHook(new Thread(new Runnable {
       override def run(): Unit = {
         logInfo(s"Invoke clean shutdownhook: $desc")

@@ -11,7 +11,7 @@ trait StreamingContextFunc {
 
   // 注册附加服务。
   def registerAdditionalServices(ssc: StreamingContext)(implicit manager: ServiceManager): StreamingContext = {
-    manager.ssc(ssc).registerAdditionalServices(ssc.sparkContext.getConf)
+    manager.ssc(ssc).registerServices(ssc.sparkContext.getConf)
     ssc
   }
 

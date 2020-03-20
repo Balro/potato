@@ -10,7 +10,7 @@ trait SparkContextFunc {
 
   // 注册附加服务。
   def registerAdditionalServices(sc: SparkContext)(implicit manager: ServiceManager): SparkContext = {
-    manager.sc(sc).registerAdditionalServices(sc.getConf)
+    manager.sc(sc).registerServices(sc.getConf)
     sc
   }
 }

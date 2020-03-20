@@ -18,14 +18,14 @@ object RunningLockCmd extends ActionCMDBase {
       action = { () =>
         val conf = new SparkConf()
         val lock = conf.get(
-          POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
+          POTATO_LOCK_RUNNING_TYPE_KEY, POTATO_LOCK_RUNNING_TYPE_DEFAULT
         ) match {
           case "zookeeper" => new ZookeeperRunningLock(null,
-            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY),
+            conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_QUORUM_KEY),
             conf.getInt(
-              POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT
+              POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_DEFAULT
             ),
-            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_DEFAULT),
+            conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_KEY, POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_DEFAULT),
             conf.get(POTATO_APP_NAME_KEY)
           )
           case lockType => throw new Exception(s"Lock not supported -> $lockType")
@@ -45,14 +45,14 @@ object RunningLockCmd extends ActionCMDBase {
       action = { () =>
         val conf = new SparkConf()
         val lock = conf.get(
-          POTATO_RUNNING_LOCK_TYPE_KEY, POTATO_RUNNING_LOCK_TYPE_DEFAULT
+          POTATO_LOCK_RUNNING_TYPE_KEY, POTATO_LOCK_RUNNING_TYPE_DEFAULT
         ) match {
           case "zookeeper" => new ZookeeperRunningLock(null,
-            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_QUORUM_KEY),
+            conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_QUORUM_KEY),
             conf.getInt(
-              POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_RUNNING_LOCK_HEARTBEAT_TIMEOUT_MS_DEFAULT
+              POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_DEFAULT
             ),
-            conf.get(POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_KEY, POTATO_RUNNING_LOCK_ZOOKEEPER_PATH_DEFAULT),
+            conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_KEY, POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_DEFAULT),
             conf.get(POTATO_APP_NAME_KEY)
           )
           case lockType => throw new Exception(s"Lock not supported -> $lockType")

@@ -19,7 +19,7 @@ class HBaseSinkUtilTest {
         Bytes.toBytes(System.currentTimeMillis().toString)
       ))
     }
-    val hbaseConf = HBaseConfigurationUtil.readSparkConf(conf)
+    val hbaseConf = HBaseConfigurationUtil.sparkToConfiguration(conf)
     HBaseSinkUtil.saveToHBase(rdd, hbaseConf, "test")
   }
 
@@ -35,7 +35,7 @@ class HBaseSinkUtilTest {
         Bytes.toBytes(System.currentTimeMillis().toString)
       ))
     }
-    val hbaseConf = HBaseConfigurationUtil.readSparkConf(conf)
+    val hbaseConf = HBaseConfigurationUtil.sparkToConfiguration(conf)
     rdd.saveToHBase(hbaseConf, "test")
   }
 }

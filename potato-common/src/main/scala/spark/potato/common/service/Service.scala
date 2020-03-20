@@ -2,13 +2,17 @@ package spark.potato.common.service
 
 import java.util.concurrent.atomic.AtomicBoolean
 
+import org.apache.spark.SparkContext
 import org.apache.spark.internal.Logging
+import org.apache.spark.streaming.StreamingContext
 import spark.potato.common.util.CleanUtil
 
 /**
  * service特质，用于创建附加服务。
  */
 trait Service extends Logging {
+  val serviceName: String
+
   private val started = new AtomicBoolean(false)
 
   /**
@@ -72,4 +76,34 @@ trait Service extends Logging {
       start()
     stopOnJVMExit()
   }
+}
+
+/**
+ * 只需要配置文件，不依赖spark运行的服务。
+ */
+trait GeneralService extends Service {
+  /**
+   * 初始化服务。
+   */
+  def serve(conf: Map[String, String]): GeneralService
+}
+
+/**
+ * 依赖SparkContext的服务。
+ */
+trait ContextService extends Service {
+  /**
+   * 初始化服务。
+   */
+  def serve(sc: SparkContext): ContextService
+}
+
+/**
+ * 依赖StreamingContext的服务。
+ */
+trait StreamingService extends Service {
+  /**
+   * 初始化服务。
+   */
+  def serve(ssc: StreamingContext): StreamingService
 }

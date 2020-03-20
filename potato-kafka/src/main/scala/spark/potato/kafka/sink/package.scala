@@ -5,7 +5,8 @@ import java.util.Properties
 import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
-import spark.potato.kafka.conf.POTATO_KAFKA_PRODUCER_CONF_PREFIX
+import spark.potato.kafka.conf._
+import spark.potato.common.util.PropertiesUtil.{mapToProperties => mtp, confToProperties => ctp}
 
 /**
  * 提供数据写kafka的隐式转换。
@@ -34,14 +35,7 @@ package object sink {
     new ProducerRecordDStreamFunction[K, V](stream)
   }
 
-  implicit def mapToProperties(map: Map[String, String]): Properties = {
-    import scala.collection.JavaConversions.propertiesAsScalaMap
-    val props = new Properties()
-    props ++= map
-    props
-  }
+  implicit def mapToProperties(map: Map[String, String]): Properties = mtp(map)
 
-  implicit def propsFromSpark(conf: SparkConf): Properties = {
-    mapToProperties(conf.getAllWithPrefix(POTATO_KAFKA_PRODUCER_CONF_PREFIX).toMap)
-  }
+  implicit def confToProperties(conf: SparkConf): Properties = ctp(conf, POTATO_KAFKA_PRODUCER_CONF_PREFIX)
 }

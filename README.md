@@ -101,7 +101,7 @@ object StreamingDemo extends StreamingTemplate {
   override def doWork(): Unit = {
     val ssc = createStreamingContext()
     val stream = ssc.queueStream(queue)
-    stream.print()``
+    stream.print()
     start(ssc)
   }
 
@@ -171,4 +171,4 @@ quickstart骨架已集成maven-assembly插件，直接执行`mvn clean package`�
 已配置RunningLock的作业，可以通过`./bin/potato.sh -p [prop_file] -m lock -- clear`远程停止作业。
 
 ## 注意  
-部分插件可能存在bug，请使用前先熟读代码并进行测试。
+个人项目不可避免存在存在bug，使用前请先对代码进行测试，如发现bug望及时反馈。

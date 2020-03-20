@@ -1,11 +1,11 @@
 package spark.potato.common.service
 
-import java.util.NoSuchElementException
+import java.util.{NoSuchElementException, ServiceLoader}
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.{SparkConf, SparkContext}
-import spark.potato.common.exception.UnknownServiceException
+import spark.potato.common.exception.{ServiceAlreadyRegisteredException, UnknownServiceException}
 import spark.potato.common.conf._
 
 import scala.collection.mutable
@@ -56,32 +56,7 @@ class ServiceManager extends Logging {
     this
   }
 
-  /**
-   * 通过类型创建service实例。
-   */
-  def serve(clazz: Class[_]): Service = this.synchronized {
-    val service = if (classOf[GeneralService].isAssignableFrom(clazz)) {
-      clazz.newInstance().asInstanceOf[GeneralService].serve(checkNullable(conf))
-    } else if (classOf[ContextService].isAssignableFrom(clazz)) {
-      clazz.newInstance().asInstanceOf[ContextService].serve(checkNullable(sc))
-    } else if (classOf[StreamingService].isAssignableFrom(clazz)) {
-      clazz.newInstance().asInstanceOf[StreamingService].serve(checkNullable(ssc))
-    } else {
-      throw UnknownServiceException(s"Unknown service $clazz")
-    }
-    services += (clazz.getName -> service)
-    logInfo(s"Successful serve service $service")
-    service
-  }
-
-  /**
-   * 通过类型名称创建service实例。
-   */
-  def serve(clazzName: String): Service = this.synchronized {
-    serve(Class.forName(clazzName))
-  }
-
-  private def checkNullable[T](any: T): T = {
+  private def notNull[T](any: T): T = {
     if (any == null)
       throw UnknownServiceException(s"Found null object, cannot serve.")
     any
@@ -145,26 +120,87 @@ class ServiceManager extends Logging {
   }
 
   /**
+   * 停止并清理所有托管服务。
+   */
+  def clear(): Unit = this.synchronized {
+    stop()
+    services.clear()
+  }
+
+  /**
+   * 通过服务实例注册服务。
+   */
+  def registerByInstance(name: String, service: Service): Service = this.synchronized {
+    service match {
+      case serv: GeneralService => serv.serve(notNull(conf))
+      case serv: ContextService => serv.serve(notNull(sc))
+      case serv: StreamingService => serv.serve(ssc)
+      case unknwon => throw UnknownServiceException(s"Unknown service $name:${unknwon.getClass}")
+    }
+    if (services.contains(name))
+      throw ServiceAlreadyRegisteredException(s"Service $name already registered, please check.")
+    services += (name -> service)
+    logInfo(s"Service $name:${service.getClass} successfully registered.")
+    service
+  }
+
+  /**
+   * 通过类名注册服务。
+   */
+  def registerByClass(name: String, clazz: Class[_]): Service = this.synchronized {
+    registerByInstance(name, clazz.newInstance().asInstanceOf[Service])
+  }
+
+  /**
+   * 通过预置服务名称注册附加服务。
+   */
+  def registerAdditionalServices(services: Set[String]): Unit = this.synchronized {
+    logInfo("RegisterAdditionalServices method called.")
+
+    import scala.collection.JavaConversions.iterableAsScalaIterable
+
+    val loadedServices = ServiceLoader.load(classOf[Service]).map(s => s.serviceName -> s).toMap
+    services.foreach { name =>
+      registerByInstance(name, loadedServices.getOrElse(name, throw UnknownServiceException(s"Unknown service $name")))
+    }
+  }
+
+  /**
+   * 根据类全限定名注册自定义服务。
+   */
+  def registerCustomServices(services: Set[String]): Unit = this.synchronized {
+    logInfo("RegisterCustomServices method called.")
+    services.map(_.trim)
+      .foreach { f =>
+        registerByClass(f, Class.forName(f))
+      }
+  }
+
+  /**
    * 初始化附加服务管理器，并启动。
    *
    * @param conf     提取附加服务列表的SparkConf。
    * @param startNow 是否即时启动附加服务，如配置为false，则须在注册完毕后手动启动serviceManager。
    */
-  def registerAdditionalServices(conf: SparkConf, startNow: Boolean = true): Unit = this.synchronized {
-    if (!conf.contains(POTATO_COMMON_ADDITIONAL_SERVICES_KEY)) {
-      logWarning(s"Register additional service failed because conf key $POTATO_COMMON_ADDITIONAL_SERVICES_KEY not found.")
-      return
-    } else if (conf.get(POTATO_COMMON_ADDITIONAL_SERVICES_KEY).toUpperCase() == "FALSE") {
-      logWarning(s"Register additional service failed because conf key $POTATO_COMMON_ADDITIONAL_SERVICES_KEY is false.")
-      return
+  def registerServices(conf: SparkConf, startNow: Boolean = true): Unit = this.synchronized {
+    if (conf.get(POTATO_COMMON_ADDITIONAL_SERVICES_KEY, "false").toLowerCase() == "false") {
+      logWarning(
+        s"""
+           |Register additional service failed because conf key $POTATO_COMMON_ADDITIONAL_SERVICES_KEY not exist or equals false.
+           |""".stripMargin)
+    } else {
+      registerAdditionalServices(conf.get(POTATO_COMMON_ADDITIONAL_SERVICES_KEY).split(",").map(_.trim).toSet)
     }
-    logInfo("InitAdditionalServices method called.")
-    conf.get(POTATO_COMMON_ADDITIONAL_SERVICES_KEY)
-      .split(",")
-      .map(_.trim)
-      .foreach { f =>
-        serve(f)
-      }
+
+    if (conf.get(POTATO_COMMON_CUSTOM_SERVICES_CLASS_KEY, "false").toLowerCase() == "false") {
+      logWarning(
+        s"""
+           |Register custom service failed because conf key $POTATO_COMMON_CUSTOM_SERVICES_CLASS_KEY not exist or equals false.
+           |""".stripMargin)
+    } else {
+      registerCustomServices(conf.get(POTATO_COMMON_CUSTOM_SERVICES_CLASS_KEY).split(",").map(_.trim).toSet)
+    }
+
     if (startNow) start()
   }
 }

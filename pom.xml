@@ -6,7 +6,7 @@
     <groupId>spark.potato</groupId>
     <artifactId>potato</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.2-SNAPSHOT</version>
     <modules>
         <module>potato-common</module>
         <module>potato-hadoop</module>
@@ -15,6 +15,7 @@
         <module>potato-lock</module>
         <module>potato-monitor</module>
         <module>potato-template</module>
+        <module>potato-hive</module>
     </modules>
 
     <repositories>

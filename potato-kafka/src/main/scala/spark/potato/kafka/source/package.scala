@@ -4,6 +4,8 @@ import kafka.serializer.Decoder
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 
+import spark.potato.kafka.conf._
+
 import scala.reflect.ClassTag
 
 /**
@@ -18,9 +20,20 @@ package object source {
     K: ClassTag, V: ClassTag,
     KD <: Decoder[K] : ClassTag, VD <: Decoder[V] : ClassTag,
     R: ClassTag
-  ](ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty)(
+  ](ssc: StreamingContext, otherParams: Map[String, String] = Map.empty, kafkaParams: Map[String, String] = Map.empty)(
     messageHandler: MessageAndMetadata[K, V] => R): (DStream[R], OffsetsManager) =
-    KafkaSourceUtil.createDStreamWithOffsetsManager[K, V, KD, VD, R](ssc, kafkaParams)(messageHandler)
+    KafkaSourceUtil.createDStreamWithOffsetsManager[K, V, KD, VD, R](ssc, otherParams, kafkaParams)(messageHandler)
+
+  def createTopicDStreamWithOffsetsManager[
+    K: ClassTag, V: ClassTag,
+    KD <: Decoder[K] : ClassTag, VD <: Decoder[V] : ClassTag,
+    R: ClassTag
+  ](ssc: StreamingContext, topics: Set[String],
+    otherParams: Map[String, String] = Map.empty, kafkaParams: Map[String, String] = Map.empty)(
+     messageHandler: MessageAndMetadata[K, V] => R): (DStream[R], OffsetsManager) =
+    KafkaSourceUtil.createDStreamWithOffsetsManager[K, V, KD, VD, R](ssc,
+      otherParams ++ Map(POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY -> topics.mkString(",")),
+      kafkaParams)(messageHandler)
 
   /**
    * 将MessageAndMetadata进行全解析，返回(topic,partition,offset,key,value)。

@@ -1,5 +1,7 @@
 package spark.potato.common.cmd
 
+import scala.collection.mutable
+
 /**
  * 命令行工具类，集成次类实现对命令行的参数处理。
  * 命令行参数请务必指定 --action 参数，指定调用的Action。
@@ -8,15 +10,16 @@ package spark.potato.common.cmd
  */
 abstract class ActionCMDBase {
   private var action: Action = _
-  private var actions = Map.empty[String, Action]
-  private var arguments = Map.empty[String, Argument]
-  protected var props = Map.empty[String, String]
+  private val actions = mutable.LinkedHashMap.empty[String, Action]
+  private val arguments = mutable.LinkedHashMap.empty[String, Argument]
+  protected var props = mutable.Map.empty[String, String]
   private val outputBuffer = new StringBuffer("\n")
 
-  private lazy val keyWithValue: Set[String] = arguments.filter {
-    _._2.needValue == true
-  }.keySet
-  private lazy val keyWithoutValue: Set[String] = arguments.keySet.diff(keyWithValue)
+  private lazy val keyWithValue: Set[String] = arguments.flatMap { f =>
+    if (f._2.needValue) Some(f._1)
+    else None
+  }.toSet
+  private lazy val keyWithoutValue: Set[String] = arguments.keySet.toSet &~ keyWithValue
 
   /**
    * 添加action,argument以及其他初始化。
@@ -81,7 +84,7 @@ abstract class ActionCMDBase {
         throw new Exception(s"action ${args.head} not found")
     }
 
-    props = CmdParserUtil.parseWithKeys(args.tail.toList, keyWithoutValue, keyWithValue)
+    props ++= CmdParserUtil.parseWithKeys(args.tail.toList, keyWithoutValue, keyWithValue)
   }
 
   case class Action(name: String, describe: String = "no description", neededArgs: Set[String] = Set.empty,

@@ -88,6 +88,12 @@
                 <version>${spark.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-sql_2.11</artifactId>
+                <version>${spark.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.scalaj</groupId>
                 <artifactId>scalaj-http_${scala.binary.version}</artifactId>
                 <version>2.4.2</version>

@@ -24,6 +24,7 @@ object FileMergeUtil {
    * @param hadoopConf        额外加载入hadoopConfiguration的参数。
    * @param readOptions       额外加载入DataFrameReader的参数。
    * @param writeOptions      额外加载入DataFrameWriter的参数。
+   * @param compression       写入文件时使用的压缩格式。
    */
   def merge(sourceDir: String, targetDir: String, format: String, whereExpr: String = null,
             parallelism: Int = 1,
@@ -31,7 +32,8 @@ object FileMergeUtil {
             fileOpenCost: Long = 0, // 默认不考虑小文件打开成本。
             hadoopConf: Map[String, String] = Map.empty,
             readOptions: Map[String, String] = Map.empty,
-            writeOptions: Map[String, String] = Map.empty
+            writeOptions: Map[String, String] = Map.empty,
+            compression: String = "snappy"
            ): Unit = {
     val spark = SparkSession.builder()
       .appName(s"FileMerge_[$sourceDir]to[$targetDir]")
@@ -61,7 +63,7 @@ object FileMergeUtil {
     // etl。
     val df = spark.read.options(readOptions).format(format).load(sourceDir)
     val out = if (whereExpr != null) df.where(whereExpr) else df
-    out.write.options(writeOptions).partitionBy(partitionColumns: _*).format(format).save(tmpDir)
+    out.write.options(writeOptions + ("compression" -> compression)).partitionBy(partitionColumns: _*).format(format).save(tmpDir)
 
     // 临时文件替换原文件，原文件入回收站。
     checkAndReplace(spark, partitionColumns, out, targetDir, tmpDir)

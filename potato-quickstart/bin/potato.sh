@@ -22,9 +22,10 @@ Usage:
     -p,--prop <prop_file>  ->  properties file for spark-submit
 
   modules:
-    submit   ->  submit app to cluster.
-    lock     ->  manage app lock.
-    offsets  ->  manage kafka offsets.
+    submit     ->  submit app to cluster.
+    lock       ->  manage app lock.
+    offsets    ->  manage kafka offsets.
+    filemerge  ->  hdfs file merge util.
 EOF
 }
 

@@ -18,8 +18,9 @@ object FileMergeCmd extends ActionCMDBase {
     addArgument("--hadoop-conf", describe = "options add to hadoop configuration", needValue = true)
     addArgument("--read-options", describe = "options add to DataFrameReader", needValue = true)
     addArgument("--write-options", describe = "options add to DataFrameWriter", needValue = true)
+    addArgument("--compression", describe = "compression used when writing file", needValue = true)
 
-    addAction("merge", describe = "merge file util with partition awareness", needArgs = Set("--source", "--target", "--format"), action = () => {
+    addAction("merge", describe = "merge file util with partition awareness", needArgs = Set("--source", "--format"), action = () => {
       FileMergeUtil.merge(
         sourceDir = props("--source"),
         targetDir = props.getOrElse("--target", props("--source")),
@@ -30,7 +31,8 @@ object FileMergeCmd extends ActionCMDBase {
         fileOpenCost = props.getOrElse("--file-open-cost", "0").toLong,
         hadoopConf = string2Map(props.getOrElse("--hadoop-conf", null)),
         readOptions = string2Map(props.getOrElse("--read-options", null)),
-        writeOptions = string2Map(props.getOrElse("--write-options", null))
+        writeOptions = string2Map(props.getOrElse("--write-options", null)),
+        compression = props.getOrElse("--compression", "snappy")
       )
     })
   }

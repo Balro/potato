@@ -9,6 +9,8 @@ spark开发插件，包含多种组件的source、sink模块，和作业管理�
 简略说明见下:    
 * potato-common  
     各种通用公共类、特质。
+* potato-deploy  
+    用于部署potato通用jar包，并且提供工具脚本。  
 * potato-hadoop  
     Configuration的序列化类。  
 * potato-hbase  

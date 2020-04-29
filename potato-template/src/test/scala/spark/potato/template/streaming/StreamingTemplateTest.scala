@@ -7,9 +7,8 @@ import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.StreamingContext
 import org.junit.Test
-import spark.potato.common.context.StreamingContextUtil
 import spark.potato.common.conf._
-import spark.potato.common.util.LocalLauncherUtil
+import spark.potato.common.util.{LocalLauncherUtil, StreamingContextUtil}
 import spark.potato.lock.conf._
 import spark.potato.lock.running.StreamingRunningLockService
 import spark.potato.monitor.backlog.BacklogMonitorService
@@ -72,6 +71,6 @@ object StreamingTemplateTest extends StreamingTemplate {
 class StreamingTemplateTest {
   @Test
   def local(): Unit = {
-    LocalLauncherUtil.test(StreamingTemplateTest)
+    LocalLauncherUtil.localTest(StreamingTemplateTest)
   }
 }

@@ -16,7 +16,6 @@
         <module>potato-monitor</module>
         <module>potato-template</module>
         <module>potato-hive</module>
-        <module>potato-deploy</module>
     </modules>
 
     <repositories>

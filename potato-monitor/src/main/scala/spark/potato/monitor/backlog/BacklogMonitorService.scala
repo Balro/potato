@@ -9,10 +9,10 @@ import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.scheduler._
-import spark.potato.common.context.StreamingContextUtil
 import spark.potato.common.exception.PotatoException
 import spark.potato.common.service.StreamingService
 import spark.potato.common.tools.DaemonThreadFactory
+import spark.potato.common.util.StreamingContextUtil
 import spark.potato.monitor.reporter.{DingReporter, Reporter}
 import spark.potato.monitor.conf._
 

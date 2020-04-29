@@ -7,8 +7,8 @@ object GeneralCmdImp extends ActionCMDBase {
   override def init(): Unit = {
     addAction("a1", "this is action a1", action = () => println("action a1 act"))
     addAction("a2", "this is action a2")
-    addAction("a3", "this is action a3", Set("arg1", "arg3"),
-      () =>
+    addAction("a3", "this is action a3", neededArgs = Set("arg1", "arg3"),
+      action = () =>
         println(s"received args -> $props")
     )
 

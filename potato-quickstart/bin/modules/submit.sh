@@ -1,18 +1,16 @@
 #!/bin/echo
 
-module_name="submit"
+export module_name="submit"
 
 module_usage() {
   cat <<EOF
 Usage:
-  potato.sh submit <opts> <app jar> [main jar args]
+  $(basename "$0") submit <opts> <app jar> [main jar args]
 
 opts-required:
   -p|--prop-file       specify the property file to load.
 opts-optional:
   -c|--class <class>   main class on spark submit.
-  -l|--log [logfile]   use nohup and run spark-submit on the background.
-                       default logfile is $POTATO_HOME/logs/$APP_NAME-%Y%m%d-%H%M%S.log .
   --conf <key=value>   additional spark conf.
 EOF
 }
@@ -27,7 +25,7 @@ submit_app() {
 
   append_dep_jars "$POTATO_LIB_DIR" && spark_run="$spark_run --jars $DEP_JARS"
 
-  test "$main_class" || find_main_class_on_prop_file && spark_run="$spark_run --class $main_class"
+  test "$main_class" || (test "$prop_file" && find_main_class_on_prop_file) && spark_run="$spark_run --class $main_class"
 
   test "$spark_conf" && spark_run="$spark_run $spark_conf"
 
@@ -41,11 +39,7 @@ submit_app() {
     exit 1
   }
 
-  if [ "$log_file" ]; then
-    nohup $spark_run "$@" &>"$log_file" &
-  else
-    $spark_run "$@"
-  fi
+  $spark_run "$@"
 }
 
 module_run() {
@@ -63,14 +57,6 @@ module_run() {
       shift
       main_class="$1"
       ;;
-    "-l" | "--log")
-      shift
-      if [ "$1" ]; then
-        log_file="$1"
-      else
-        log_file="$POTATO_HOME/logs/$APP_NAME-%Y%m%d-%H%M%S.log"
-      fi
-      ;;
     "--conf")
       shift
       spark_conf="$spark_conf --conf $1"
@@ -79,8 +65,10 @@ module_run() {
       main_jar="$1"
       shift
       submit_app "$@"
+      exit $?
       ;;
     esac
     shift
   done
+  module_usage
 }

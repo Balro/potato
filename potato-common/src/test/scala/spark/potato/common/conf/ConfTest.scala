@@ -15,6 +15,7 @@ class ConfTest {
 
     val escape = Seq(
       POTATO_APP_NAME_KEY,
+      POTATO_MAIN_CLASS,
       POTATO_COMMON_STREAMING_BATCH_DURATION_MS_KEY,
       POTATO_COMMON_ADDITIONAL_SERVICES_KEY
     ).filter(!conf.contains(_))

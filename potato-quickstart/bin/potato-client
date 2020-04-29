@@ -1,20 +1,36 @@
 #!/usr/bin/env bash
 POTATO_CLIENT_VERSION=0.1.3-SNAPSHOT
-
+# potato-client只是一个指向potato脚本的一个链接。
+# 使用的potato脚本优先顺序如下:
+#   1. potato-client上级目录的bin/potato。
+#   2. 系统POTATO_HOME变量下的bin/potato。
+#   3. 系统path下搜索到的potato。
 source_env() {
   test -r /etc/profile && source /etc/profile
   test -r ~/.bash_profile && source ~/.bash_profile
 
-  POTATO_CLIENT_HOME=$(cd -P "$(dirname $0)" && pwd || exit 1)
+  POTATO_CLIENT_HOME=$(cd -P "$(dirname $0)/../" && pwd || exit 1)
   export POTATO_CLIENT_HOME
   export POTATO_CLIENT_BIN_DIR="$POTATO_CLIENT_HOME/bin"
   export POTATO_CLIENT_LIB_DIR="$POTATO_CLIENT_HOME/lib"
   export POTATO_CLIENT_LOG_DIR="$POTATO_CLIENT_HOME/logs"
 
-  test -x "$POTATO_CLIENT_BIN_DIR/potato" && export POTATO_HOME="$POTATO_CLIENT_HOME"
+  if [ -x "$POTATO_CLIENT_BIN_DIR/potato" ]; then
+    export POTATO_HOME="$POTATO_CLIENT_HOME"
+  elif [ "$POTATO_HOME" ]; then
+    test -x "$POTATO_HOME/bin/potato" || {
+      echo "POTATO_HOME $POTATO_HOME is not valid because $POTATO_HOME/bin/potato is not found."
+      exit 1
+    }
+  elif hash potato 2>/dev/null; then
+    POTATO_HOME=$(cd -P "$(dirname "$(command -v potato)")/../" && pwd) && export POTATO_HOME
+  else
+    echo "POTATO_HOME $POTATO_HOME not valid." >&2
+    exit 1
+  fi
 
   if [ "$POTATO_CLIENT_HOME" != "$POTATO_HOME" ]; then
-    source "$POTATO_HOME/potato"
+    source "$POTATO_HOME/bin/potato"
     test "$POTATO_VERSION" != "$POTATO_CLIENT_VERSION" && {
       echo "version not match, potato version $POTATO_VERSION, client version $POTATO_CLIENT_VERSION" >&2
       exit 1
@@ -25,7 +41,8 @@ source_env() {
 }
 
 main() {
+  source_env
   "$POTATO_HOME/bin/potato" "$@"
 }
 
-main "$@"
+test "$(basename "$0")" == "potato-client" && main "$@"

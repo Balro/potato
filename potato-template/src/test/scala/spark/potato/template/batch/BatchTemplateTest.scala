@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import org.apache.spark.SparkConf
 import org.junit.Test
 import spark.potato.common.conf._
-import spark.potato.common.util.ContextUtil._
+import spark.potato.common.util.SparkContextUtil._
 import spark.potato.common.util.LocalLauncherUtil
 import spark.potato.lock.conf._
 
@@ -32,6 +32,6 @@ object BatchTemplateTest extends BatchTemplate {
 class BatchTemplateTest {
   @Test
   def local(): Unit = {
-    LocalLauncherUtil.test(BatchTemplateTest)
+    LocalLauncherUtil.localTest(BatchTemplateTest)
   }
 }

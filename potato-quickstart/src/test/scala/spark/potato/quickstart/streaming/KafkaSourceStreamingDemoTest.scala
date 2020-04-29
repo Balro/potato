@@ -7,6 +7,6 @@ import spark.potato.common.util.LocalLauncherUtil
 class KafkaSourceStreamingDemoTest {
   @Test
   def localTest(): Unit = {
-    LocalLauncherUtil.test(KafkaSourceStreamingDemo, "/streaming/KafkaSourceStreamingDemo.properties")
+    LocalLauncherUtil.localTest(KafkaSourceStreamingDemo, "/streaming/KafkaSourceStreamingDemo.properties")
   }
 }

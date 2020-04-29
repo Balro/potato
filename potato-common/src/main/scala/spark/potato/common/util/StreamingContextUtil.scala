@@ -1,11 +1,12 @@
-package spark.potato.common.context
+package spark.potato.common.util
 
 import org.apache.spark.SparkConf
-import org.apache.spark.streaming.{Duration, Milliseconds, StreamingContext}
+import org.apache.spark.internal.Logging
+import org.apache.spark.streaming._
 import spark.potato.common.conf._
 import spark.potato.common.exception.ConfigNotFoundException
 
-object StreamingContextUtil {
+object StreamingContextUtil extends Logging {
   /**
    * 获取StreamingContext的批处理时间。
    */
@@ -35,5 +36,12 @@ object StreamingContextUtil {
     } else {
       new StreamingContext(conf, Milliseconds(duration))
     }
+  }
+
+  def stopOnJVMExit(ssc: StreamingContext): Unit = {
+    logInfo(s"Register stop when shutdown on ssc $ssc")
+    CleanExitUtil.cleanWhenShutdown("stop ssc", {
+      ssc.stop()
+    })
   }
 }

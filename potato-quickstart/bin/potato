@@ -19,8 +19,8 @@ EOF
 }
 
 source_env() {
-  test -jar /etc/profile && source /etc/profile
-  test -jar ~/.bash_profile && source ~/.bash_profile
+  test -r /etc/profile && source /etc/profile
+  test -r ~/.bash_profile && source ~/.bash_profile
 
   test -z "$POTATO_HOME" && POTATO_HOME=$(cd -P "$(dirname "$0")/../" && pwd || exit)
   test -z "$POTATO_BIN_DIR" && POTATO_BIN_DIR=$POTATO_HOME/bin
@@ -32,9 +32,12 @@ source_env() {
   export POTATO_LOG_DIR
 
   if [ "$SPARK_BIN" ]; then
-    :
-  elif command -v spark_submit; then
-    SPARK_BIN=spark_submit
+    test -x "$SPARK_BIN" || {
+      echo "env SPARK_BIN:$SPARK_BIN not valid."
+      exit 1
+    }
+  elif hash spark-submit; then
+    SPARK_BIN=spark-submit
   elif [ -x "$SPARK_HOME/bin/spark-submit" ]; then
     SPARK_BIN=$SPARK_HOME/bin/spark-submit
   else
@@ -66,7 +69,7 @@ append_dep_jars() {
   local dep_jars_dir="$1"
   if [ ! -d "$dep_jars_dir" ]; then
     echo "$dep_jars_dir not found."
-    ext 1
+    exit 1
   fi
   for jar in "$dep_jars_dir"/*; do
     test -r "$jar" && {
@@ -82,21 +85,21 @@ append_dep_jars() {
 
 select_module() {
   for m in "$POTATO_HOME"/bin/modules/*; do
-    if grep -wq "module_name=$1" "$m"; then
+    grep -Eq "^(export\ +)?module_name=[\'\"]?$1[\'\"]?$" "$m" && {
       source "$m"
-    fi
+      break
+    }
   done
 
-  if [ -z "$module_name" ]; then
+  test "$module_name" || {
     echo "module $1 not found" >&2
     usage
     exit 1
-  fi
+  }
 }
 
 main() {
   source_env
-
   while [ $# -gt 0 ]; do
     case "$1" in
     "-h" | "--help")
@@ -106,17 +109,20 @@ main() {
       exit 0
       ;;
     "-v" | "--version")
-      echo "$POTATO_VERSION"
+      echo "potato version $POTATO_VERSION"
       exit 0
       ;;
     *)
       select_module "$1"
       shift
       module_run "$@"
+      exit $?
       ;;
     esac
     shift
   done
+
+  usage
 }
 
-main "$@"
+test "$(basename "$0")" == "potato" && main "$@"

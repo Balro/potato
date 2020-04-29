@@ -62,6 +62,6 @@ object KafkaSourceStreamingTest extends StreamingTemplate {
 class KafkaSourceStreamingTest {
   @Test
   def local(): Unit = {
-    LocalLauncherUtil.test(KafkaSourceStreamingTest)
+    LocalLauncherUtil.localTest(KafkaSourceStreamingTest)
   }
 }

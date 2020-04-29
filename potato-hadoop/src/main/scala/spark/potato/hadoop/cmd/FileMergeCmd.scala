@@ -37,10 +37,4 @@ object FileMergeCmd extends ActionCMDBase {
     })
   }
 
-  def string2Map(str: String): Map[String, String] = {
-    if (str != null)
-      str.split(",").map(f => f.split("=")).map(f => f(0) -> f(1)).toMap
-    else
-      Map.empty[String, String]
-  }
 }

@@ -10,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * 方法清理工具。
  */
-object CleanUtil extends Logging {
+object CleanExitUtil extends Logging {
   /**
    * 注册清理方法，在jvm退出时调用。
    *

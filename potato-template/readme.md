@@ -23,7 +23,7 @@ package spark.potato.template.batch
 import org.apache.spark.SparkConf
 import org.junit.Test
 import spark.potato.common.conf._
-import spark.potato.common.util.ContextUtil._
+import spark.potato.common.util.SparkContextUtil._
 import spark.potato.common.util.LocalLauncherUtil
 import spark.potato.lock.conf._
 import spark.potato.lock.running.ContextRunningLockService
@@ -55,7 +55,7 @@ object BatchTemplateTest extends BatchTemplate {
 class BatchTemplateTest {
   @Test
   def local(): Unit = {
-    LocalLauncherUtil.test(BatchTemplateTest)
+    LocalLauncherUtil.localTest(BatchTemplateTest)
   }
 }
 ```  
@@ -63,22 +63,7 @@ class BatchTemplateTest {
 ```scala
 package spark.potato.template.streaming
 
-import java.util.Date
-import java.util.concurrent.TimeUnit
-
-import org.apache.spark.SparkConf
-import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.StreamingContext
-import org.junit.Test
-import spark.potato.common.context.StreamingContextUtil
-import spark.potato.common.conf._
-import spark.potato.common.util.LocalLauncherUtil
-import spark.potato.lock.conf._
-import spark.potato.lock.running.StreamingRunningLockService
-import spark.potato.monitor.backlog.BacklogMonitorService
-import spark.potato.monitor.conf._
-
-import scala.collection.mutable
+import import 
 
 object StreamingTemplateTest extends StreamingTemplate {
   /**
@@ -130,7 +115,7 @@ object StreamingTemplateTest extends StreamingTemplate {
 class StreamingTemplateTest {
   @Test
   def local(): Unit = {
-    LocalLauncherUtil.test(StreamingTemplateTest)
+    LocalLauncherUtil.localTest(StreamingTemplateTest)
   }
 }
 ```  

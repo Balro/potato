@@ -1,6 +1,8 @@
-package spark.potato.common.cmd
+package spark.potato.common.util
 
 import spark.potato.common.exception.ArgParseException
+
+import scala.collection.mutable
 
 object CmdParserUtil {
   /**
@@ -47,20 +49,28 @@ object CmdParserUtil {
   /**
    * 对字符串进行解析，对传入的期望参数进行匹配，遇到无法匹配的参数则抛异常。
    *
-   * @param args      待解析字符串列表。
-   * @param keyOnly   不带值参数。
-   * @param withValue 带值参数。
+   * @param args    待解析字符串列表。
+   * @param flagKey 不带值参数。
+   * @param propKey 带值参数。
    * @return 解析后的参数。
    */
-  def parseWithKeys(args: List[String], keyOnly: Set[String], withValue: Set[String]): Map[String, String] = {
-    args match {
-      case key :: tail if keyOnly.contains(key) =>
-        Map(key -> null) ++ parseWithKeys(tail, keyOnly, withValue)
-      case key :: value :: tail if withValue.contains(key) && !keyOnly.union(withValue).contains(value) =>
-        Map(key -> value) ++ parseWithKeys(tail, keyOnly, withValue)
-      case Nil => Map.empty
-      case _ => throw ArgParseException(s"Remain args not parsed -> ${args.mkString(" ")}")
+  def parseWithKeys(args: List[String], flagKey: Set[String], propKey: Set[String]): (Map[String, String], Set[String]) = {
+    val props = mutable.Map.empty[String, String]
+    val flags = mutable.Set.empty[String]
+    var parse = args
+    while (parse.nonEmpty) {
+      parse match {
+        case key :: tail if flagKey.contains(key) =>
+          flags += key
+          parse = tail
+        case key :: value :: tail if propKey.contains(key) && !flagKey.union(propKey).contains(value) =>
+          props += key -> value
+          parse = tail
+        case Nil =>
+        case _ => throw ArgParseException(s"Remain args not parsed -> ${args.mkString(" ")}")
+      }
     }
+    props.toMap -> flags.toSet
   }
 
   /**
@@ -71,8 +81,15 @@ object CmdParserUtil {
    * @param withValue 带值参数。
    * @return 解析后的参数。
    */
-  def parseWithKeys(argString: String, keyOnly: Set[String], withValue: Set[String]): Map[String, String] = {
+  def parseWithKeys(argString: String, keyOnly: Set[String], withValue: Set[String]): (Map[String, String], Set[String]) = {
     parseWithKeys(argString.split("\\s+").toList, keyOnly, withValue)
   }
 
+  /**
+   * 将逗号分隔并带有等号的字符串解析成map。
+   * Example: "a=b,c=d" -> Map("a"->"b","c"->"d")
+   */
+  def commaString2Map(str: String): Map[String, String] = {
+    str.split(",").map(f => f.split("=")).map(f => f(0) -> f(1)).toMap
+  }
 }

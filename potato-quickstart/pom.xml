@@ -31,6 +31,62 @@
                 <assembly.descriptor>src/assembly/fat.xml</assembly.descriptor>
             </properties>
         </profile>
+        <profile>
+            <id>server</id>
+            <properties>
+                <assembly.descriptor>src/assembly/server.xml</assembly.descriptor>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>spark.potato</groupId>
+                    <artifactId>potato-common</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+                <dependency>
+                    <groupId>spark.potato</groupId>
+                    <artifactId>potato-hadoop</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+                <dependency>
+                    <groupId>spark.potato</groupId>
+                    <artifactId>potato-hbase</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+                <dependency>
+                    <groupId>spark.potato</groupId>
+                    <artifactId>potato-hive</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+                <dependency>
+                    <groupId>spark.potato</groupId>
+                    <artifactId>potato-kafka</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+                <dependency>
+                    <groupId>spark.potato</groupId>
+                    <artifactId>potato-lock</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+                <dependency>
+                    <groupId>spark.potato</groupId>
+                    <artifactId>potato-monitor</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+                <dependency>
+                    <groupId>spark.potato</groupId>
+                    <artifactId>potato-template</artifactId>
+                    <version>${project.version}</version>
+                    <scope>compile</scope>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
     <properties>

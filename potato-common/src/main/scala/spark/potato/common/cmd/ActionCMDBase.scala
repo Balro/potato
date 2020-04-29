@@ -1,5 +1,7 @@
 package spark.potato.common.cmd
 
+import spark.potato.common.util.CmdParserUtil
+
 import scala.collection.mutable
 
 /**
@@ -9,17 +11,18 @@ import scala.collection.mutable
  * 实现init()，在init中重复调用 addAction() 添加指定动作。
  */
 abstract class ActionCMDBase {
-  private var action: Action = _
+  private var execAction: Action = _
   private val actions = mutable.LinkedHashMap.empty[String, Action]
   private val arguments = mutable.LinkedHashMap.empty[String, Argument]
-  protected var props = mutable.Map.empty[String, String]
+  protected var props = Map.empty[String, String]
+  protected var flags = Set.empty[String]
   private val outputBuffer = new StringBuffer("\n")
 
-  private lazy val keyWithValue: Set[String] = arguments.flatMap { f =>
+  private lazy val propsKey: Set[String] = arguments.flatMap { f =>
     if (f._2.needValue) Some(f._1)
     else None
   }.toSet
-  private lazy val keyWithoutValue: Set[String] = arguments.keySet.toSet &~ keyWithValue
+  private lazy val flagsKey: Set[String] = arguments.keySet.toSet &~ propsKey
 
   /**
    * 添加action,argument以及其他初始化。
@@ -46,8 +49,9 @@ abstract class ActionCMDBase {
   }
 
   protected def addAction(name: String, describe: String = "no description",
-                          needArgs: Set[String] = Set.empty, action: () => Unit = () => println("do nothing")): Unit = {
-    addAction(Action(name, describe, needArgs, action))
+                          neededArgs: Set[String] = Set.empty, neededFlags: Set[String] = Set.empty,
+                          action: () => Unit = () => println("do nothing")): Unit = {
+    addAction(Action(name, describe, neededArgs, neededFlags, action))
   }
 
   protected def addArgument(key: String, describe: String = "no description",
@@ -59,7 +63,7 @@ abstract class ActionCMDBase {
     init()
     try {
       parseArgs(args)
-      action.act()
+      execAction.act()
     } catch {
       case e: Throwable =>
         output(e)
@@ -75,7 +79,7 @@ abstract class ActionCMDBase {
       System.exit(0)
     }
 
-    action = actions.get(args.head) match {
+    execAction = actions.get(args.head) match {
       case Some(a) => a
       case None =>
         println(s"action ${args.head} not found")
@@ -84,23 +88,29 @@ abstract class ActionCMDBase {
         throw new Exception(s"action ${args.head} not found")
     }
 
-    props ++= CmdParserUtil.parseWithKeys(args.tail.toList, keyWithoutValue, keyWithValue)
+    val (ps, fs) = CmdParserUtil.parseWithKeys(args.tail.toList, flagsKey, propsKey)
+    props = ps
+    flags = fs
   }
 
-  case class Action(name: String, describe: String = "no description", neededArgs: Set[String] = Set.empty,
+  case class Action(name: String, describe: String = "no description",
+                    neededProps: Set[String] = Set.empty, neededFlags: Set[String] = Set.empty,
                     action: () => Unit = () => println("do nothing")) {
     def act(): Unit = {
-      val require = neededArgs.diff(props.keySet)
-      if (require.nonEmpty)
-        throw new Exception(s"Require args not found $require")
+      val requireProps = neededProps &~ props.keySet
+      val requireFlags = neededFlags &~ flags
+      if (requireProps.nonEmpty)
+        throw new Exception(s"Require args not found $requireProps")
+      if (requireFlags.nonEmpty)
+        throw new Exception(s"Require args not found $requireFlags")
       action()
     }
 
     override def toString: String = {
-      if (neededArgs.isEmpty)
+      if (neededProps.isEmpty)
         s"  $name\n    describe: $describe"
       else
-        s"  $name\n    needArgs: ${neededArgs.mkString(",")}\n    describe: $describe"
+        s"  $name\n    needArgs: ${neededProps.mkString(",")}\n    describe: $describe"
     }
   }
 

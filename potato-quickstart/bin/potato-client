@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+POTATO_CLIENT_VERSION=0.1.3-SNAPSHOT
+
+source_env() {
+  test -r /etc/profile && source /etc/profile
+  test -r ~/.bash_profile && source ~/.bash_profile
+
+  POTATO_CLIENT_HOME=$(cd -P "$(dirname $0)" && pwd || exit 1)
+  export POTATO_CLIENT_HOME
+  export POTATO_CLIENT_BIN_DIR="$POTATO_CLIENT_HOME/bin"
+  export POTATO_CLIENT_LIB_DIR="$POTATO_CLIENT_HOME/lib"
+  export POTATO_CLIENT_LOG_DIR="$POTATO_CLIENT_HOME/logs"
+
+  test -x "$POTATO_CLIENT_BIN_DIR/potato" && export POTATO_HOME="$POTATO_CLIENT_HOME"
+
+  if [ "$POTATO_CLIENT_HOME" != "$POTATO_HOME" ]; then
+    source "$POTATO_HOME/potato"
+    test "$POTATO_VERSION" != "$POTATO_CLIENT_VERSION" && {
+      echo "version not match, potato version $POTATO_VERSION, client version $POTATO_CLIENT_VERSION" >&2
+      exit 1
+    }
+    export POTATO_LOG_DIR="$POTATO_CLIENT_LOG_DIR"
+    append_dep_jars "$POTATO_CLIENT_LIB_DIR"
+  fi
+}
+
+main() {
+  "$POTATO_HOME/bin/potato" "$@"
+}
+
+main "$@"

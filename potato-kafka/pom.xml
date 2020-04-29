@@ -15,7 +15,7 @@
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-common</artifactId>
-            <version>${project.parent.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.spark</groupId>

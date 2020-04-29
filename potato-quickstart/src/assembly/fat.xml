@@ -1,10 +1,10 @@
 <assembly>
-    <id>deploy</id>
+    <id>fat</id>
     <formats>
         <format>tar.gz</format>
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory>
-
+    
     <files>
         <file>
             <source>bin/potato</source>

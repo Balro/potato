@@ -1,6 +1,6 @@
 #!/bin/echo
 
-export module_name="submit"
+module_name="submit"
 
 module_usage() {
   cat <<EOF
@@ -27,7 +27,7 @@ submit_app() {
 
   append_dep_jars "$POTATO_LIB_DIR" && spark_run="$spark_run --jars $DEP_JARS"
 
-  test "$main_class" || (test "$prop_file" && find_main_class_on_prop_file) && spark_run="$spark_run --class $main_class"
+  test "$main_class" || find_main_class_on_prop_file && spark_run="$spark_run --class $main_class"
 
   test "$spark_conf" && spark_run="$spark_run $spark_conf"
 
@@ -42,7 +42,7 @@ submit_app() {
   }
 
   if [ "$log_file" ]; then
-    nohup "$spark_run" "$@" &>"$log_file" &
+    nohup $spark_run "$@" &>"$log_file" &
   else
     $spark_run "$@"
   fi

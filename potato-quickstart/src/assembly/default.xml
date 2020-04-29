@@ -1,16 +1,11 @@
 <assembly>
-    <id>deploy</id>
+    <id>default</id>
     <formats>
         <format>tar.gz</format>
     </formats>
     <includeBaseDirectory>true</includeBaseDirectory>
 
     <files>
-        <file>
-            <source>bin/potato</source>
-            <outputDirectory>bin</outputDirectory>
-            <fileMode>0755</fileMode>
-        </file>
         <file>
             <source>bin/potato-client</source>
             <outputDirectory>bin</outputDirectory>
@@ -19,10 +14,6 @@
     </files>
 
     <fileSets>
-        <fileSet>
-            <directory>bin/modules</directory>
-            <outputDirectory>bin/modules</outputDirectory>
-        </fileSet>
         <fileSet>
             <directory>src/main/resources</directory>
             <outputDirectory>conf</outputDirectory>

@@ -6,7 +6,7 @@
 
     <groupId>quickstart.spark.potato</groupId>
     <artifactId>potato-quickstart</artifactId>
-    <version>0.1.2-SNAPSHOT</version>
+    <version>0.1.3-SNAPSHOT</version>
 
     <repositories>
         <repository>
@@ -16,6 +16,23 @@
         </repository>
     </repositories>
 
+    <profiles>
+        <profile>
+            <id>default</id>
+            <properties>
+                <potato.scope>provided</potato.scope>
+                <assembly.descriptor>src/assembly/default.xml</assembly.descriptor>
+            </properties>
+        </profile>
+        <profile>
+            <id>fat</id>
+            <properties>
+                <potato.scope>compile</potato.scope>
+                <assembly.descriptor>src/assembly/fat.xml</assembly.descriptor>
+            </properties>
+        </profile>
+    </profiles>
+
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -23,7 +40,6 @@
         <scala.version>${scala.binary.version}.12</scala.version>
         <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
         <spark.version>2.2.0.cloudera2</spark.version>
-        <potato.version>0.1.2-SNAPSHOT</potato.version>
     </properties>
 
     <dependencies>
@@ -60,17 +76,14 @@
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-template</artifactId>
-            <version>${potato.version}</version>
+            <version>${project.version}</version>
+            <scope>${potato.scope}</scope>
         </dependency>
         <dependency>
             <groupId>spark.potato</groupId>
             <artifactId>potato-hbase</artifactId>
-            <version>${potato.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch-spark-20_${scala.binary.version}</artifactId>
-            <version>6.3.0</version>
+            <version>${project.version}</version>
+            <scope>${potato.scope}</scope>
         </dependency>
     </dependencies>
 
@@ -108,11 +121,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.5.5</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/assembly/app.xml</descriptor>
-                    </descriptors>
-                </configuration>
                 <executions>
                     <execution>
                         <id>bin</id>
@@ -122,6 +130,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <descriptors>
+                        <descriptor>${assembly.descriptor}</descriptor>
+                    </descriptors>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>

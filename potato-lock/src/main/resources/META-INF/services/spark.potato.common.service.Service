@@ -1,2 +1,2 @@
-spark.potato.lock.running.ContextRunningLockService
-spark.potato.lock.running.StreamingRunningLockService
+spark.potato.lock.singleton.ContextSingletonLockService
+spark.potato.lock.singleton.StreamingSingletonLockService

@@ -1,4 +1,4 @@
-package spark.potato.common.tools
+package spark.potato.common.threads
 
 import java.util.Date
 import java.util.concurrent.{Executors, TimeUnit}

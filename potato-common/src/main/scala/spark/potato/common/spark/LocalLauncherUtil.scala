@@ -1,9 +1,7 @@
-package spark.potato.common.util
+package spark.potato.common.spark
 
 import java.io.FileInputStream
 import java.util.Properties
-
-import scala.collection.JavaConversions.propertiesAsScalaMap
 
 /**
  * 本地测试工具类。
@@ -21,11 +19,9 @@ object LocalLauncherUtil {
     if (propFile != null) {
       val props = new Properties()
       var propSource = clazz.getClass.getResourceAsStream(propFile)
-      if (propSource == null)
-        propSource = new FileInputStream(propFile)
-
+      if (propSource == null) propSource = new FileInputStream(propFile)
       props.load(propSource)
-      props.foreach { prop =>
+      scala.collection.JavaConversions.propertiesAsScalaMap(props).foreach { prop =>
         System.setProperty(prop._1, prop._2)
       }
     }

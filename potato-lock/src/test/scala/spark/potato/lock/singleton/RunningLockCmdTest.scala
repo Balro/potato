@@ -1,4 +1,4 @@
-package spark.potato.lock.running
+package spark.potato.lock.singleton
 
 import org.junit.Test
 
@@ -6,6 +6,6 @@ class RunningLockCmdTest {
   @Test
   def clearTest(): Unit = {
     println(System.getenv("potato_conf_file"))
-    RunningLockCmd.main(Array("clear"))
+    SingletonLockCmd.main(Array("clear"))
   }
 }

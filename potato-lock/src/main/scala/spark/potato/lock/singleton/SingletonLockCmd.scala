@@ -1,4 +1,4 @@
-package spark.potato.lock.running
+package spark.potato.lock.singleton
 
 import org.apache.spark.SparkConf
 import spark.potato.common.cmd.ActionCMDBase
@@ -6,9 +6,9 @@ import spark.potato.common.conf._
 import spark.potato.lock.conf._
 
 /**
- * runninglock命令行管理工具。
+ * SingletonLock命令行管理工具。
  */
-object RunningLockCmd extends ActionCMDBase {
+object SingletonLockCmd extends ActionCMDBase {
   /**
    * 添加action,argument以及其他初始化。
    */
@@ -18,14 +18,14 @@ object RunningLockCmd extends ActionCMDBase {
       action = { () =>
         val conf = new SparkConf()
         val lock = conf.get(
-          POTATO_LOCK_RUNNING_TYPE_KEY, POTATO_LOCK_RUNNING_TYPE_DEFAULT
+          POTATO_LOCK_SINGLETON_TYPE_KEY, POTATO_LOCK_SINGLETON_TYPE_DEFAULT
         ) match {
-          case "zookeeper" => new ZookeeperRunningLock(null,
-            conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_QUORUM_KEY),
+          case "zookeeper" => new ZookeeperSingletonLock(null,
+            conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_QUORUM_KEY),
             conf.getInt(
-              POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_DEFAULT
+              POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_DEFAULT
             ),
-            conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_KEY, POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_DEFAULT),
+            conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_DEFAULT),
             conf.get(POTATO_APP_NAME_KEY)
           )
           case lockType => throw new Exception(s"Lock not supported -> $lockType")
@@ -45,14 +45,14 @@ object RunningLockCmd extends ActionCMDBase {
       action = { () =>
         val conf = new SparkConf()
         val lock = conf.get(
-          POTATO_LOCK_RUNNING_TYPE_KEY, POTATO_LOCK_RUNNING_TYPE_DEFAULT
+          POTATO_LOCK_SINGLETON_TYPE_KEY, POTATO_LOCK_SINGLETON_TYPE_DEFAULT
         ) match {
-          case "zookeeper" => new ZookeeperRunningLock(null,
-            conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_QUORUM_KEY),
+          case "zookeeper" => new ZookeeperSingletonLock(null,
+            conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_QUORUM_KEY),
             conf.getInt(
-              POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_DEFAULT
+              POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_DEFAULT
             ),
-            conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_KEY, POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_DEFAULT),
+            conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_DEFAULT),
             conf.get(POTATO_APP_NAME_KEY)
           )
           case lockType => throw new Exception(s"Lock not supported -> $lockType")

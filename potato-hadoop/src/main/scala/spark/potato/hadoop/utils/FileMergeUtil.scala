@@ -14,17 +14,18 @@ object FileMergeUtil {
    * 计算公式: maxSplitBytes = min(maxPartitionBytes,min(totalSize/parallelism,fileOpenCost))
    * 参考 org.apache.spark.sql.execution.FileSourceScanExec#createNonBucketedReadRDD
    *
-   * @param sourceDir         原路径。
-   * @param targetDir         目标路径。
-   * @param format            文件格式。
-   * @param whereExpr         where过滤条件，会追加到sql的where条件中。只可以分区字段过滤，如无分区，参数须为null。
-   * @param parallelism       并行度，影响合并后文件大小。
-   * @param maxPartitionBytes 分区最大文件读取大小，影响合并后文件大小。
-   * @param fileOpenCost      打开文件成本，影响合并后文件大小。
-   * @param hadoopConf        额外加载入hadoopConfiguration的参数。
-   * @param readOptions       额外加载入DataFrameReader的参数。
-   * @param writeOptions      额外加载入DataFrameWriter的参数。
-   * @param compression       写入文件时使用的压缩格式。
+   * @param sourceDir                  原路径。
+   * @param targetDir                  目标路径。
+   * @param format                     文件格式。
+   * @param whereExpr                  where过滤条件，会追加到sql的where条件中。只可以分区字段过滤，如无分区，参数须为null。
+   * @param parallelism                并行度，影响合并后文件大小。
+   * @param maxPartitionBytes          分区最大文件读取大小，影响合并后文件大小。
+   * @param fileOpenCost               打开文件成本，影响合并后文件大小。
+   * @param hadoopConf                 额外加载入hadoopConfiguration的参数。
+   * @param readOptions                额外加载入DataFrameReader的参数。
+   * @param writeOptions               额外加载入DataFrameWriter的参数。
+   * @param compression                写入文件时使用的压缩格式。
+   * @param parallelPartitionDiscovery 启动分布式作业检查文件schema的阈值，默认设为0。
    */
   def merge(sourceDir: String, targetDir: String, format: String, whereExpr: String = null,
             parallelism: Int = 1,
@@ -33,7 +34,8 @@ object FileMergeUtil {
             hadoopConf: Map[String, String] = Map.empty,
             readOptions: Map[String, String] = Map.empty,
             writeOptions: Map[String, String] = Map.empty,
-            compression: String = "snappy"
+            compression: String = "snappy",
+            parallelPartitionDiscovery: Int = 0
            ): Unit = {
     val spark = SparkSession.builder()
       .appName(s"FileMerge_[$sourceDir]to[$targetDir]")
@@ -52,6 +54,7 @@ object FileMergeUtil {
     // 设置分区文件相关参数。
     spark.conf.set(SQLConf.FILES_MAX_PARTITION_BYTES.key, maxPartitionBytes)
     spark.conf.set(SQLConf.FILES_OPEN_COST_IN_BYTES.key, fileOpenCost)
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, parallelPartitionDiscovery)
 
     // 获取路径分区结构。
     val (_, partitionSchema) = FileSchemaUtil.getFileSchema(spark, "orc", sourceDir)

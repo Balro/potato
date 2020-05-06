@@ -3,12 +3,12 @@ package spark.potato.template.streaming
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Milliseconds, StreamingContext}
 import spark.potato.common.conf._
-import spark.potato.template.{StreamingContextFunc, Template}
+import spark.potato.template.Template
 
 /**
  * 流处理模板。
  */
-abstract class StreamingTemplate extends Template with StreamingContextFunc {
+abstract class StreamingTemplate extends Template with StreamingFunction {
   override def main(args: Array[String]): Unit = {
     cmdArgs = args
     doWork()

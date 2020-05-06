@@ -131,14 +131,13 @@ class ServiceManager extends Logging {
    * 通过服务实例注册服务。
    */
   def registerByInstance(name: String, service: Service): Service = this.synchronized {
+    if (services.contains(name)) throw ServiceAlreadyRegisteredException(s"Service $name already registered, please check.")
     service match {
       case serv: GeneralService => serv.serve(notNull(conf))
       case serv: ContextService => serv.serve(notNull(sc))
       case serv: StreamingService => serv.serve(ssc)
       case unknwon => throw UnknownServiceException(s"Unknown service $name:${unknwon.getClass}")
     }
-    if (services.contains(name))
-      throw ServiceAlreadyRegisteredException(s"Service $name already registered, please check.")
     services += (name -> service)
     logInfo(s"Service $name:${service.getClass} successfully registered.")
     service

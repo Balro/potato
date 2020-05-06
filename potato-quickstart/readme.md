@@ -117,7 +117,7 @@ spark.yarn.submit.waitAppCompletion=false
 # todo 重要参数！streaming context批处理时间。
 spark.potato.common.streaming.batch.duration.ms=5000
 # 附加服务列表，全限定类名。如不开启附加服务，请删除此参数或配置为'false'。
-spark.potato.common.additional.services=spark.potato.lock.running.RunningLockManager,spark.potato.monitor.backlog.BacklogMonitorService
+spark.potato.common.additional.services=spark.potato.lock.singleton.SingletonLockManager,spark.potato.monitor.backlog.BacklogMonitorService
 #
 #
 ################################################################

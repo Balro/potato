@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.StreamingContext
-import spark.potato.common.util.StreamingContextUtil
+import spark.potato.common.spark.StreamingContextUtil
 import spark.potato.template.streaming.StreamingTemplate
 
 import scala.collection.mutable

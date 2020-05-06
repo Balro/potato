@@ -1,6 +1,6 @@
 package spark.potato.hadoop.cmd
 
-import spark.potato.common.cmd.ActionCMDBase
+import spark.potato.common.cmd.{ActionCMDBase, CmdParserUtil}
 import spark.potato.hadoop.utils.FileMergeUtil
 
 object FileMergeCmd extends ActionCMDBase {
@@ -20,7 +20,7 @@ object FileMergeCmd extends ActionCMDBase {
     addArgument("--write-options", describe = "options add to DataFrameWriter", needValue = true)
     addArgument("--compression", describe = "compression used when writing file", needValue = true)
 
-    addAction("merge", describe = "merge file util with partition awareness", needArgs = Set("--source", "--format"), action = () => {
+    addAction("merge", describe = "merge file util with partition awareness", neededArgs = Set("--source", "--format"), action = () => {
       FileMergeUtil.merge(
         sourceDir = props("--source"),
         targetDir = props.getOrElse("--target", props("--source")),
@@ -29,9 +29,9 @@ object FileMergeCmd extends ActionCMDBase {
         parallelism = props.getOrElse("--parallelism", "1").toInt,
         maxPartitionBytes = props.getOrElse("--max-partition-bytes", (128 * 1024 * 1024).toString).toLong,
         fileOpenCost = props.getOrElse("--file-open-cost", "0").toLong,
-        hadoopConf = string2Map(props.getOrElse("--hadoop-conf", null)),
-        readOptions = string2Map(props.getOrElse("--read-options", null)),
-        writeOptions = string2Map(props.getOrElse("--write-options", null)),
+        hadoopConf = CmdParserUtil.commaString2Map(props.getOrElse("--hadoop-conf", null)),
+        readOptions = CmdParserUtil.commaString2Map(props.getOrElse("--read-options", null)),
+        writeOptions = CmdParserUtil.commaString2Map(props.getOrElse("--write-options", null)),
         compression = props.getOrElse("--compression", "snappy")
       )
     })

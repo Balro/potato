@@ -1,16 +1,16 @@
-package spark.potato.lock.running
+package spark.potato.lock.singleton
 
 import org.apache.spark.internal.Logging
 import org.apache.zookeeper.KeeperException.{NoNodeException, NodeExistsException, SessionExpiredException}
 import org.apache.zookeeper.{CreateMode, WatchedEvent, Watcher, ZooDefs, ZooKeeper}
 
-trait RunningLock {
+trait SingletonLock {
   /**
    * 加锁，并附加状态信息。
    *
    * @return 是否成功加锁。
    */
-  def lock(msg: String): Boolean
+  def tryLock(msg: String): Boolean
 
   /**
    * 释放锁。
@@ -38,7 +38,7 @@ trait RunningLock {
 }
 
 /**
- * RunningLock的zookeeper实现。
+ * SingletonLock的zookeeper实现。
  *
  * @param manager 用于在锁异常时对manager进行反馈。
  * @param quorum  zookeeper地址。
@@ -46,7 +46,7 @@ trait RunningLock {
  * @param path    锁路径。
  * @param appName 作业名。
  */
-class ZookeeperRunningLock(manager: RunningLockManager, quorum: String, timeout: Int, path: String, appName: String) extends RunningLock
+class ZookeeperSingletonLock(manager: SingletonLockManager, quorum: String, timeout: Int, path: String, appName: String) extends SingletonLock
   with Watcher with Logging {
   val zookeeper = new ZooKeeper(quorum, timeout, this)
   val lockPath: String = path + "/" + appName + ".lock"
@@ -62,7 +62,7 @@ class ZookeeperRunningLock(manager: RunningLockManager, quorum: String, timeout:
     }
   }
 
-  override def lock(msg: String): Boolean = {
+  override def tryLock(msg: String): Boolean = {
     try {
       zookeeper.create(lockPath, msg.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL)
       zookeeper.exists(lockPath, LockDeleteWatcher())

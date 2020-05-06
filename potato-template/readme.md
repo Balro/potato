@@ -20,13 +20,7 @@ StreamingContext集成特质，提供了ssc管理方法。
 ```scala
 package spark.potato.template.batch
 
-import org.apache.spark.SparkConf
-import org.junit.Test
-import spark.potato.common.conf._
-import spark.potato.common.util.SparkContextUtil._
-import spark.potato.common.util.LocalLauncherUtil
-import spark.potato.lock.conf._
-import spark.potato.lock.running.ContextRunningLockService
+import 
 
 object BatchTemplateTest extends BatchTemplate {
   override def doWork(): Unit = {

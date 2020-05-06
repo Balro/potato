@@ -1,4 +1,4 @@
-package spark.potato.lock.running
+package spark.potato.lock.singleton
 
 import java.util.concurrent.{Executors, ScheduledExecutorService, TimeUnit}
 
@@ -11,15 +11,15 @@ import org.json4s._
 import org.json4s.jackson.JsonMethods._
 import spark.potato.common.exception.PotatoException
 import spark.potato.common.service.{ContextService, Service, StreamingService}
-import spark.potato.common.tools.DaemonThreadFactory
+import spark.potato.common.threads.DaemonThreadFactory
 import spark.potato.lock.conf._
-import spark.potato.lock.exception.{CannotGetRunningLockException, LockMismatchException}
+import spark.potato.lock.exception.{CannotGetSingletonLockException, LockMismatchException}
 
 /**
  * 区分StreamingContext和SparkContext，避免停止了SparkContext而未停止StreamingContext导致报错。
  */
-class StreamingRunningLockService extends RunningLockManager with StreamingService with Logging {
-  override val serviceName: String = POTATO_LOCK_RUNNING_STREAMING_SERVICE_NAME
+class StreamingSingletonLockService extends SingletonLockManager with StreamingService with Logging {
+  override val serviceName: String = POTATO_LOCK_SINGLETON_STREAMING_SERVICE_NAME
 
   private var ssc: StreamingContext = _
 
@@ -39,15 +39,15 @@ class StreamingRunningLockService extends RunningLockManager with StreamingServi
 /**
  * 使用于SparkContext，不可用于StreamingContext，否则在yarn模式下降导致StreamingContext报错而意外重启。
  */
-class ContextRunningLockService extends RunningLockManager with ContextService with Logging {
-  override val serviceName: String = POTATO_LOCK_RUNNING_CONTEXT_SERVICE_NAME
+class ContextSingletonLockService extends SingletonLockManager with ContextService with Logging {
+  override val serviceName: String = POTATO_LOCK_SINGLETON_CONTEXT_SERVICE_NAME
 
   override def stopSpark(): Unit = sc.stop()
 
   /**
    * 初始化服务。
    */
-  override def serve(sc: SparkContext): ContextRunningLockService = {
+  override def serve(sc: SparkContext): ContextSingletonLockService = {
     this.sc = sc
     init()
     this
@@ -55,32 +55,32 @@ class ContextRunningLockService extends RunningLockManager with ContextService w
 }
 
 /**
- * running lock管理工具。
- * running lock为了解决作业重复启动的问题，当已有作业获取锁时，新作业无法再次提交。
+ * singleton lock管理工具。
+ * singleton lock为了解决作业重复启动的问题，当已有作业获取锁时，新作业无法再次提交。
  * 或者新作业可以直接停止旧作业，代替旧作业运行。
  */
-abstract class RunningLockManager extends Service with Logging {
+abstract class SingletonLockManager extends Service with Logging {
   implicit val formats: Formats = DefaultFormats
   protected var sc: SparkContext = _
 
   private def conf = sc.getConf
 
-  private[running] var lock: RunningLock = _
+  private[singleton] var lock: SingletonLock = _
 
   def stopSpark(): Unit
 
-  def init(): RunningLockManager = {
+  def init(): SingletonLockManager = {
     lock = conf.get(
-      POTATO_LOCK_RUNNING_TYPE_KEY, POTATO_LOCK_RUNNING_TYPE_DEFAULT
+      POTATO_LOCK_SINGLETON_TYPE_KEY, POTATO_LOCK_SINGLETON_TYPE_DEFAULT
     ) match {
-      case "zookeeper" => new ZookeeperRunningLock(
+      case "zookeeper" => new ZookeeperSingletonLock(
         this,
-        conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_QUORUM_KEY),
-        conf.getInt(POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_DEFAULT),
-        conf.get(POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_KEY, POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_DEFAULT),
+        conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_QUORUM_KEY),
+        conf.getInt(POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_DEFAULT),
+        conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_DEFAULT),
         sc.appName
       )
-      case t => throw new PotatoException(s"Running lock type -> $t not supported.")
+      case t => throw new PotatoException(s"Singleton lock type -> $t not supported.")
     }
     this
   }
@@ -99,14 +99,14 @@ abstract class RunningLockManager extends Service with Logging {
    * @param interval 尝试加锁重试间隔。
    * @param force    是否强制加锁。
    */
-  def tryLock(maxTry: Int = conf.getInt(POTATO_LOCK_RUNNING_TRY_MAX_KEY, POTATO_LOCK_RUNNING_TRY_MAX_DEFAULT),
-              interval: Long = conf.getLong(POTATO_LOCK_RUNNING_TRY_INTERVAL_MS_KEY, POTATO_LOCK_RUNNING_TRY_INTERVAL_MS_DEFAULT),
-              force: Boolean = conf.getBoolean(POTATO_LOCK_RUNNING_FORCE_KEY, POTATO_LOCK_RUNNING_FORCE_DEFAULT)
+  def tryLock(maxTry: Int = conf.getInt(POTATO_LOCK_SINGLETON_TRY_MAX_KEY, POTATO_LOCK_SINGLETON_TRY_MAX_DEFAULT),
+              interval: Long = conf.getLong(POTATO_LOCK_SINGLETON_TRY_INTERVAL_MS_KEY, POTATO_LOCK_SINGLETON_TRY_INTERVAL_MS_DEFAULT),
+              force: Boolean = conf.getBoolean(POTATO_LOCK_SINGLETON_FORCE_KEY, POTATO_LOCK_SINGLETON_FORCE_DEFAULT)
              ): Unit = {
     this.synchronized {
       var tried = 0
       while (tried < maxTry) {
-        locked = lock.lock(createMsg)
+        locked = lock.tryLock(createMsg)
         if (locked) {
           logInfo("Get lock successfully.")
           return
@@ -120,7 +120,7 @@ abstract class RunningLockManager extends Service with Logging {
         }
         tried += 1
       }
-      throw CannotGetRunningLockException(s"Current lock -> ${lock.getLock}")
+      throw CannotGetSingletonLockException(s"Current lock -> ${lock.getLock}")
     }
   }
 
@@ -138,7 +138,7 @@ abstract class RunningLockManager extends Service with Logging {
    */
   def startHeartbeat(): Unit = {
     if (!locked) tryLock()
-    val timeout = conf.getLong(POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_DEFAULT)
+    val timeout = conf.getLong(POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_KEY, POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_DEFAULT)
     var lastHeartbeat = System.currentTimeMillis()
     executor.scheduleAtFixedRate(new Runnable {
       override def run(): Unit = {
@@ -159,7 +159,7 @@ abstract class RunningLockManager extends Service with Logging {
         }
       }
     }, 0,
-      conf.getLong(POTATO_LOCK_RUNNING_HEARTBEAT_INTERVAL_MS_KEY, POTATO_LOCK_RUNNING_HEARTBEAT_INTERVAL_MS_DEFAULT),
+      conf.getLong(POTATO_LOCK_SINGLETON_HEARTBEAT_INTERVAL_MS_KEY, POTATO_LOCK_SINGLETON_HEARTBEAT_INTERVAL_MS_DEFAULT),
       TimeUnit.MILLISECONDS)
   }
 
@@ -224,15 +224,15 @@ abstract class RunningLockManager extends Service with Logging {
   }
 
   override def stop(): Unit = {
-    logInfo("Stop RunningLockManager.")
+    logInfo("Stop SingletonLockManager.")
     release()
-    logInfo("RunningLockManager stopped.")
+    logInfo("SingletonLockManager stopped.")
   }
 
   override def start(): Unit = {
-    logInfo("Start RunningLockManager.")
+    logInfo("Start SingletonLockManager.")
     startHeartbeat()
-    logInfo("RunningLockManager started.")
+    logInfo("SingletonLockManager started.")
   }
 }
 

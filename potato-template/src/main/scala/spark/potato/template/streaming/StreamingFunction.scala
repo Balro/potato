@@ -1,10 +1,10 @@
-package spark.potato.template
+package spark.potato.template.streaming
 
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.StreamingContext
 import spark.potato.common.service.ServiceManager
 
-trait StreamingContextFunc {
+trait StreamingFunction {
   protected def createConf(): SparkConf = new SparkConf()
 
   protected def createStreamingContext(conf: SparkConf, durMS: Long): StreamingContext

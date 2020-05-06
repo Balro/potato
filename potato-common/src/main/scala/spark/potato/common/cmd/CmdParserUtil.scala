@@ -1,4 +1,4 @@
-package spark.potato.common.util
+package spark.potato.common.cmd
 
 import spark.potato.common.exception.ArgParseException
 

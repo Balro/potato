@@ -1,4 +1,4 @@
-package spark.potato.common.util
+package spark.potato.common.threads
 
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -10,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
  * 方法清理工具。
  */
-object CleanExitUtil extends Logging {
+object ExitCleanUtil extends Logging {
   /**
    * 注册清理方法，在jvm退出时调用。
    *
@@ -37,7 +37,7 @@ object CleanExitUtil extends Logging {
   /**
    * 为清理方法提供有序调用，调用顺序以addClean()调用顺序为准。
    *
-   * @param revokeWhenShutdown 是否在jvm关闭时进行调用，如配置为false，则须手动执行 clean()方法。
+   * @param revokeWhenShutdown 是否在jvm关闭时进行调用，如配置为false，否则须手动执行 clean()方法。
    */
   class Cleaner(revokeWhenShutdown: Boolean = true) extends Logging {
     private val funcs: ArrayBuffer[(String, () => Unit)] = ArrayBuffer.empty

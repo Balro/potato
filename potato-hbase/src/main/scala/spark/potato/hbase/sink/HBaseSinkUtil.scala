@@ -7,7 +7,7 @@ import spark.potato.hadoop.conf.SerializedConfiguration
 import spark.potato.hbase.util.TableUtil.{withBufferedSinkTable, withMutator}
 
 /**
- * hbase基本工具类。
+ * hbase sink 工具类。
  */
 object HBaseSinkUtil extends Logging {
   /**

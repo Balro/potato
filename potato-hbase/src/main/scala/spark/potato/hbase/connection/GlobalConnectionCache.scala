@@ -5,6 +5,7 @@ import org.apache.hadoop.hbase.HConstants
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
 import org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher
 import spark.potato.common.cache.KeyedCacheBase
+import spark.potato.hbase.connection.ConnectionInfo.ConnectionAddress
 
 /**
  * 全局connection缓存。
@@ -35,26 +36,27 @@ object GlobalConnectionCache extends KeyedCacheBase[ConnectionInfo, Connection] 
   def close(): Unit = this.synchronized {
     internalClose(_.close())
   }
+
+  /**
+   * 检查给定值是否可用。
+   */
+  override protected def check(v: Connection): Boolean = !(v.isClosed || v.isAborted)
 }
 
-class ConnectionInfo(val id: ConnectionId, val conf: Configuration) {
-  override def equals(obj: Any): Boolean = {
-    if (obj == null) return false
-    if (!obj.isInstanceOf[ConnectionInfo]) return false
-
-    id.equals(obj.asInstanceOf[ConnectionInfo].id)
-  }
+class ConnectionInfo(val id: ConnectionAddress, val conf: Configuration) {
+  override def equals(obj: Any): Boolean = obj.isInstanceOf[ConnectionInfo] && obj.asInstanceOf[ConnectionInfo].id.equals(this.id)
 
   override def hashCode(): Int = id.hashCode()
 }
 
-case class ConnectionId(quorum: String, port: Int, parent: String, metaserver: String)
-
 object ConnectionInfo {
+
+  case class ConnectionAddress(quorum: String, port: Int, parent: String, metaserver: String)
+
   val ZK_METASERVER_KEY = "zookeeper.znode.metaserver"
 
   implicit def parse(conf: Configuration): ConnectionInfo = new ConnectionInfo(
-    ConnectionId(conf.get(HConstants.ZOOKEEPER_QUORUM, HConstants.LOCALHOST),
+    ConnectionAddress(conf.get(HConstants.ZOOKEEPER_QUORUM, HConstants.LOCALHOST),
       conf.getInt(HConstants.ZOOKEEPER_CLIENT_PORT, HConstants.DEFAULT_ZOOKEPER_CLIENT_PORT),
       conf.get(HConstants.ZOOKEEPER_ZNODE_PARENT, HConstants.DEFAULT_ZOOKEEPER_ZNODE_PARENT),
       conf.get(ZK_METASERVER_KEY, ZooKeeperWatcher.META_ZNODE_PREFIX)

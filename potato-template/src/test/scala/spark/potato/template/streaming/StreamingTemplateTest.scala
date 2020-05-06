@@ -8,9 +8,9 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.StreamingContext
 import org.junit.Test
 import spark.potato.common.conf._
-import spark.potato.common.util.{LocalLauncherUtil, StreamingContextUtil}
+import spark.potato.common.spark.{LocalLauncherUtil, StreamingContextUtil}
 import spark.potato.lock.conf._
-import spark.potato.lock.running.StreamingRunningLockService
+import spark.potato.lock.singleton.StreamingSingletonLockService
 import spark.potato.monitor.backlog.BacklogMonitorService
 import spark.potato.monitor.conf._
 
@@ -43,8 +43,8 @@ object StreamingTemplateTest extends StreamingTemplate {
       // additional service
       .set(POTATO_COMMON_ADDITIONAL_SERVICES_KEY,
         Seq(
-          POTATO_MONITOR_BACKLOG_MONITOR_SERVICE_NAME,
-          POTATO_LOCK_RUNNING_STREAMING_SERVICE_NAME
+          POTATO_MONITOR_BACKLOG_SERVICE_NAME,
+          POTATO_LOCK_SINGLETON_STREAMING_SERVICE_NAME
         ).mkString(","))
 
       //      .set(POTATO_COMMON_CUSTOM_SERVICES_CLASS_KEY,
@@ -54,17 +54,17 @@ object StreamingTemplateTest extends StreamingTemplate {
       //        ).map(_.getName).mkString(","))
 
       // backlog monitor
-      .set(POTATO_MONITOR_BACKLOG_DELAY_MS_KEY, "1")
+      .set(POTATO_MONITOR_BACKLOG_THRESHOLD_MS_KEY, "1")
       .set(POTATO_MONITOR_BACKLOG_REPORTER_INTERVAL_MS_KEY, "60000")
       .set(POTATO_MONITOR_BACKLOG_REPORTER_MAX_KEY, "60")
-      .set(POTATO_MONITOR_BACKLOG_REPORTER_DING_TOKEN_KEY, "https://oapi.dingtalk.com/robot/send?access_token=2aa713587501102395004b0f87650cc5509b0d99af25868921d6509020785483")
+      .set(POTATO_MONITOR_BACKLOG_NOTIFY_DING_TOKEN_KEY, "abc")
 
       // running lock
-      .set(POTATO_LOCK_RUNNING_ZOOKEEPER_QUORUM_KEY, "test01:2181")
-      .set(POTATO_LOCK_RUNNING_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
-      .set(POTATO_LOCK_RUNNING_HEARTBEAT_TIMEOUT_MS_KEY, "90000")
-      .set(POTATO_LOCK_RUNNING_TRY_INTERVAL_MS_KEY, "5000")
-      .set(POTATO_LOCK_RUNNING_HEARTBEAT_INTERVAL_MS_KEY, "5000")
+      .set(POTATO_LOCK_SINGLETON_ZOOKEEPER_QUORUM_KEY, "test01:2181")
+      .set(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, "/potato/lock/test")
+      .set(POTATO_LOCK_SINGLETON_HEARTBEAT_TIMEOUT_MS_KEY, "90000")
+      .set(POTATO_LOCK_SINGLETON_TRY_INTERVAL_MS_KEY, "5000")
+      .set(POTATO_LOCK_SINGLETON_HEARTBEAT_INTERVAL_MS_KEY, "5000")
   }
 }
 

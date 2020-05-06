@@ -1,9 +1,9 @@
-package spark.potato.template
+package spark.potato.template.batch
 
 import org.apache.spark.{SparkConf, SparkContext}
 import spark.potato.common.service.ServiceManager
 
-trait SparkContextFunc {
+trait BatchFunction {
   protected def createConf(): SparkConf = new SparkConf()
 
   protected def createContext(conf: SparkConf = createConf()): SparkContext

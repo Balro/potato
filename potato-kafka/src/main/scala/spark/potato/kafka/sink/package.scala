@@ -6,7 +6,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.dstream.DStream
 import spark.potato.kafka.conf._
-import spark.potato.common.util.PropertiesUtil.{mapToProperties => mtp, confToProperties => ctp}
+import spark.potato.common.conf.PropertiesUtil.{mapToProperties => mtp, confToProperties => ctp}
 
 /**
  * 提供数据写kafka的隐式转换。

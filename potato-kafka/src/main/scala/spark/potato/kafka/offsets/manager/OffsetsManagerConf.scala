@@ -41,13 +41,13 @@ class OffsetsManagerConf(conf: Map[String, String], kafkaParams: Map[String, Str
 
   // 对传入参数进行校验，检查是否已包含必须key，并对需要转换的key进行转换。
   private val cleanedConf = {
-    val tmpConf = mutable.Map.empty[String, String]
+    val mappedConf = mutable.Map.empty[String, String]
 
     mapKey.foreach { k =>
       if (conf.contains(k._1))
-        k._2.foreach { kv =>
-          if (conf(k._1) == kv._1)
-            tmpConf += k._1 -> kv._2
+        k._2.foreach { ts =>
+          if (conf(k._1) == ts._1)
+            mappedConf += k._1 -> ts._2
         }
     }
 
@@ -55,7 +55,7 @@ class OffsetsManagerConf(conf: Map[String, String], kafkaParams: Map[String, Str
       POTATO_KAFKA_CONSUMER_CONF_PREFIX + conf._1 -> conf._2
     }
 
-    val ret = Map(POTATO_KAFKA_CONSUMER_CONF_PREFIX + "zookeeper.connect" -> "") ++ conf ++ tmpConf ++ tmpKafkaParams
+    val ret = Map(POTATO_KAFKA_CONSUMER_CONF_PREFIX + "zookeeper.connect" -> "") ++ conf ++ mappedConf ++ tmpKafkaParams
 
     requiredKey.foreach { k =>
       if (!ret.contains(k))

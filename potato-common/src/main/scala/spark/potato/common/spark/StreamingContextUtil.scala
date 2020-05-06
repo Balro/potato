@@ -1,10 +1,11 @@
-package spark.potato.common.util
+package spark.potato.common.spark
 
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
-import org.apache.spark.streaming._
-import spark.potato.common.conf._
+import org.apache.spark.streaming.{Duration, Milliseconds, StreamingContext}
+import spark.potato.common.conf.POTATO_COMMON_STREAMING_BATCH_DURATION_MS_KEY
 import spark.potato.common.exception.ConfigNotFoundException
+import spark.potato.common.threads.ExitCleanUtil
 
 object StreamingContextUtil extends Logging {
   /**
@@ -40,7 +41,7 @@ object StreamingContextUtil extends Logging {
 
   def stopOnJVMExit(ssc: StreamingContext): Unit = {
     logInfo(s"Register stop when shutdown on ssc $ssc")
-    CleanExitUtil.cleanWhenShutdown("stop ssc", {
+    ExitCleanUtil.cleanWhenShutdown("stop ssc", {
       ssc.stop()
     })
   }

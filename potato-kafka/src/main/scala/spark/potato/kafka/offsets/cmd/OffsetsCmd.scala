@@ -76,7 +76,7 @@ object OffsetsCmd extends ActionCMDBase {
           output("\nUse arg '--execute' to confirm.")
         }
       },
-      needArgs = Set("--reset-to")
+      neededArgs = Set("--reset-to")
     )
 
     addArgument("--reset-to", describe = "earliest or latest.", needValue = true)

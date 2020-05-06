@@ -1,7 +1,5 @@
 package spark.potato.common.cmd
 
-import spark.potato.common.util.CmdParserUtil
-
 import scala.collection.mutable
 
 /**

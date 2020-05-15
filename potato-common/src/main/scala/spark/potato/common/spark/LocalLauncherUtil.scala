@@ -14,7 +14,7 @@ object LocalLauncherUtil {
    * @param masterCores local模式的核数，默认为 * 即本地cpu核数。
    * @param appName     local模式作业名  ，默认 localTest
    */
-  def localTest(clazz: Any, cmdArgs: Array[String] = Array.empty[String], propFile: String = null,
+  def localTest(clazz: AnyRef, cmdArgs: Array[String] = Array.empty[String], propFile: String = null,
                 masterCores: String = "*", appName: String = "localTest"): Unit = {
     if (propFile != null) {
       val props = new Properties()

@@ -1,4 +1,4 @@
-package spark.potato.quickstart.batch
+package batch
 
 import spark.potato.template.batch.BatchTemplate
 

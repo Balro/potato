@@ -2,8 +2,8 @@ package spark.potato.template
 
 import org.apache.spark.internal.Logging
 import spark.potato.common.service.ServiceManager
-import spark.potato.common.threads.ExitCleanUtil
-import spark.potato.common.threads.ExitCleanUtil.Cleaner
+import spark.potato.common.threads.JVMCleanUtil
+import spark.potato.common.threads.JVMCleanUtil.Cleaner
 
 /**
  * 基本模板。
@@ -49,6 +49,6 @@ abstract class Template extends Logging {
    */
   def cleanWhenShutdown(name: String, cleanFunc: => Unit): Unit = {
     logInfo(s"Register clean function at shutdown: $name")
-    ExitCleanUtil.cleanWhenShutdown(name, cleanFunc)
+    JVMCleanUtil.cleanWhenShutdown(name, cleanFunc)
   }
 }

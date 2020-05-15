@@ -2,7 +2,7 @@ package spark.potato.monitor.notify
 
 import org.apache.spark.internal.Logging
 import scalaj.http.HttpResponse
-import spark.potato.common.notify.DingRobotUtil
+import spark.potato.common.utils.DingRobotUtil
 import spark.potato.monitor.conf._
 import org.json4s.jackson._
 import org.json4s.DefaultFormats

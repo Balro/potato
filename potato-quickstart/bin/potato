@@ -32,7 +32,7 @@ source_env() {
   export POTATO_LOG_DIR
 
   if [ "$SPARK_BIN" ]; then
-    test -x "$SPARK_BIN" || {
+    hash "$SPARK_BIN" || test -x "$SPARK_BIN" || {
       echo "env SPARK_BIN:$SPARK_BIN not valid."
       exit 1
     }

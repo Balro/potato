@@ -3,7 +3,7 @@ package spark.potato.kafka.sink
 import java.util.Properties
 
 import org.apache.kafka.clients.producer.KafkaProducer
-import spark.potato.common.cache.KeyedCacheBase
+import spark.potato.common.pool.KeyedCacheBase
 
 /**
  * 根据提供的Properties作为唯一key缓存KafkaProducer。

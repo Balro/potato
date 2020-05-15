@@ -1,4 +1,4 @@
-package spark.potato.common.notify
+package spark.potato.common.utils
 
 import org.junit.Test
 

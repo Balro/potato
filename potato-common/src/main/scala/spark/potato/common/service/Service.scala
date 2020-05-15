@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import org.apache.spark.SparkContext
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
-import spark.potato.common.threads.ExitCleanUtil
+import spark.potato.common.threads.JVMCleanUtil
 
 /**
  * service特质，用于创建附加服务。
@@ -59,7 +59,7 @@ trait Service extends Logging {
       return
     }
     logInfo(s"Service ${this.getClass} registered stop on jvm exit.")
-    ExitCleanUtil.cleanWhenShutdown(s"${this.getClass}", {
+    JVMCleanUtil.cleanWhenShutdown(s"${this.getClass}", {
       stop()
     })
   }

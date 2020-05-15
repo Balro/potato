@@ -8,7 +8,8 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.streaming.StreamingContext
 import org.junit.Test
 import spark.potato.common.conf._
-import spark.potato.common.spark.{LocalLauncherUtil, StreamingContextUtil}
+import spark.potato.common.spark.LocalLauncherUtil
+import spark.potato.common.spark.streaming.StreamingContextUtil
 import spark.potato.lock.conf._
 import spark.potato.lock.singleton.StreamingSingletonLockService
 import spark.potato.monitor.backlog.BacklogMonitorService

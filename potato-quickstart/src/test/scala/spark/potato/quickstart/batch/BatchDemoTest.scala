@@ -1,5 +1,6 @@
 package spark.potato.quickstart.batch
 
+import batch.BatchDemo
 import org.junit.Test
 import spark.potato.common.spark.LocalLauncherUtil
 

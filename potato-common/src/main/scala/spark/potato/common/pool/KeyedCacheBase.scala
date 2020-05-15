@@ -1,4 +1,4 @@
-package spark.potato.common.cache
+package spark.potato.common.pool
 
 import java.util.concurrent.ConcurrentHashMap
 import scala.collection.JavaConversions.mapAsScalaConcurrentMap

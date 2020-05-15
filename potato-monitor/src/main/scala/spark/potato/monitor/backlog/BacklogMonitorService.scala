@@ -11,7 +11,7 @@ import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.scheduler._
 import spark.potato.common.exception.PotatoException
 import spark.potato.common.service.StreamingService
-import spark.potato.common.spark.StreamingContextUtil
+import spark.potato.common.spark.streaming.StreamingContextUtil
 import spark.potato.common.threads.DaemonThreadFactory
 import spark.potato.monitor.reporter.{MaxNumReporter, Reporter}
 import spark.potato.monitor.conf._

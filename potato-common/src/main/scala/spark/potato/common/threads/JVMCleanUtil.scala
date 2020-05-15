@@ -8,9 +8,9 @@ import spark.potato.common.exception.PotatoException
 import scala.collection.mutable.ArrayBuffer
 
 /**
- * 方法清理工具。
+ * 清理工具，用于在jvm退出时调用清理方法。。
  */
-object ExitCleanUtil extends Logging {
+object JVMCleanUtil extends Logging {
   /**
    * 注册清理方法，在jvm退出时调用。
    *

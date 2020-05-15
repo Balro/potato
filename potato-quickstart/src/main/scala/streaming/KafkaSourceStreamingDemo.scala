@@ -1,6 +1,6 @@
-package spark.potato.quickstart.streaming
+package streaming
 
-import spark.potato.kafka.source._
+import spark.potato.kafka.source.{StringDecoder, createDStreamWithOffsetsManager, valueMessageHandler}
 import spark.potato.template.streaming.StreamingTemplate
 
 object KafkaSourceStreamingDemo extends StreamingTemplate {

@@ -7,6 +7,8 @@ import scala.collection.mutable
  * 命令行参数请务必指定 --action 参数，指定调用的Action。
  * 使用方法:
  * 实现init()，在init中重复调用 addAction() 添加指定动作。
+ *
+ * @deprecated 该基类实现有些不人性化，建议使用[[CommonCmdBase]]
  */
 abstract class ActionCMDBase {
   private var execAction: Action = _

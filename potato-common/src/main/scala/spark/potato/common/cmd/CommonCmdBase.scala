@@ -13,19 +13,21 @@ abstract class CommonCmdBase {
   val cmdName: String
 
   def main(args: Array[String]): Unit = {
-    initOptions()
+    initOptions(opts)
     try {
       cmd = parser.parse(opts, args)
       handleCmd(cmd)
     } catch {
-      case _: ParseException => new HelpFormatter().printHelp(cmdName, opts)
+      case e: ParseException =>
+        println(e.getMessage)
+        new HelpFormatter().printHelp(cmdName, opts)
     }
   }
 
   /**
    * 预处理，添加[[org.apache.commons.cli.Option]]。
    */
-  def initOptions(): Unit
+  def initOptions(opts: Options): Unit
 
   /**
    * 根据已解析命令行参数进行处理。

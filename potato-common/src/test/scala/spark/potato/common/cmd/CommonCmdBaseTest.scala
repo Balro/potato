@@ -9,15 +9,16 @@ class CommonCmdBaseTest {
     CommonCmdBaseImp.main(Array("-a", "hello"))
   }
 
-  object CommonCmdBaseImp extends CommonCmdBase {
-    override val cmdName: String = this.getClass.getSimpleName
+  object CommonCmdBaseImp extends CommonCliBase {
+    override val cliName: String = this.getClass.getSimpleName
+    override val cliDescription: String = "test"
 
     /**
      * 预处理，添加[[org.apache.commons.cli.Option]]。
      */
     override def initOptions(opts: Options): Unit = {
       opts.addOption(
-        Option.builder("a")
+        optionBuilder("a")
           .longOpt("action")
           .desc("this is action arg")
           .hasArg
@@ -39,6 +40,7 @@ class CommonCmdBaseTest {
       println(cmd.getOptionValue("a"))
       println(cmd.getOptionValue("b"))
     }
+
   }
 
 }

@@ -4,7 +4,7 @@ import org.apache.hadoop.fs.{FileSystem, Path, Trash}
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-object FileMergeUtil {
+object FileMergeUtil2 {
   def setSparkConf(key: String, value: String): Unit = {
     System.setProperty(key, value)
   }

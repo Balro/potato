@@ -1,6 +1,6 @@
 package spark.potato.common.cmd
 
-import org.apache.commons.cli.{CommandLine, DefaultParser, HelpFormatter, Option, Options, ParseException}
+import org.apache.commons.cli._
 
 /**
  * 基于 apache commons cli 构造的命令行基类。
@@ -11,7 +11,8 @@ abstract class CommonCliBase {
   private var cmd: CommandLine = _
 
   val cliName: String
-  val cliDescription: String
+  val usageHeader: String = null
+  val usageFooter: String = null
 
   def main(args: Array[String]): Unit = {
     initOptions(opts)
@@ -21,9 +22,12 @@ abstract class CommonCliBase {
     } catch {
       case e: ParseException =>
         println(e.getMessage)
-        println(cliDescription)
-        new HelpFormatter().printHelp(cliName, opts)
+        printHelp()
     }
+  }
+
+  def printHelp(): Unit = {
+    new HelpFormatter().printHelp(cliName, usageHeader, opts, usageFooter)
   }
 
   /**
@@ -36,5 +40,26 @@ abstract class CommonCliBase {
    */
   def handleCmd(cmd: CommandLine): Unit
 
-  def optionBuilder(shortName: String = null) = Option.builder(shortName)
+  def optBuilder(short: String = null): Option.Builder = Option.builder(short)
+
+  def groupBuilder(): OptionGroup = new OptionGroup()
+
+  implicit def addable(builder: Option.Builder): AddableOption = new AddableOption(builder)
+
+  implicit def addable(group: OptionGroup): AddableGroup = new AddableGroup(group)
+
+  class AddableOption(builder: Option.Builder) {
+    /**
+     * 创建Option并添加至参数列表。
+     */
+    def add(): Unit = opts.addOption(builder.build())
+  }
+
+  class AddableGroup(group: OptionGroup) {
+    /**
+     * 创建Option并添加至参数列表。
+     */
+    def add(): Unit = opts.addOptionGroup(group)
+  }
+
 }

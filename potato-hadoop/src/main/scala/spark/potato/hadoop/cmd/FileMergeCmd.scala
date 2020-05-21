@@ -1,7 +1,7 @@
 package spark.potato.hadoop.cmd
 
 import spark.potato.common.cmd.{ActionCMDBase, CmdParserUtil}
-import spark.potato.hadoop.utils.FileMergeUtil
+import spark.potato.hadoop.utils.HDFSUtil
 
 object FileMergeCmd extends ActionCMDBase {
   /**
@@ -21,7 +21,7 @@ object FileMergeCmd extends ActionCMDBase {
     addArgument("--compression", describe = "compression used when writing file", needValue = true)
 
     addAction("merge", describe = "merge file util with partition awareness", neededArgs = Set("--source", "--format"), action = () => {
-      FileMergeUtil.merge(
+      HDFSUtil.merge1(
         sourceDir = props("--source"),
         targetDir = props.getOrElse("--target", props("--source")),
         format = props("--format"),

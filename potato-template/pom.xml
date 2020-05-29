@@ -5,7 +5,7 @@
     <parent>
         <artifactId>potato</artifactId>
         <groupId>spark.potato</groupId>
-        <version>0.1.3-SNAPSHOT</version>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -31,25 +31,6 @@
             <groupId>spark.potato</groupId>
             <artifactId>potato-common</artifactId>
             <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>spark.potato</groupId>
-            <artifactId>potato-kafka</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>spark.potato</groupId>
-            <artifactId>potato-lock</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>spark.potato</groupId>
-            <artifactId>potato-monitor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.spark</groupId>
-            <artifactId>spark-streaming-kafka-0-8_${scala.binary.version}</artifactId>
         </dependency>
     </dependencies>
 

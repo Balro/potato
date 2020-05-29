@@ -13,21 +13,30 @@ abstract class CommonCliBase {
   val cliName: String
   val usageHeader: String = null
   val usageFooter: String = null
+  val helpWidth: Int = HelpFormatter.DEFAULT_WIDTH
+  val strBuffer = new StringBuffer("\n")
 
   def main(args: Array[String]): Unit = {
     initOptions(opts)
     try {
       cmd = parser.parse(opts, args)
       handleCmd(cmd)
+      println(strBuffer.toString)
     } catch {
       case e: ParseException =>
-        println(e.getMessage)
+        console(e.getMessage)
+        println(strBuffer.toString)
         printHelp()
     }
   }
 
+  /**
+   * 缓存输出结果，待程序结束后统一输出。避免中间输出结果与日志穿插问题，提高可读性。
+   */
+  def console(msg: String): Unit = strBuffer.append(msg).append("\n")
+
   def printHelp(): Unit = {
-    new HelpFormatter().printHelp(cliName, usageHeader, opts, usageFooter)
+    new HelpFormatter().printHelp(helpWidth, cliName, usageHeader, opts, usageFooter, false)
   }
 
   /**
@@ -59,7 +68,10 @@ abstract class CommonCliBase {
     /**
      * 创建Option并添加至参数列表。
      */
-    def add(): Unit = opts.addOptionGroup(group)
+    def add(required: Boolean = false): Unit = {
+      group.setRequired(required)
+      opts.addOptionGroup(group)
+    }
   }
 
 }

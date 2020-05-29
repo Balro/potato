@@ -40,7 +40,9 @@ object GlobalConnectionCache extends KeyedCacheBase[ConnectionInfo, Connection] 
   /**
    * 检查给定值是否可用。
    */
-  override protected def check(v: Connection): Boolean = !(v.isClosed || v.isAborted)
+  override protected def isValid(v: Connection): Boolean = !(v.isClosed || v.isAborted)
+
+  override protected def clean(v: Connection): Unit = v.close()
 }
 
 class ConnectionInfo(val id: ConnectionAddress, val conf: Configuration) {

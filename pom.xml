@@ -6,15 +6,15 @@
     <groupId>spark.potato</groupId>
     <artifactId>potato</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.3-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
     <modules>
         <module>potato-common</module>
         <module>potato-hadoop</module>
         <module>potato-hbase</module>
-        <module>potato-kafka</module>
+<!--        <module>potato-kafka-0-8</module>-->
+        <module>potato-kafka-0-10</module>
         <module>potato-lock</module>
         <module>potato-monitor</module>
-        <module>potato-template</module>
         <module>potato-hive</module>
     </modules>
 
@@ -91,16 +91,16 @@
                 <scope>compile</scope>
             </dependency>
             <dependency>
+                <groupId>org.apache.spark</groupId>
+                <artifactId>spark-streaming-kafka-0-10_${scala.binary.version}</artifactId>
+                <version>${spark.version}</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.scalaj</groupId>
                 <artifactId>scalaj-http_${scala.binary.version}</artifactId>
                 <version>2.4.2</version>
                 <scope>compile</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.json4s</groupId>
-                <artifactId>json4s-jackson_${scala.binary.version}</artifactId>
-                <version>3.2.11</version>
-                <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>commons-pool</groupId>

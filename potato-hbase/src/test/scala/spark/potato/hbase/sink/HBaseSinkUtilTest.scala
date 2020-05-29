@@ -3,8 +3,7 @@ package spark.potato.hbase.sink
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.spark.{SparkConf, SparkContext}
 import org.junit.Test
-import spark.potato.hbase.util.HBaseConfigurationUtil
-import spark.potato.hbase.conf._
+import spark.potato.hbase.conf.{HBaseConfigurationUtil, _}
 
 class HBaseSinkUtilTest {
   @Test

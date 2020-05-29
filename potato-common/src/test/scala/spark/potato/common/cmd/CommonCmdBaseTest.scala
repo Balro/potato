@@ -44,8 +44,8 @@ class CommonCmdBaseTest {
      * 根据已解析命令行参数进行处理。
      */
     override def handleCmd(cmd: CommandLine): Unit = {
-      println(cmd.getOptionValue("a"))
-      println(cmd.getOptionValue("b"))
+      console(cmd.getOptionValue("a"))
+      console(cmd.getOptionValue("b"))
     }
   }
 

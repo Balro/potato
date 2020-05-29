@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.junit.Test
-import spark.potato.common.service.ServiceManager
+import spark.potato.common.spark.service.ServiceManager
 import spark.potato.lock.conf._
 
 import scala.collection.mutable
@@ -42,7 +42,7 @@ class RunningLockManagerTest {
 
     lockManager.tryLock(3, 5000)
 
-    println(lockManager.lock.getLock)
+    println(lockManager.lock.getMsg)
 
     TimeUnit.MINUTES.sleep(10)
   }
@@ -59,9 +59,9 @@ class RunningLockManagerTest {
     //    val lockManager: RunningLockManagerService = new RunningLockManagerService().serve(ssc.sparkContext)
     val lockManager = new ServiceManager().ssc(ssc).registerByClass(POTATO_LOCK_SINGLETON_STREAMING_SERVICE_NAME, classOf[SingletonLockManager]).asInstanceOf[SingletonLockManager]
 
-    println(lockManager.isLocked + lockManager.lock.getLock.toString())
+    println(lockManager.isLocked + lockManager.lock.getMsg.toString())
     lockManager.tryLock(3, 5000)
-    println(lockManager.isLocked + lockManager.lock.getLock.toString())
+    println(lockManager.isLocked + lockManager.lock.getMsg.toString())
     TimeUnit.SECONDS.sleep(10)
     lockManager.release()
 

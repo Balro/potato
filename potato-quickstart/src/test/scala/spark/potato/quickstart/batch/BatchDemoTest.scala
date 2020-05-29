@@ -7,6 +7,6 @@ import spark.potato.common.spark.LocalLauncherUtil
 class BatchDemoTest {
   @Test
   def local(): Unit = {
-    LocalLauncherUtil.localTest(BatchDemo, propFile = "/batch/BatchDemo.properties")
+    LocalLauncherUtil.launch(BatchDemo, propFile = "/batch/BatchDemo.properties")
   }
 }

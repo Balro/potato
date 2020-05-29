@@ -64,7 +64,7 @@ object StreamingTemplateTest extends StreamingTemplate {
    * 业务逻辑。
    */
   override def doWork(): Unit = {
-    val ssc = createStreamingContext(durMS = 5000)
+    val ssc = getDefaultStreamingContext(durMS = 5000)
 
     val source = ssc.queueStream(queue)
     source.print()

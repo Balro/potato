@@ -22,14 +22,14 @@ trait SingletonLock {
    *
    * @return 旧锁存在返回true，旧锁不存在返回false。
    */
-  def clear(): Boolean
+  def clean(): Boolean
 
   /**
    * 获取锁的状态信息。
    *
    * @return (是否已加锁，当前锁信息)
    */
-  def getLock: (Boolean, String)
+  def getMsg: (Boolean, String)
 
   /**
    * 更新锁的状态信息。
@@ -40,16 +40,16 @@ trait SingletonLock {
 /**
  * SingletonLock的zookeeper实现。
  *
- * @param manager 用于在锁异常时对manager进行反馈。
- * @param quorum  zookeeper地址。
- * @param timeout zookeeper连接超时时间。
- * @param path    锁路径。
- * @param appName 作业名。
+ * @param lockService 用于在锁异常时对app进行反馈，一般用于直接停止app作业。
+ * @param quorum      zookeeper地址。
+ * @param timeout     zookeeper连接超时时间。
+ * @param path        锁路径。
+ * @param id          作业名。
  */
-class ZookeeperSingletonLock(manager: SingletonLockManager, quorum: String, timeout: Int, path: String, appName: String) extends SingletonLock
+class ZookeeperSingletonLock(lockService: SingletonLockService, quorum: String, timeout: Int, path: String, id: String) extends SingletonLock
   with Watcher with Logging {
   val zookeeper = new ZooKeeper(quorum, timeout, this)
-  val lockPath: String = path + "/" + appName + ".lock"
+  val lockPath: String = path + "/" + id + ".lock"
   checkPath(path)
 
   /**
@@ -65,7 +65,7 @@ class ZookeeperSingletonLock(manager: SingletonLockManager, quorum: String, time
   override def tryLock(msg: String): Boolean = {
     try {
       zookeeper.create(lockPath, msg.getBytes(), ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL)
-      zookeeper.exists(lockPath, LockDeleteWatcher())
+      zookeeper.exists(lockPath, new LockDeleteWatcher())
       logInfo("Lock successfully.")
       true
     } catch {
@@ -80,7 +80,7 @@ class ZookeeperSingletonLock(manager: SingletonLockManager, quorum: String, time
     zookeeper.close()
   }
 
-  override def clear(): Boolean = {
+  override def clean(): Boolean = {
     try {
       zookeeper.delete(lockPath, -1)
     } catch {
@@ -93,7 +93,7 @@ class ZookeeperSingletonLock(manager: SingletonLockManager, quorum: String, time
     true
   }
 
-  override def getLock: (Boolean, String) = {
+  override def getMsg: (Boolean, String) = {
     try {
       true -> new String(zookeeper.getData(lockPath, false, null))
     } catch {
@@ -113,15 +113,15 @@ class ZookeeperSingletonLock(manager: SingletonLockManager, quorum: String, time
   /**
    * 监听锁节点delete事件，用于通过监听锁状态来实现作业管理，当锁节点被删除时停止作业。
    */
-  case class LockDeleteWatcher() extends Watcher {
+  class LockDeleteWatcher() extends Watcher {
     override def process(event: WatchedEvent): Unit = {
       if (event.getType == Watcher.Event.EventType.NodeDeleted) {
         logError("Lock has been deleted, stop app.")
-        manager.release()
+        lockService.checkAndStop()
         return
       } else if (event.getState == Watcher.Event.KeeperState.Expired) {
         logError("Lock has been expired, stop app.")
-        manager.release()
+        lockService.checkAndStop()
         return
       }
 
@@ -131,13 +131,13 @@ class ZookeeperSingletonLock(manager: SingletonLockManager, quorum: String, time
           val state = zookeeper.exists(lockPath, this)
           if (state == null) {
             logError("Lock has lost, stop app.")
-            manager.release()
+            lockService.checkAndStop()
           }
           registered = true
         } catch {
           case e: SessionExpiredException =>
             logWarning("Session expired, stop app.", e)
-            manager.release()
+            lockService.checkAndStop()
             return
           case e: Throwable =>
             logWarning("Lock delete watcher meet err, try re register.", e)

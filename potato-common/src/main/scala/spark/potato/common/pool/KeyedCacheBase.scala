@@ -23,11 +23,20 @@ abstract class KeyedCacheBase[K, V] {
    */
   protected def internalGetOrCreate(key: K)(createFunc: () => V): V = {
     val v = cache.get(key)
-    if (v == null || !check(v)) {
-      val v_ = createFunc()
-      cache.update(key, v_)
-      v_
-    } else v
+    if (v == null) {
+      val nv = createFunc()
+      cache.put(key, nv)
+      nv
+    } else {
+      if (isValid(v))
+        v
+      else {
+        clean(v)
+        val nv = createFunc()
+        cache.put(key, nv)
+        nv
+      }
+    }
   }
 
   /**
@@ -35,7 +44,7 @@ abstract class KeyedCacheBase[K, V] {
    *
    * @note 注意多线程问题，可能正在被其他线程使用的元素。
    */
-  protected def internalClose(closeFunc: V => Unit): Unit = {
+  protected def internalClose(closeFunc: V => Unit = clean): Unit = {
     cache.foreach { kv =>
       closeFunc(kv._2)
     }
@@ -45,7 +54,12 @@ abstract class KeyedCacheBase[K, V] {
   /**
    * 检查给定值是否可用。
    */
-  protected def check(v: V): Boolean = true
+  protected def isValid(v: V): Boolean = true
+
+  /**
+   * 清理无效值。
+   */
+  protected def clean(v: V): Unit = Unit
 
   def size(): Int = cache.size()
 }

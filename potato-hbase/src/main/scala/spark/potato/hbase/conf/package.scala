@@ -5,7 +5,7 @@ import org.apache.hadoop.hbase.HConstants
 import org.apache.spark.SparkConf
 import spark.potato.common.conf.POTATO_PREFIX
 import spark.potato.hadoop.conf.SerializedConfiguration
-import spark.potato.hbase.util.HBaseConfigurationUtil
+import spark.potato.hbase.conf.HBaseConfigurationUtil
 
 package object conf {
   val POTATO_HBASE_PREFIX: String = POTATO_PREFIX + "hbase."

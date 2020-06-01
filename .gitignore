@@ -15,3 +15,5 @@ buildNumber.properties
 .idea
 *.iml
 /potato-core/src/main/resources/test
+*-site.xml
+spark-warehouse

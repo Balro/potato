@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>potato</artifactId>
-        <groupId>spark.potato</groupId>
+        <groupId>potato</groupId>
         <version>0.2.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,12 +13,12 @@
 
     <dependencies>
         <dependency>
-            <groupId>spark.potato</groupId>
+            <groupId>potato</groupId>
             <artifactId>potato-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>spark.potato</groupId>
+            <groupId>potato</groupId>
             <artifactId>potato-hbase</artifactId>
             <version>${project.version}</version>
         </dependency>

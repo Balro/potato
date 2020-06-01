@@ -49,6 +49,39 @@ abstract class CommonCliBase {
    */
   def handleCmd(cmd: CommandLine): Unit
 
+  /**
+   * @param key 查找命令行的key。
+   * @param f1  如果key存在，则进行的操作。
+   * @param f0  如果key不存在，则进行的操作。
+   */
+  def handleKey[R](key: String, f1: () => R, f0: () => R = () => null.asInstanceOf[R]): R = {
+    if (cmd.hasOption(key)) f1() else f0()
+  }
+
+  /**
+   * @param key 查找命令行的key。
+   * @param f1  如果key存在，则对值进行的操作。
+   * @param f0  如果key不存在，则进行的操作。
+   */
+  def handleValue[R](key: String, f1: String => R, f0: () => R = () => null.asInstanceOf[R]): R = {
+    cmd.getOptionValue(key) match {
+      case value: String => f1(value)
+      case null => f0()
+    }
+  }
+
+  /**
+   * @param key 查找命令行的key。
+   * @param f1  如果key存在，则对值进行的操作。
+   * @param f0  如果key不存在，则进行的操作。
+   */
+  def handleValues[R](key: String, f1: Array[String] => R, f0: () => R = () => null.asInstanceOf[R]): R = {
+    cmd.getOptionValues(key) match {
+      case values: Array[String] => f1(values)
+      case null => f0()
+    }
+  }
+
   def optBuilder(short: String = null): Option.Builder = Option.builder(short)
 
   def groupBuilder(): OptionGroup = new OptionGroup()
@@ -68,9 +101,13 @@ abstract class CommonCliBase {
     /**
      * 创建Option并添加至参数列表。
      */
-    def add(required: Boolean = false): Unit = {
-      group.setRequired(required)
+    def add(): Unit = {
       opts.addOptionGroup(group)
+    }
+
+    def required(required: Boolean = true): AddableGroup = {
+      group.setRequired(required)
+      this
     }
   }
 

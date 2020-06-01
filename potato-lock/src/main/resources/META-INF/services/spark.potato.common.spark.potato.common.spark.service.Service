@@ -1,2 +1,0 @@
-spark.potato.lock.singleton.ContextSingletonLockService
-spark.potato.lock.singleton.StreamingSingletonLockService

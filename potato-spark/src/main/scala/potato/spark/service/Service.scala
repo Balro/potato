@@ -16,10 +16,9 @@ trait Service extends Logging {
   private val started = new AtomicBoolean(false)
 
   /**
-   * 建议实现为幂等操作，有可能多次调用start方法。
-   * 或者直接调用checkAndStart()方法。
+   * 启动服务方法，禁止外部调用，启动服务请使用[[checkAndStart]]。
    */
-  def start(): Unit
+  protected def start(): Unit
 
   /**
    * 检查服务状态，如服务未启动则启动服务，如服务已启动则不做操作。
@@ -34,10 +33,9 @@ trait Service extends Logging {
   }
 
   /**
-   * 建议实现为幂等操作，有可能多次调用stop方法。
-   * 或者直接调用checkAndStop()方法。
+   * 停止服务方法，禁止外部调用，停止服务请使用[[checkAndStop]]。
    */
-  def stop(): Unit
+  protected def stop(): Unit
 
   def checkAndStop(): Unit = this.synchronized {
     if (started.get()) {
@@ -66,14 +64,9 @@ trait Service extends Logging {
 
   /**
    * 快捷方法，启动服务同时盗用stopOnJVMExit()方法。
-   *
-   * @param check 是否检查服务状态，如服务已启动则不作操作。
    */
-  def startAndStopOnJVMExit(check: Boolean = true): Unit = {
-    if (check)
-      checkAndStart()
-    else
-      start()
+  def startAndStopOnJVMExit(): Unit = {
+    checkAndStart()
     stopOnJVMExit()
   }
 

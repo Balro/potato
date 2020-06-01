@@ -24,7 +24,7 @@ class SingletonLockManager(lockService: SingletonLockService) extends Logging {
         lockService.conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_QUORUM_KEY),
         lockService.conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_TIMEOUT_KEY, POTATO_LOCK_SINGLETON_ZOOKEEPER_TIMEOUT_DEFAULT).toInt,
         lockService.conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_DEFAULT),
-        lockService.sc.applicationId
+        lockService.sc.appName
       )
       case other => throw LockNotSupportedException(other)
     }

@@ -8,7 +8,7 @@ import scalaj.http.{Http, HttpResponse}
  * 钉钉机器人工具。
  */
 object DingRobotUtil {
-  val url = "https://oapi.dingtalk.com/robot/send"
+  val urlPrefix: String = "https://oapi.dingtalk.com/robot/send"
 
   /**
    * @param token  机器人token。
@@ -23,7 +23,7 @@ object DingRobotUtil {
       token_ = token.substring(token.lastIndexOf("access_token=") + 13)
     else
       token_ = token
-    Http(url)
+    Http(urlPrefix)
       .header("Content-Type", "application/json").param("access_token", token_)
       .postData(mkMsg(msg, atAll, phones)).asString
   }

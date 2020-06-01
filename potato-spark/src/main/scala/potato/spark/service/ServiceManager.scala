@@ -66,29 +66,25 @@ class ServiceManager extends Logging {
    * 启动托管服务。
    *
    * @param ids           需要启动托管服务的名称，如为空，则启动全部托管服务。
-   * @param check         是否调用checkAndStart()方法，否则直接调用start()。
    * @param stopOnJVMExit 启动的服务是否在jvm退出时停止。
    */
-  def start(ids: Seq[String] = Seq.empty[String], check: Boolean = true, stopOnJVMExit: Boolean = true): Unit =
+  def start(ids: Seq[String] = Seq.empty[String], stopOnJVMExit: Boolean = true): Unit =
     this.synchronized {
-      def internalStart(service: Service, check: Boolean, stopOnJVMExit: Boolean): Unit = {
+      def internalStart(service: Service, stopOnJVMExit: Boolean): Unit = {
         if (stopOnJVMExit) {
-          service.startAndStopOnJVMExit(check)
+          service.startAndStopOnJVMExit()
           logInfo(s"Start service with jvmexit $service")
         } else {
-          if (check)
-            service.checkAndStart()
-          else
-            service.start()
+          service.checkAndStart()
           logInfo(s"Start service $service")
         }
       }
 
       if (ids.isEmpty) {
-        services.foreach(service => internalStart(service._2, check, stopOnJVMExit))
+        services.foreach(service => internalStart(service._2, stopOnJVMExit))
       } else {
         ids.foreach { id =>
-          internalStart(services.getOrElse(id, throw new NoSuchElementException(s"Service not served $id")), check, stopOnJVMExit)
+          internalStart(services.getOrElse(id, throw new NoSuchElementException(s"Service not served $id")), stopOnJVMExit)
         }
       }
     }
@@ -100,21 +96,18 @@ class ServiceManager extends Logging {
    * @param check 是否调用checkAndStop()方法，否则直接调用stop()。
    */
   def stop(ids: Seq[String] = Seq.empty[String], check: Boolean = true): Unit = this.synchronized {
-    def internalStop(service: Service, check: Boolean): Unit = {
-      if (check)
-        service.checkAndStop()
-      else
-        service.stop()
+    def internalStop(service: Service): Unit = {
+      service.checkAndStop()
       logInfo(s"Stop service $service")
     }
 
     if (ids.isEmpty) {
       services.foreach { service =>
-        internalStop(service._2, check)
+        internalStop(service._2)
       }
     } else {
       ids.foreach { id =>
-        internalStop(services.getOrElse(id, throw new NoSuchElementException(s"Service not served $id")), check)
+        internalStop(services.getOrElse(id, throw new NoSuchElementException(s"Service not served $id")))
       }
     }
   }

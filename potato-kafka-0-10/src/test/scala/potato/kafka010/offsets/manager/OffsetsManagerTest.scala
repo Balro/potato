@@ -6,7 +6,7 @@ import org.apache.kafka.common.TopicPartition
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.kafka010.OffsetRange
 import org.junit.Test
-import spark.potato.kafka.conf._
+import potato.kafka010.conf._
 
 class OffsetsManagerTest {
   val commonConf = Map(

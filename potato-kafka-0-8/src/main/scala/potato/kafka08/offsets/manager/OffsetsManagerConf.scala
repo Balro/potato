@@ -3,7 +3,7 @@ package potato.kafka08.offsets.manager
 import kafka.common.InvalidConfigException
 import kafka.consumer.ConsumerConfig
 import org.apache.spark.SparkConf
-import spark.potato.kafka.conf._
+import potato.kafka08.conf._
 
 import scala.collection.mutable
 
@@ -99,7 +99,7 @@ object OffsetsManagerConf {
   }
 
   implicit def toConsumerConfig(config: OffsetsManagerConf): ConsumerConfig = {
-    import spark.potato.kafka.utils.OffsetsUtilImplicits.mapToProperties
+    import potato.kafka08.utils.OffsetsUtilImplicits.mapToProperties
     new ConsumerConfig(config.consumerConfigs)
   }
 }

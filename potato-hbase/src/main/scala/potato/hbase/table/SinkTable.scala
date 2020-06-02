@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 
 import org.apache.hadoop.hbase.client.{Mutation, Table}
-import spark.potato.hbase.exception.TableClosedException
+import potato.hbase.exception.TableClosedException
 
 import scala.collection.mutable.ListBuffer
 

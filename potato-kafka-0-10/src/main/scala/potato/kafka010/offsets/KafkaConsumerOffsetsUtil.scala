@@ -5,7 +5,7 @@ import java.util.Properties
 import org.apache.kafka.clients.consumer.{ConsumerConfig, KafkaConsumer, OffsetAndMetadata}
 import org.apache.kafka.common.errors.OffsetOutOfRangeException
 import org.apache.kafka.common.{PartitionInfo, TopicPartition}
-import spark.potato.kafka.exception.InvalidConfigException
+import potato.kafka010.exception.InvalidConfigException
 
 /**
  * 使用kafka新ConsumerApi的OffsetsUtil实现，仅支持操作kafka存储的offsets。

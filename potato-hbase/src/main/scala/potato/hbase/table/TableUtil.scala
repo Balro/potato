@@ -3,7 +3,7 @@ package potato.hbase.table
 import org.apache.hadoop.hbase.TableName
 import org.apache.hadoop.hbase.client.{BufferedMutator, BufferedMutatorParams, ConnectionConfiguration, Table}
 import potato.hadoop.conf.SerializedConfiguration
-import spark.potato.hbase.connection.GlobalConnectionCache.getCachedConnection
+import potato.hbase.connection.GlobalConnectionCache.getCachedConnection
 
 /**
  * hbase表工具类。

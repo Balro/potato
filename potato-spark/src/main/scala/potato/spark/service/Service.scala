@@ -23,13 +23,14 @@ trait Service extends Logging {
   /**
    * 检查服务状态，如服务未启动则启动服务，如服务已启动则不做操作。
    */
-  def checkAndStart(): Unit = this.synchronized {
+  def checkAndStart(): Service = this.synchronized {
     if (started.get()) {
       logWarning(s"Service $this already started.")
-      return
+    } else {
+      start()
+      started.set(true)
     }
-    start()
-    started.set(true)
+    this
   }
 
   /**
@@ -37,13 +38,14 @@ trait Service extends Logging {
    */
   protected def stop(): Unit
 
-  def checkAndStop(): Unit = this.synchronized {
+  def checkAndStop(): Service = this.synchronized {
     if (started.get()) {
       stop()
       started.set(false)
-      return
+    } else {
+      logWarning(s"Service $this already stopped.")
     }
-    logWarning(s"Service $this already stopped.")
+    this
   }
 
   private val registeredStopOnJVMExit = new AtomicBoolean(false)

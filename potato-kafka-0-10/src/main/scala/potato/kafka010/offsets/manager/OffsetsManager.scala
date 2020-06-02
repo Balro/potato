@@ -6,9 +6,9 @@ import org.apache.kafka.common.{KafkaException, TopicPartition}
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.kafka010.OffsetRange
-import spark.potato.kafka.conf._
-import spark.potato.kafka.offsets.storage._
-import spark.potato.kafka.offsets.KafkaConsumerOffsetsUtil
+import potato.kafka010.conf._
+import potato.kafka010.offsets.storage._
+import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
 
 import scala.collection.mutable
 

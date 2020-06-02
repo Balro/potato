@@ -5,7 +5,7 @@ import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
-import spark.potato.common.conf.POTATO_PREFIX
+import potato.common.conf.POTATO_PREFIX
 
 package object conf {
   val POTATO_KAFKA_PREFIX: String = POTATO_PREFIX + "kafka."

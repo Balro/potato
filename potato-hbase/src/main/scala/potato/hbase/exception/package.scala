@@ -1,6 +1,6 @@
 package potato.hbase
 
-import spark.potato.common.exception.PotatoException
+import potato.common.exception.PotatoException
 
 package object exception {
 

@@ -13,8 +13,6 @@
         <module>potato-hbase</module>
         <module>potato-kafka-0-8</module>
         <module>potato-kafka-0-10</module>
-<!--        <module>potato-lock</module>-->
-<!--        <module>potato-monitor</module>-->
         <module>potato-hive</module>
         <module>potato-spark</module>
     </modules>

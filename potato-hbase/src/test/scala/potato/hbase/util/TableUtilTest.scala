@@ -5,7 +5,7 @@ import java.util.concurrent.{Executors, TimeUnit}
 import org.apache.hadoop.hbase.client.{Delete, Put}
 import org.apache.hadoop.hbase.util.Bytes
 import org.junit.Test
-import spark.potato.hbase.table.TableUtil._
+import potato.hbase.table.TableUtil._
 
 class TableUtilTest {
   val conf = Map(

@@ -3,9 +3,8 @@ package potato.kafka08
 import kafka.serializer.Decoder
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
-import potato.kafka.offsets.manager
 import potato.kafka08.offsets.manager
-import spark.potato.kafka.conf._
+import potato.kafka08.conf._
 
 import scala.reflect.ClassTag
 

@@ -5,7 +5,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.internal.SQLConf
 import potato.hadoop.utils.HDFSUtil
-import spark.potato.common.cmd.CommonCliBase
+import potato.common.cmd.CommonCliBase
 
 object FileMergeCli extends CommonCliBase {
   override val cliName: String = "FileMergeCli"

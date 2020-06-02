@@ -8,7 +8,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.scheduler.{StreamingListener, StreamingListenerBatchCompleted, StreamingListenerBatchSubmitted}
 import potato.common.exception.ConfigException
-import potato.common.sender.{DingDingSender, Sender}
+import potato.common.sender.{DingSender, Sender}
 import potato.spark.conf._
 import potato.spark.service.StreamingService
 
@@ -29,7 +29,7 @@ class StreamingBacklogMonitorService extends StreamingService with StreamingList
     this.ssc = ssc
     threshold = conf.get(POTATO_MONITOR_STREAMING_BACKLOG_THRESHOLD_MS_KEY).toLong
     sender = conf.get(POTATO_MONITOR_STREAMING_BACKLOG_REPORT_SENDER_KEY, POTATO_MONITOR_STREAMING_BACKLOG_REPORT_SENDER_DEFAULT) match {
-      case "ding" => new DingDingSender(conf)
+      case "ding" => new DingSender(conf)
       case other => throw ConfigException(s"Sender type $other not supported.")
     }
     reportInterval = conf.get(POTATO_MONITOR_STREAMING_BACKLOG_REPORT_INTERVAL_MS_KEY, POTATO_MONITOR_STREAMING_BACKLOG_REPORT_INTERVAL_MS_DEFAULT).toLong

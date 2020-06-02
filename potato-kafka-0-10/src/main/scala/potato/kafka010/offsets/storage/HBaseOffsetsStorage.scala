@@ -7,8 +7,8 @@ import org.apache.hadoop.hbase.{CellUtil, HBaseConfiguration}
 import org.apache.kafka.common.TopicPartition
 import org.apache.spark.internal.Logging
 import potato.hadoop.conf.SerializedConfiguration._
-import spark.potato.hbase.table.TableUtil.withTable
-import spark.potato.kafka.offsets.KafkaConsumerOffsetsUtil
+import potato.hbase.table.TableUtil.withTable
+import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
 
 /**
  * 建表语句参考

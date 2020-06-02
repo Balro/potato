@@ -3,7 +3,7 @@ package potato.kafka010.source
 import org.apache.spark.SparkConf
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.junit.Test
-import spark.potato.kafka.conf._
+import potato.kafka010.conf._
 
 class KafkaSourceTest {
   @Test

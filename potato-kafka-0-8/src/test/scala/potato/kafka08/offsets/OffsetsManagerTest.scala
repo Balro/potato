@@ -5,8 +5,8 @@ import java.util.concurrent.TimeUnit
 import kafka.common.TopicAndPartition
 import org.apache.spark.streaming.kafka.OffsetRange
 import org.junit.Test
-import spark.potato.kafka.offsets.manager.{OffsetsManager, OffsetsManagerConf}
-import spark.potato.kafka.conf._
+import potato.kafka08.offsets.manager.{OffsetsManager, OffsetsManagerConf}
+import potato.kafka08.conf._
 
 class OffsetsManagerTest {
   @Test

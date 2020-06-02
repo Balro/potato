@@ -13,7 +13,7 @@ import org.apache.kafka.common.protocol.Errors
 import scala.collection.mutable
 import scala.util.Random
 
-import spark.potato.kafka.exception.MetadataNotFoundException
+import potato.kafka08.exception.MetadataNotFoundException
 
 /**
  * kafka offsets管理工具，基于SimpleConsumer，实现对offsets的查询，修改等功能。

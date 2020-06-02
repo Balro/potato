@@ -62,53 +62,24 @@ class ServiceManager extends Logging {
     t
   }
 
-  /**
-   * 启动托管服务。
-   *
-   * @param ids           需要启动托管服务的名称，如为空，则启动全部托管服务。
-   * @param stopOnJVMExit 启动的服务是否在jvm退出时停止。
-   */
-  def start(ids: Seq[String] = Seq.empty[String], stopOnJVMExit: Boolean = true): Unit =
-    this.synchronized {
-      def internalStart(service: Service, stopOnJVMExit: Boolean): Unit = {
-        if (stopOnJVMExit) {
-          service.startAndStopOnJVMExit()
-          logInfo(s"Start service with jvmexit $service")
-        } else {
-          service.checkAndStart()
-          logInfo(s"Start service $service")
-        }
-      }
-
-      if (ids.isEmpty) {
-        services.foreach(service => internalStart(service._2, stopOnJVMExit))
-      } else {
-        ids.foreach { id =>
-          internalStart(services.getOrElse(id, throw new NoSuchElementException(s"Service not served $id")), stopOnJVMExit)
-        }
-      }
+  def unregister(id: String): Service = {
+    services.remove(id) match {
+      case Some(service) => service.checkAndStop()
+      case None => throw new NoSuchElementException(s"Service $id not found.")
     }
+  }
+
+  def getService(id: String): Service = {
+    services(id)
+  }
 
   /**
    * 停止托管服务。
-   *
-   * @param ids   要停止的服务名称，若为空，则停止所有托管服务。
-   * @param check 是否调用checkAndStop()方法，否则直接调用stop()。
    */
-  def stop(ids: Seq[String] = Seq.empty[String], check: Boolean = true): Unit = this.synchronized {
-    def internalStop(service: Service): Unit = {
-      service.checkAndStop()
-      logInfo(s"Stop service $service")
-    }
-
-    if (ids.isEmpty) {
-      services.foreach { service =>
-        internalStop(service._2)
-      }
-    } else {
-      ids.foreach { id =>
-        internalStop(services.getOrElse(id, throw new NoSuchElementException(s"Service not served $id")))
-      }
+  def stop(): Unit = this.synchronized {
+    services.foreach { service =>
+      service._2.checkAndStop()
+      logInfo(s"Stopped service ${service._1}")
     }
   }
 
@@ -131,6 +102,7 @@ class ServiceManager extends Logging {
       case serv: StreamingService => serv.serve(ssc)
       case unknwon => throw UnknownServiceException(s"Unknown service $id:${unknwon.getClass}")
     }
+    service.startAndStopOnJVMExit()
     services += (id -> service)
     logInfo(s"Service $id:${service.getClass} successfully registered.")
     service

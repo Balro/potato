@@ -4,7 +4,7 @@ import org.apache.hadoop.hbase.client.{ConnectionConfiguration, Mutation}
 import org.apache.spark.internal.Logging
 import org.apache.spark.rdd.RDD
 import potato.hadoop.conf.SerializedConfiguration
-import spark.potato.hbase.table.TableUtil.{withBufferedSinkTable, withMutator}
+import potato.hbase.table.TableUtil.{withBufferedSinkTable, withMutator}
 
 /**
  * hbase sink 工具类。

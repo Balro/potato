@@ -1,7 +1,7 @@
 package potato.kafka08
 
 import org.apache.kafka.common.serialization.StringSerializer
-import spark.potato.common.conf.POTATO_PREFIX
+import potato.common.conf.POTATO_PREFIX
 
 package object conf {
   val POTATO_KAFKA_PREFIX: String = POTATO_PREFIX + "kafka."

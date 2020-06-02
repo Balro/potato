@@ -2,8 +2,8 @@ package potato.kafka08.util
 
 import kafka.common.TopicAndPartition
 import org.junit.Test
-import spark.potato.kafka.utils.OffsetsUtil
-import spark.potato.kafka.utils.OffsetsUtilImplicits._
+import potato.kafka08.utils.OffsetsUtil
+import potato.kafka08.utils.OffsetsUtilImplicits._
 
 class OffsetsUtilTest {
   val seeds: Map[String, Int] = Map("test01" -> 9092)

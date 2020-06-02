@@ -10,8 +10,8 @@ import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql._
 import org.apache.spark.unsafe.types.UTF8String
 import org.apache.spark.{SparkConf, SparkContext}
-import spark.potato.common.exception.PotatoException
-import spark.potato.common.threads.DaemonThreadFactory
+import potato.common.exception.PotatoException
+import potato.common.threads.DaemonThreadFactory
 
 import scala.collection.mutable
 import scala.concurrent.duration.Duration

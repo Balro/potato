@@ -9,7 +9,8 @@ import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.spark.SparkConf
-import spark.potato.common.conf.PropertiesImplicits.mapToProperties
+import potato.common.conf.PropertiesImplicits.mapToProperties
+import potato.kafka010.offsets.SimpleConsumerOffsetsUtilImplicits
 
 class PotatoKafkaConf(conf: SparkConf, kafkaProps: Map[String, String] = Map.empty) {
   private val default: Map[String, String] = Map(

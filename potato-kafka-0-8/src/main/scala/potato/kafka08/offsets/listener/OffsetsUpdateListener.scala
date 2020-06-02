@@ -2,7 +2,7 @@ package potato.kafka08.offsets.listener
 
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.scheduler.{StreamingListener, StreamingListenerBatchCompleted}
-import spark.potato.kafka.offsets.manager.OffsetsManager
+import potato.kafka08.offsets.manager.OffsetsManager
 
 /**
  * 集成OffsetsManager，用于批次正常结束后提交offsets。

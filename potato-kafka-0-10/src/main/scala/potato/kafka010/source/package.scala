@@ -5,10 +5,8 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka010.{ConsumerStrategies, HasOffsetRanges, KafkaUtils, LocationStrategies}
-import spark.potato.kafka.offsets.listener.OffsetsUpdateListener
-import spark.potato.kafka.offsets.manager.OffsetsManager
-
-import scala.reflect.ClassTag
+import potato.kafka010.offsets.listener.OffsetsUpdateListener
+import potato.kafka010.offsets.manager.OffsetsManager
 
 /**
  * 创建kafkaDStream的工具类。
@@ -30,7 +28,7 @@ package object source extends Logging {
 
   /**
    * 创建附带offsets manager的kafka流。
-   * 打开自动提交[[spark.potato.kafka.conf.POTATO_KAFKA_OFFSETS_STORAGE_AUTO_UPDATE_KEY]]可以在每批次流处理结束后自动提交offset。
+   * 打开自动提交[[potato.kafka010.conf.POTATO_KAFKA_OFFSETS_STORAGE_AUTO_UPDATE_KEY]]可以在每批次流处理结束后自动提交offset。
    * 如未设置自动提交，则需要在每次流结束后手动调用[[OffsetsManager.updateOffsets]]方法。
    *
    * @param kafkaParams 添加到kafka的额外参数。

@@ -7,7 +7,7 @@ package object template {
   /**
    * 基本模板，强制子类实现main方法，无其他副作用。
    */
-  abstract class BaseTemplate extends Logging {
+  abstract class BaseTemplate extends BaseFunction with Logging {
     def main(args: Array[String]): Unit
   }
 

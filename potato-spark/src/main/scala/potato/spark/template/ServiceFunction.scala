@@ -2,11 +2,18 @@ package potato.spark.template
 
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.StreamingContext
-import potato.spark.service.ServiceManager
+import potato.spark.service.{Service, ServiceManager}
 
 trait ServiceFunction {
-  // 用于管理附加服务。
   implicit lazy val serviceManager: ServiceManager = new ServiceManager()
+
+  def registerService(id: String, service: Service): Service = serviceManager.registerByInstance(id, service)
+
+  def unregisterService(id: String): Service = serviceManager.unregister(id)
+
+  def getService(id: String): Service = serviceManager.getService(id)
+
+  def stopService(): Unit = serviceManager.stop()
 
   trait WithService[T] {
     /**
@@ -17,19 +24,19 @@ trait ServiceFunction {
     /**
      * 停止附加服务后停止包装对象。
      */
-    def stopWithService(): Unit
+    def stopWithService(): T
   }
 
   class ContextWithService(sc: SparkContext) extends WithService[SparkContext] {
     override def withService: SparkContext = {
       serviceManager.sc(sc).registerBySparkConf(sc.getConf)
-      serviceManager.start()
       sc
     }
 
-    override def stopWithService(): Unit = {
+    override def stopWithService(): SparkContext = {
       serviceManager.stop()
       sc.stop()
+      sc
     }
   }
 
@@ -38,13 +45,13 @@ trait ServiceFunction {
   class StreamingWithService(ssc: StreamingContext) extends WithService[StreamingContext] {
     override def withService: StreamingContext = {
       serviceManager.ssc(ssc).registerBySparkConf(ssc.sparkContext.getConf)
-      serviceManager.start()
       ssc
     }
 
-    override def stopWithService(): Unit = {
+    override def stopWithService(): StreamingContext = {
       serviceManager.stop()
       ssc.stop()
+      ssc
     }
   }
 

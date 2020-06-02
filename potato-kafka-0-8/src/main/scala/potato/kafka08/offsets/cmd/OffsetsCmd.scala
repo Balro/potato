@@ -2,9 +2,9 @@ package potato.kafka08.offsets.cmd
 
 import kafka.consumer.ConsumerConfig
 import org.apache.spark.SparkConf
-import spark.potato.common.cmd.ActionCMDBase
-import spark.potato.kafka.offsets.manager.{OffsetsManager, OffsetsManagerConf}
-import spark.potato.kafka.utils.OffsetsUtil
+import potato.common.cmd.ActionCMDBase
+import potato.kafka08.offsets.manager.{OffsetsManager, OffsetsManagerConf}
+import potato.kafka08.utils.OffsetsUtil
 
 object OffsetsCmd extends ActionCMDBase {
   /**

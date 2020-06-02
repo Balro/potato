@@ -8,11 +8,9 @@ class ServiceManagerTest {
   def serveConfTest(): Unit = {
     val sm = new ServiceManager().conf(Map("a" -> "1", "b" -> "2"))
     sm.registerByClass("test", classOf[TestGeneralService])
-    sm.start()
     sm.stop()
     sm.clear()
     sm.registerByClass("test", classOf[TestGeneralService])
-    sm.start()
     sm.stop()
   }
 
@@ -23,7 +21,6 @@ class ServiceManagerTest {
     //    val sm = new ServiceManager().conf(conf)
     val sm = new ServiceManager().sc(SparkContext.getOrCreate(conf))
     sm.registerByClass("test", classOf[TestContextService])
-    sm.start()
     sm.stop()
   }
 }

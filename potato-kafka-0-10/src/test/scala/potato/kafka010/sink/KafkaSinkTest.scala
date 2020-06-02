@@ -9,7 +9,7 @@ import org.apache.spark.streaming.scheduler.{StreamingListener, StreamingListene
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.junit.Test
 
-import spark.potato.common.conf.PropertiesImplicits._
+import potato.common.conf.PropertiesImplicits._
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer

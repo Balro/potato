@@ -6,10 +6,10 @@ import java.util.Properties
 import org.apache.commons.cli.{CommandLine, Options, ParseException}
 import org.apache.kafka.common.TopicPartition
 import org.apache.spark.SparkConf
-import spark.potato.common.cmd.CommonCliBase
-import spark.potato.kafka.conf._
-import spark.potato.kafka.offsets.KafkaConsumerOffsetsUtil
-import spark.potato.kafka.offsets.manager.OffsetsManager
+import potato.common.cmd.CommonCliBase
+import potato.kafka010.conf._
+import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
+import potato.kafka010.offsets.manager.OffsetsManager
 
 object KafkaOffsetCli extends CommonCliBase {
   override val helpWidth: Int = 120
@@ -53,7 +53,7 @@ object KafkaOffsetCli extends CommonCliBase {
           |Reset offsets to earliest(--to-earliest) or latest(--to-latest).
           |It will only show the offset by default. Use --execute flag to confirm.
           |""".stripMargin.trim).build())
-      .add(true)
+      .required().add()
     groupBuilder().addOption(optBuilder().longOpt("to-earliest").build())
       .addOption(optBuilder().longOpt("to-latest").build())
       .add()

@@ -4,7 +4,7 @@ import kafka.cluster.BrokerEndPoint
 import kafka.common.TopicAndPartition
 import kafka.consumer.ConsumerConfig
 import org.apache.spark.internal.Logging
-import spark.potato.kafka.utils.OffsetsUtil
+import potato.kafka08.utils.OffsetsUtil
 
 /**
  * OffsetsStorage特质，用于存储offsets。

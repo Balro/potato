@@ -2,13 +2,11 @@ package potato.kafka010.offsets.storage
 
 import java.util.Properties
 
-import kafka.cluster.BrokerEndPoint
 import kafka.common.TopicAndPartition
 import kafka.consumer.ConsumerConfig
-import org.apache.kafka.clients.consumer.OffsetAndMetadata
 import org.apache.kafka.common.{KafkaException, TopicPartition}
 import org.apache.spark.internal.Logging
-import spark.potato.kafka.offsets.{KafkaConsumerOffsetsUtil, SimpleConsumerOffsetsUtil}
+import potato.kafka010.offsets.{KafkaConsumerOffsetsUtil, SimpleConsumerOffsetsUtil}
 
 /**
  * OffsetsStorage特质，用于存储offsets。
@@ -26,7 +24,7 @@ trait OffsetsStorage {
  */
 class ZookeeperOffsetsStorage(seeds: Map[String, Int], config: ConsumerConfig) extends OffsetsStorage with Logging {
 
-  import spark.potato.kafka.offsets.SimpleConsumerOffsetsUtilImplicits.mapToBrokerEndPoints
+  import potato.kafka010.offsets.SimpleConsumerOffsetsUtilImplicits.mapToBrokerEndPoints
 
   override def save(groupId: String, offsets: Map[TopicPartition, Long]): Boolean = {
     val (ret, errs) = SimpleConsumerOffsetsUtil.commitOffsetsOnZookeeper(seeds, groupId, {

@@ -3,8 +3,8 @@ package potato.kafka08.offsets
 import kafka.common.InvalidConfigException
 import org.apache.spark.SparkConf
 import org.junit.Test
-import spark.potato.kafka.offsets.manager.OffsetsManagerConf
-import spark.potato.kafka.conf._
+import potato.kafka08.offsets.manager.OffsetsManagerConf
+import potato.kafka08.conf._
 
 class OffsetsManagerConfTest {
   @Test

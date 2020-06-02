@@ -9,7 +9,7 @@ import kafka.common._
 import kafka.consumer.{ConsumerConfig, SimpleConsumer}
 import kafka.utils.Logging
 import org.apache.kafka.common.protocol.Errors
-import spark.potato.kafka.exception.MetadataNotFoundException
+import potato.kafka010.exception.MetadataNotFoundException
 
 import scala.collection.mutable
 import scala.util.Random
@@ -383,7 +383,7 @@ object SimpleConsumerOffsetsUtilImplicits {
 
   class RichConsumerConfig(config: ConsumerConfig) {
 
-    import spark.potato.common.conf.PropertiesImplicits.mapToProperties
+    import potato.common.conf.PropertiesImplicits.mapToProperties
 
     def +(tuple: (String, String)): ConsumerConfig = {
       import scala.collection.JavaConversions.propertiesAsScalaMap

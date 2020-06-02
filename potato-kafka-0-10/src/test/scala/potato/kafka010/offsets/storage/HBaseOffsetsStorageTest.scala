@@ -5,7 +5,7 @@ import org.apache.hadoop.hbase.client.{ConnectionFactory, Get, Table}
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.kafka.common.TopicPartition
 import org.junit.Test
-import spark.potato.kafka.conf._
+import potato.kafka010.conf._
 
 class HBaseOffsetsStorageTest {
   @Test

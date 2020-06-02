@@ -7,10 +7,10 @@ import org.apache.kafka.common.KafkaException
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.kafka.OffsetRange
-import spark.potato.kafka.conf._
-import spark.potato.kafka.offsets.storage._
-import spark.potato.kafka.utils.OffsetsUtil
-import spark.potato.kafka.exception._
+import potato.kafka08.conf._
+import potato.kafka08.offsets.storage._
+import potato.kafka08.utils.OffsetsUtil
+import potato.kafka08.exception._
 
 import scala.collection.mutable
 

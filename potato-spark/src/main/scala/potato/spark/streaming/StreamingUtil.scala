@@ -38,11 +38,4 @@ object StreamingUtil extends Logging {
       new StreamingContext(conf, Milliseconds(duration))
     }
   }
-
-  def stopOnJVMExit(ssc: StreamingContext): Unit = {
-    logInfo(s"Register stop when shutdown on ssc $ssc")
-    JVMCleanUtil.cleanWhenShutdown("stop ssc", { () =>
-      ssc.stop()
-    })
-  }
 }

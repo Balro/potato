@@ -1,14 +1,15 @@
 package potato.spark.template
 
-import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.SparkContext
 import org.junit.Test
-import potato.spark.service.ContextService
 import potato.spark.conf._
+import potato.spark.service.ContextService
 import potato.spark.util.LocalLauncherUtil
 
 object FullTemplateApp extends FullTemplate {
   override def main(args: Array[String]): Unit = {
-    val sc = SparkContext.getOrCreate(new SparkConf()).withService
+    val sc = defaultSC.withService
+
     println(sc.parallelize(sc.getConf.get("spark.test.numbers").split(",").map(_.toInt)).sum())
     clean("stop app", sc.stopWithService)
   }

@@ -22,13 +22,13 @@ object StreamingUtil extends Logging {
   }
 
   /**
-   * 读取conf中的 POTATO_STREAMING_BATCH_DURATION_MS_KEY 参数作为batchDuration，创建StreamingContext。
+   * 读取[[potato.spark.conf.POTATO_SPARK_STREAMING_BATCH_DURATION_MS_KEY]] 参数作为batchDuration，创建StreamingContext。
    *
    * @param conf     SparkConf
    * @param duration 手动指定duration，-1表示从配置文件读取。其他值表示覆盖配置文件。
    * @return
    */
-  def createStreamingContextWithDuration(conf: SparkConf, duration: Long = -1L): StreamingContext = {
+  def createStreamingContext(conf: SparkConf, duration: Long = -1L): StreamingContext = {
     if (duration <= 0) {
       if (conf.contains(POTATO_SPARK_STREAMING_BATCH_DURATION_MS_KEY))
         new StreamingContext(conf, Milliseconds(conf.get(POTATO_SPARK_STREAMING_BATCH_DURATION_MS_KEY).toLong))

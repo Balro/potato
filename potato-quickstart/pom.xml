@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>spark.potato.quickstart</groupId>
+    <groupId>potato</groupId>
     <artifactId>potato-quickstart</artifactId>
     <version>0.2.0-SNAPSHOT</version>
 
@@ -15,6 +15,15 @@
             <url>https://repository.cloudera.com/artifactory/cloudera-repos</url>
         </repository>
     </repositories>
+
+    <properties>
+        <java.version>1.8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <scala.binary.version>2.11</scala.binary.version>
+        <scala.version>${scala.binary.version}.12</scala.version>
+        <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
+        <spark.version>2.2.0.cloudera2</spark.version>
+    </properties>
 
     <profiles>
         <profile>
@@ -38,65 +47,58 @@
             </properties>
             <dependencies>
                 <dependency>
-                    <groupId>spark.potato</groupId>
+                    <groupId>potato</groupId>
                     <artifactId>potato-common</artifactId>
                     <version>${project.version}</version>
                     <scope>compile</scope>
                 </dependency>
                 <dependency>
-                    <groupId>spark.potato</groupId>
+                    <groupId>potato</groupId>
                     <artifactId>potato-hadoop</artifactId>
                     <version>${project.version}</version>
                     <scope>compile</scope>
                 </dependency>
                 <dependency>
-                    <groupId>spark.potato</groupId>
+                    <groupId>potato</groupId>
                     <artifactId>potato-hbase</artifactId>
                     <version>${project.version}</version>
                     <scope>compile</scope>
                 </dependency>
                 <dependency>
-                    <groupId>spark.potato</groupId>
+                    <groupId>potato</groupId>
                     <artifactId>potato-hive</artifactId>
                     <version>${project.version}</version>
                     <scope>compile</scope>
                 </dependency>
                 <dependency>
-                    <groupId>spark.potato</groupId>
-                    <artifactId>potato-kafka</artifactId>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-kafka-0-10</artifactId>
                     <version>${project.version}</version>
                     <scope>compile</scope>
                 </dependency>
                 <dependency>
-                    <groupId>spark.potato</groupId>
-                    <artifactId>potato-lock</artifactId>
-                    <version>${project.version}</version>
-                    <scope>compile</scope>
-                </dependency>
-                <dependency>
-                    <groupId>spark.potato</groupId>
-                    <artifactId>potato-monitor</artifactId>
-                    <version>${project.version}</version>
-                    <scope>compile</scope>
-                </dependency>
-                <dependency>
-                    <groupId>spark.potato</groupId>
-                    <artifactId>potato-template</artifactId>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-spark</artifactId>
                     <version>${project.version}</version>
                     <scope>compile</scope>
                 </dependency>
             </dependencies>
+            <build>
+                <plugins>
+                    <!-- 服务端禁止打包额外代码，仅需要打包依赖项。 -->
+                    <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
-
-    <properties>
-        <java.version>1.8</java.version>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <scala.binary.version>2.11</scala.binary.version>
-        <scala.version>${scala.binary.version}.12</scala.version>
-        <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
-        <spark.version>2.2.0.cloudera2</spark.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -130,16 +132,20 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>spark.potato</groupId>
-            <artifactId>potato-template</artifactId>
-            <version>${project.version}</version>
-            <scope>${potato.scope}</scope>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.binary.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>spark.potato</groupId>
-            <artifactId>potato-hbase</artifactId>
+            <groupId>potato</groupId>
+            <artifactId>potato-spark</artifactId>
             <version>${project.version}</version>
-            <scope>${potato.scope}</scope>
+        </dependency>
+        <dependency>
+            <groupId>potato</groupId>
+            <artifactId>potato-kafka-0-10</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

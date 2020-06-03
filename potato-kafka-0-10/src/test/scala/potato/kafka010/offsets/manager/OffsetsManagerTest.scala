@@ -29,8 +29,8 @@ class OffsetsManagerTest {
 
     val manager = new OffsetsManager(conf)
 
+    println(manager.committedOffsets(true))
     println(manager.committedOffsets())
-    println(manager.committedOffsets(false))
   }
 
 
@@ -99,14 +99,14 @@ class OffsetsManagerTest {
 
     val manager = new OffsetsManager(conf)
 
-    println(manager.committedOffsets(false))
+    println(manager.committedOffsets())
 
     manager.updateOffsets(Map(
       new TopicPartition("test1", 0) -> 1,
       new TopicPartition("test2", 0) -> 5
     ))
 
-    println(manager.committedOffsets(false))
+    println(manager.committedOffsets())
   }
 
   @Test
@@ -134,7 +134,7 @@ class OffsetsManagerTest {
 
     println("--------" + manager.committedOffsets())
 
-    manager.updateOffsetsByDelay(System.currentTimeMillis(), 2500)
+    manager.updateOffsetsByTime(System.currentTimeMillis(), 2500)
     println("--------" + manager.currentCache)
 
     println("--------" + manager.committedOffsets())

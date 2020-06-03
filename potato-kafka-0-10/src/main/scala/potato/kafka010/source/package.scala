@@ -1,11 +1,11 @@
 package potato.kafka010
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
+import org.apache.kafka.common.TopicPartition
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
-import org.apache.spark.streaming.kafka010.{ConsumerStrategies, HasOffsetRanges, KafkaUtils, LocationStrategies}
-import potato.kafka010.offsets.listener.OffsetsUpdateListener
+import potato.kafka010.conf._
 import potato.kafka010.offsets.manager.OffsetsManager
 
 /**
@@ -13,43 +13,104 @@ import potato.kafka010.offsets.manager.OffsetsManager
  */
 package object source extends Logging {
   /**
-   * @param kafkaParams 添加到kafka的额外参数。
+   * 由已提交的offsets创建流。
+   *
+   * @param offsets 订阅的partition信息。
+   * @param reset   是否重置offsets。
    */
-  def createDStream[K, V](ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty): DStream[ConsumerRecord[K, V]] = {
-    val offsetsManager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams)
-
-    val subscribePartitions = offsetsManager.committedOffsets()
-
-    KafkaUtils.createDirectStream[K, V](ssc,
-      LocationStrategies.PreferConsistent,
-      ConsumerStrategies.Assign[K, V](subscribePartitions.keys, offsetsManager.kafkaConf.consumerProps, subscribePartitions)
-    )
+  def createDStream[K, V](ssc: StreamingContext, kafkaParams: Map[String, String], offsets: Map[TopicPartition, Long], reset: Boolean): DStream[ConsumerRecord[K, V]] = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams).subscribePartetion(offsets.keySet)
+    manager.createDStream[K, V](ssc, offsets = offsets, reset = reset, autoUpdate = false)
   }
 
   /**
-   * 创建附带offsets manager的kafka流。
-   * 打开自动提交[[potato.kafka010.conf.POTATO_KAFKA_OFFSETS_STORAGE_AUTO_UPDATE_KEY]]可以在每批次流处理结束后自动提交offset。
-   * 如未设置自动提交，则需要在每次流结束后手动调用[[OffsetsManager.updateOffsets]]方法。
+   * 由已提交的offsets创建流。
    *
-   * @param kafkaParams 添加到kafka的额外参数。
-   * @return (DStream,OffsetsManager)
+   * @param tpcs  订阅的topic。
+   * @param reset 是否重置offsets。
    */
-  def createDStreamWithOffsetsManager[K, V](ssc: StreamingContext, kafkaParams: Map[String, String] = Map.empty): (DStream[ConsumerRecord[K, V]], OffsetsManager) = {
-    val offsetsManager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams)
+  def createDStream[K, V](ssc: StreamingContext, kafkaParams: Map[String, String], tpcs: Set[String], reset: Boolean): DStream[ConsumerRecord[K, V]] = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams).subscribeTopic(tpcs)
+    manager.createDStream[K, V](ssc, reset = reset, autoUpdate = false)
+  }
 
-    // 是否启用offsets自动提交。
-    if (offsetsManager.kafkaConf.offsetsStorageAutoUpdate)
-      ssc.addStreamingListener(new OffsetsUpdateListener(offsetsManager))
+  /**
+   * 由已提交的offsets创建流。
+   * 由配置[[POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY]]决定订阅的topic。
+   *
+   * @param reset 是否重置offsets。
+   */
+  def createDStream[K, V](ssc: StreamingContext, kafkaParams: Map[String, String], reset: Boolean): DStream[ConsumerRecord[K, V]] = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams)
+    manager.createDStream[K, V](ssc, reset = reset, autoUpdate = false)
+  }
 
-    val subscribePartitions = offsetsManager.committedOffsets()
+  /**
+   * 由已提交的offsets创建流。
+   * 由配置[[POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY]]决定订阅的topic。
+   * 由配置[[POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY]]决定是否对offsets进行重置。
+   */
+  def createDStream[K, V](ssc: StreamingContext, kafkaParams: Map[String, String]): DStream[ConsumerRecord[K, V]] = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams)
+    manager.createDStream[K, V](ssc, autoUpdate = false)
+  }
 
-    KafkaUtils.createDirectStream[K, V](ssc,
-      LocationStrategies.PreferConsistent,
-      ConsumerStrategies.Assign[K, V](subscribePartitions.keys, offsetsManager.kafkaConf.consumerProps, subscribePartitions)
-    ).transform((rdd, time) => { // 在后续每次对stream进行操作时，将当前stream的offsetrange存储缓存。
-      val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
-      offsetsManager.cacheOffsets(time.milliseconds, offsetRanges)
-      rdd
-    }) -> offsetsManager
+  /**
+   * 由已提交的offsets创建流，强制缓存offsets。
+   *
+   * @param offsets    订阅的topic信息。
+   * @param reset      否对offsets进行重置。
+   * @param autoUpdate 是否缓存offsets并自动提交，启用自动提交则自动开启offsets缓存。
+   */
+  def createDStreamWithManager[K, V](ssc: StreamingContext, kafkaParams: Map[String, String], offsets: Map[TopicPartition, Long], reset: Boolean, autoUpdate: Boolean): (DStream[ConsumerRecord[K, V]], OffsetsManager) = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams).subscribePartetion(offsets.keySet)
+    (manager.createDStream[K, V](ssc, offsets = offsets, reset = reset, autoUpdate = autoUpdate), manager)
+  }
+
+  /**
+   * 由已提交的offsets创建流，强制缓存offsets。
+   *
+   * @param tpcs       订阅的topic信息。
+   * @param reset      否对offsets进行重置。
+   * @param autoUpdate 是否缓存offsets并自动提交，启用自动提交则自动开启offsets缓存。
+   */
+  def createDStreamWithManager[K, V](ssc: StreamingContext, kafkaParams: Map[String, String], tpcs: Set[String], reset: Boolean, autoUpdate: Boolean): (DStream[ConsumerRecord[K, V]], OffsetsManager) = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams).subscribeTopic(tpcs)
+    (manager.createDStream[K, V](ssc, reset = reset, autoUpdate = autoUpdate), manager)
+  }
+
+  /**
+   * 由已提交的offsets创建流，强制缓存offsets。
+   * 由配置[[POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY]]获取订阅的topic信息。
+   *
+   * @param reset      是否对offsets进行重置。
+   * @param autoUpdate 是否自动提交。
+   */
+  def createDStreamWithManager[K, V](ssc: StreamingContext, kafkaParams: Map[String, String], reset: Boolean, autoUpdate: Boolean): (DStream[ConsumerRecord[K, V]], OffsetsManager) = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams)
+    (manager.createDStream[K, V](ssc, cache = true, reset = reset, autoUpdate = autoUpdate), manager)
+  }
+
+  /**
+   * 由已提交的offsets创建流，强制缓存offsets。
+   * 由配置[[POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY]]获取订阅的topic信息。
+   * 由配置[[POTATO_KAFKA_OFFSETS_STORAGE_AUTO_UPDATE_KEY]]决定是否自动提交。
+   *
+   * @param reset 是否对offsets进行重置。
+   */
+  def createDStreamWithManager[K, V](ssc: StreamingContext, kafkaParams: Map[String, String], reset: Boolean): (DStream[ConsumerRecord[K, V]], OffsetsManager) = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams)
+    (manager.createDStream[K, V](ssc, cache = true, reset = reset), manager)
+  }
+
+  /**
+   * 由已提交的offsets创建流，强制缓存offsets。
+   * 由配置[[POTATO_KAFKA_SOURCE_SUBSCRIBE_TOPICS_KEY]]获取订阅的topic信息。
+   * 由配置[[POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY]]决定是否对offsets进行重置。
+   * 由配置[[POTATO_KAFKA_OFFSETS_STORAGE_AUTO_UPDATE_KEY]]决定是否自动提交。
+   */
+  def createDStreamWithManager[K, V](ssc: StreamingContext, kafkaParams: Map[String, String]): (DStream[ConsumerRecord[K, V]], OffsetsManager) = {
+    val manager = new OffsetsManager(ssc.sparkContext.getConf, kafkaParams)
+    (manager.createDStream[K, V](ssc, cache = true), manager)
   }
 }

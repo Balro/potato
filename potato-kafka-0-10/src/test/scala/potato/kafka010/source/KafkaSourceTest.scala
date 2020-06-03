@@ -26,7 +26,7 @@ class KafkaSourceTest {
 
     val ssc = new StreamingContext(conf, Seconds(10))
 
-    val (stream, _) = createDStreamWithOffsetsManager[String, String](ssc, kafkaParams)
+    val stream = createDStream[String, String](ssc, kafkaParams)
 
     val a = ssc.sparkContext.longAccumulator("test")
 

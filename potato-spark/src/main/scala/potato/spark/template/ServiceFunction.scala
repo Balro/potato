@@ -2,7 +2,6 @@ package potato.spark.template
 
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.StreamingContext
-import potato.common.utils.JVMCleanUtil
 import potato.spark.service.{Service, ServiceManager}
 
 trait ServiceFunction {
@@ -26,11 +25,6 @@ trait ServiceFunction {
      * 停止附加服务后停止包装对象。
      */
     def stopWithService: T
-
-    /**
-     * 注册清理方法，在jvm退出时停止注册服务和包装对象。
-     */
-    def stopWithServiceWhenShutdown: T
   }
 
   class ContextWithService(sc: SparkContext) extends WithService[SparkContext] {
@@ -42,11 +36,6 @@ trait ServiceFunction {
     override def stopWithService: SparkContext = {
       serviceManager.stop()
       sc.stop()
-      sc
-    }
-
-    override def stopWithServiceWhenShutdown: SparkContext = {
-      JVMCleanUtil.cleanWhenShutdown("Stop sc when shutdown.", () => stopWithService)
       sc
     }
   }
@@ -62,11 +51,6 @@ trait ServiceFunction {
     override def stopWithService: StreamingContext = {
       serviceManager.stop()
       ssc.stop()
-      ssc
-    }
-
-    override def stopWithServiceWhenShutdown: StreamingContext = {
-      JVMCleanUtil.cleanWhenShutdown("Stop ssc when shutdown.", () => stopWithService)
       ssc
     }
   }

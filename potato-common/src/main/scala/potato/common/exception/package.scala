@@ -7,3 +7,5 @@ case class ConfigException(msg: String = null, throwable: Throwable = null) exte
 case class ConfigNotFoundException(msg: String = null, throwable: Throwable = null) extends PotatoException(msg, throwable)
 
 case class ArgParseException(msg: String = null, throwable: Throwable = null) extends PotatoException(msg, throwable)
+
+case class MethodNotAllowedException(msg: String = null, throwable: Throwable = null) extends PotatoException(msg, throwable)

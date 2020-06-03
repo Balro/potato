@@ -17,7 +17,7 @@ module_run() {
   while [ $# -gt 0 ]; do
     case "$1" in
     "--file-merge")
-      main_class=
+      main_class="potato.hadoop.cmd.FileMergeCli"
       exit 0
       ;;
     "--conf")

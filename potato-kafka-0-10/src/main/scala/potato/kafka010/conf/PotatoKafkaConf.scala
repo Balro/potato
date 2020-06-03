@@ -31,6 +31,7 @@ class PotatoKafkaConf(conf: SparkConf, kafkaProps: Map[String, String] = Map.emp
 
   lazy val bootstrapServers: String = commonProps(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG)
   lazy val groupId: String = consumerProps(ConsumerConfig.GROUP_ID_CONFIG)
+  lazy val offsetResetEnable: Boolean = consumerProps.getOrElse(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, POTATO_KAFKA_CONSUMER_OFFSET_RESET_DEFAULT) != "none"
   lazy val offsetResetPolicy: String = consumerProps.getOrElse(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, POTATO_KAFKA_CONSUMER_OFFSET_RESET_DEFAULT)
   lazy val keyDeserializer: String = consumerProps.getOrElse(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, POTATO_KAFKA_CONSUMER_KEY_DESERIALIZER_DEFAULT)
   lazy val valueDeserializer: String = consumerProps.getOrElse(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, POTATO_KAFKA_CONSUMER_VALUE_DESERIALIZER_DEFAULT)

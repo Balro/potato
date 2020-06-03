@@ -35,7 +35,7 @@ class StreamingBacklogMonitorServiceTest {
       }
     })
 
-    service.startAndStopOnJVMExit()
+    service.startAndStopWhenShutdown()
 
     ssc.start()
     queue.+=(ssc.sparkContext.parallelize(Seq(System.currentTimeMillis())))

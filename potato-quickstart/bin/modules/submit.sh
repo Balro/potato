@@ -17,13 +17,13 @@ EOF
 }
 
 find_main_class_on_prop_file() {
-  export_prop "$prop_file" spark.potato.submit.main.class main_class
+  export_prop "$prop_file" spark.potato.main.class main_class
 }
 
 find_main_jar_on_lib_dir() {
   local base_dir="$POTATO_HOME"
   test "$POTATO_CLIENT_HOME" && base_dir="$POTATO_CLIENT_HOME"
-  export_prop "$prop_file" spark.potato.submit.main.jar jar_name "not_found"
+  export_prop "$prop_file" spark.potato.main.jar jar_name "not_found"
   test "$jar_name" == "not_found" && jar_name="$(basename "$base_dir").jar"
   test -r "$base_dir/lib/$jar_name" && export main_jar="$base_dir/lib/$jar_name" || {
     echo "main jar not found" >&2
@@ -41,6 +41,7 @@ submit_app() {
 
   append_dep_jars "$POTATO_LIB_DIR" && spark_run="$spark_run --jars $DEP_JARS"
 
+  # main_class优先级，-c参数 > 配置文件的spark.potato.main.class参数 > main_jar的Meta值。
   test "$main_class" || find_main_class_on_prop_file && spark_run="$spark_run --class $main_class"
 
   if [ "$main_jar" ]; then

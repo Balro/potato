@@ -22,7 +22,7 @@ object KafkaConsumerOffsetsUtil {
    *
    * @param reset 是否进行重置。
    */
-  def validatedOffsets(props: Properties, pos: Map[TopicPartition, Long], reset: Boolean = true): Map[TopicPartition, Long] = {
+  def validatedOffsets(props: Properties, pos: Map[TopicPartition, Long], reset: Boolean = false): Map[TopicPartition, Long] = {
     val aps = getTopicsPartition(props, pos.groupBy(_._1.topic()).keySet)
     val ps = pos.keySet
     val earliest: Map[TopicPartition, Long] = getEarliestOffsets(props, aps)
@@ -119,19 +119,25 @@ object KafkaConsumerOffsetsUtil {
     }
   }
 
-  def getTopicsPartition(props: Properties, topics: Set[String] = Set.empty): Set[TopicPartition] = {
-    getTopicsInfo(props, topics).map(f => new TopicPartition(f.topic(), f.partition()))
+  def getTopicsPartition(props: Properties, topics: Set[String]): Set[TopicPartition] = {
+    getTopicsInfo(props, topics).flatMap(_._2.map(f => new TopicPartition(f.topic(), f.partition()))).toSet
   }
 
   /**
-   * 获取给定topic的信息，如topics未指定货为空，则获取全部topic的信息。
+   * 获取给定topic的信息。
    */
-  def getTopicsInfo(props: Properties, topics: Set[String] = Set.empty): Set[PartitionInfo] = {
+  def getTopicsInfo(props: Properties, topics: Set[String]): Map[String, Set[PartitionInfo]] = {
+    getAllTopicsInfo(props).filter(f => topics.contains(f._1))
+  }
+
+  /**
+   * 获取全部topic的信息。
+   */
+  def getAllTopicsInfo(props: Properties): Map[String, Set[PartitionInfo]] = {
     withConsumer(props) { consumer =>
-      if (topics.isEmpty)
-        consumer.listTopics().flatMap(f => f._2).toSet
-      else
-        consumer.listTopics().filter(f => topics.contains(f._1)).flatMap(f => f._2).toSet
+      consumer.listTopics().map { f =>
+        f._1 -> f._2.toSet
+      }.toMap
     }
   }
 

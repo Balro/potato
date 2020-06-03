@@ -1,24 +1,36 @@
 package potato.kafka010.offsets.manager
 
 import java.util.Properties
+import java.util.concurrent.atomic.AtomicBoolean
 
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.{KafkaException, TopicPartition}
 import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
-import org.apache.spark.streaming.kafka010.OffsetRange
+import org.apache.spark.streaming.{StreamingContext, Time}
+import org.apache.spark.streaming.dstream.DStream
+import org.apache.spark.streaming.kafka010.{ConsumerStrategies, HasOffsetRanges, KafkaUtils, LocationStrategies, OffsetRange}
+import potato.common.exception.MethodNotAllowedException
 import potato.kafka010.conf._
 import potato.kafka010.offsets.storage._
 import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
+import potato.kafka010.offsets.listener.OffsetsUpdateListener
 
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 /**
  * KafkaOffsets 管理工具。提供offsets基本管理功能。
  *
- * @param conf 专用配置类，对SparkConf进行了简单包装，便于访问。
+ * // * @param conf 专用配置类，对SparkConf进行了简单包装，便于访问。
  */
-class OffsetsManager(conf: SparkConf, kafkaParams: Map[String, String] = Map.empty) extends Logging {
-  val kafkaConf = new PotatoKafkaConf(conf, kafkaParams)
+class OffsetsManager(val kafkaConf: PotatoKafkaConf) extends Logging {
+
+  def this(conf: SparkConf, kafkaParams: Map[String, String] = Map.empty) {
+    this(new PotatoKafkaConf(conf, kafkaParams))
+  }
+
+  //  val kafkaConf = new PotatoKafkaConf(conf, kafkaParams)
   val consumerProps: Properties = kafkaConf.toConsumerProperties
 
   // 初始化offsets存储。
@@ -34,8 +46,21 @@ class OffsetsManager(conf: SparkConf, kafkaParams: Map[String, String] = Map.emp
     case unknown => throw new KafkaException(s"storage type not supported: $unknown")
   }
 
-  // 初始化topic订阅信息。
-  private[offsets] val subscriptions: Set[TopicPartition] = KafkaConsumerOffsetsUtil.getTopicsInfo(consumerProps, kafkaConf.subscribeTopics).map(f => new TopicPartition(f.topic(), f.partition()))
+  private val dStreamCreated = new AtomicBoolean(false)
+
+  private[offsets] var subscriptions: Set[TopicPartition] = KafkaConsumerOffsetsUtil.getTopicsPartition(consumerProps, kafkaConf.subscribeTopics)
+
+  def subscribePartetion(parts: Set[TopicPartition]): OffsetsManager = this.synchronized {
+    if (dStreamCreated.get()) throw MethodNotAllowedException(s"Subscribe is not allowed when dstream created.")
+    subscriptions = parts
+    this
+  }
+
+  def subscribeTopic(tpcs: Set[String]): OffsetsManager = this.synchronized {
+    if (dStreamCreated.get()) throw MethodNotAllowedException(s"Subscribe is not allowed when dstream created.")
+    subscriptions = KafkaConsumerOffsetsUtil.getTopicsPartition(consumerProps, tpcs)
+    this
+  }
 
   logInfo(s"OffsetsManager initialized: groupId -> ${kafkaConf.groupId}, storage -> $storage, " +
     s"subscriptions -> $subscriptions")
@@ -57,10 +82,10 @@ class OffsetsManager(conf: SparkConf, kafkaParams: Map[String, String] = Map.emp
    *
    * @param reset 如已提交的offsets不再可用offsets范围内，是否重置。
    */
-  def committedOffsets(reset: Boolean = true): Map[TopicPartition, Long] = {
+  def committedOffsets(reset: Boolean = false): Map[TopicPartition, Long] = {
     val loaded = storage.load(kafkaConf.groupId, subscriptions)
     val ret = if (reset)
-      KafkaConsumerOffsetsUtil.validatedOffsets(consumerProps, loaded)
+      KafkaConsumerOffsetsUtil.validatedOffsets(consumerProps, loaded, reset = true)
     else
       loaded
     logInfo(s"Get committedOffsets -> $ret")
@@ -79,8 +104,7 @@ class OffsetsManager(conf: SparkConf, kafkaParams: Map[String, String] = Map.emp
    * 获取给定分区的延迟。
    */
   def getLag(tps: Set[TopicPartition] = subscriptions): Map[TopicPartition, Long] = {
-    val cur = committedOffsets(false)
-    println(s"cur $cur")
+    val cur = committedOffsets()
     KafkaConsumerOffsetsUtil.getLatestOffsets(consumerProps, tps).map { f =>
       f._1 -> (f._2 - cur(f._1))
     }
@@ -102,24 +126,71 @@ class OffsetsManager(conf: SparkConf, kafkaParams: Map[String, String] = Map.emp
   /**
    * 更新offsets。
    */
-  def updateOffsets(offsets: Map[TopicPartition, Long]): Unit = {
+  def updateOffsets(offsets: Map[TopicPartition, Long]): Unit = this.synchronized {
     storage.save(kafkaConf.groupId, offsets)
     logInfo(s"Offsets updated, groupId -> ${kafkaConf.groupId}, offsets -> $offsets")
   }
 
   /**
-   * 根据延迟更新offsets。
+   * 在offsets缓存中，查找所有 key <= time - delay 的offsets，并按序提交。
    *
-   * @param time  当前计算rdd的生成时间。
-   * @param delay 提交offsets的延后时间，会在offsetsCache中扫描所有时间戳小于 (time - delay) 的offsets并依次提交。
+   * @param time  当前批次的生成时间。
+   * @param delay 提交offsets的延后时间。
    */
-  def updateOffsetsByDelay(time: Long, delay: Long = kafkaConf.offsetsStorageUpdateDelay): Unit = {
+  def updateOffsetsByTime(time: Long, delay: Long = kafkaConf.offsetsStorageUpdateDelay): Unit = this.synchronized {
     logInfo(s"Start update offsets by:time -> $time, delay -> $delay")
-    while (offsetsCache.nonEmpty && time - offsetsCache.head._1 >= delay) {
+    while (offsetsCache.nonEmpty && offsetsCache.head._1 <= time - delay) {
       val head = offsetsCache.head
       updateOffsets(head._2)
       offsetsCache -= head._1
       logInfo(s"Updated offsets -> $head")
     }
+  }
+
+  /**
+   * 对给定kafka流处理对应批次的offsets。
+   */
+  def mapOffsets[T: ClassTag](stream: DStream[T], f: (Time, Array[OffsetRange]) => Unit): DStream[T] = {
+    stream.transform { (rdd, time) =>
+      f(time, rdd.asInstanceOf[HasOffsetRanges].offsetRanges)
+      rdd
+    }
+  }
+
+  /**
+   * 使用给定offsets创建流。
+   *
+   * @param reset      是否对给定的offsets进行检查重置。
+   * @param cache      是否将每批次的offsets缓存到OffsetsManager，缓存offsets可用于控制提交。
+   *                   默认读取配置中的[[POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY]]决定。
+   * @param autoUpdate 是否在每批次执行完毕后自动提交offsets，启用此参数时会忽略cache参数，强制缓存offsets并在offsets提交后清理对应缓存。
+   *                   如配置为false，则提交offsets时需要调用[[updateOffsetsByTime]]。
+   *                   默认读取配置中的[[POTATO_KAFKA_OFFSETS_STORAGE_AUTO_UPDATE_KEY]]决定。
+   */
+  def createDStream[K, V](
+                           ssc: StreamingContext, offsets: Map[TopicPartition, Long] = committedOffsets(),
+                           reset: Boolean = kafkaConf.offsetResetEnable,
+                           autoUpdate: Boolean = kafkaConf.offsetsStorageAutoUpdate,
+                           cache: Boolean = false
+                         ): DStream[ConsumerRecord[K, V]] = this.synchronized {
+    assert(offsets.nonEmpty, "No partition assigned.")
+    if (dStreamCreated.get()) throw MethodNotAllowedException(s"DStream not allowed to create twice.")
+    dStreamCreated.set(true)
+    val stream = KafkaUtils.createDirectStream[K, V](ssc,
+      LocationStrategies.PreferConsistent,
+      ConsumerStrategies.Assign[K, V](offsets.keySet, kafkaConf.consumerProps, {
+        if (reset)
+          KafkaConsumerOffsetsUtil.validatedOffsets(kafkaConf.toConsumerProperties, offsets, reset = true)
+        else
+          offsets
+      })
+    )
+    if (autoUpdate) {
+      ssc.addStreamingListener(new OffsetsUpdateListener(this))
+    }
+    if (autoUpdate || cache)
+      mapOffsets(stream, (time, offsets) => cacheOffsets(time.milliseconds, offsets))
+    else
+      stream
   }
 }

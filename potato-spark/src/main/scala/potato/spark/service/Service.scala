@@ -29,6 +29,7 @@ trait Service extends Logging {
     } else {
       start()
       started.set(true)
+      logInfo(s"Service $this started.")
     }
     this
   }
@@ -41,6 +42,7 @@ trait Service extends Logging {
   def checkAndStop(): Service = this.synchronized {
     if (started.get()) {
       stop()
+      logInfo(s"Service $this stopped.")
       started.set(false)
     } else {
       logWarning(s"Service $this already stopped.")
@@ -67,7 +69,7 @@ trait Service extends Logging {
   /**
    * 快捷方法，启动服务同时盗用stopOnJVMExit()方法。
    */
-  def startAndStopOnJVMExit(): Unit = {
+  def startAndStopWhenShutdown(): Unit = {
     checkAndStart()
     stopOnJVMExit()
   }

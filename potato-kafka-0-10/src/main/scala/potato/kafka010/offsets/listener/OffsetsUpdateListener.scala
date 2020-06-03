@@ -19,7 +19,7 @@ class OffsetsUpdateListener(manager: OffsetsManager) extends StreamingListener w
       _._2.failureReason.isDefined
     }
     if (errs.isEmpty) {
-      manager.updateOffsetsByDelay(batchCompleted.batchInfo.batchTime.milliseconds)
+      manager.updateOffsetsByTime(batchCompleted.batchInfo.batchTime.milliseconds)
       logInfo(s"Update offsets on batch completed.")
     } else {
       logWarning(s"Update offsets on batch ${batchCompleted.batchInfo.batchTime.milliseconds} failed " +

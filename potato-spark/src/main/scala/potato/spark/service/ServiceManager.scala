@@ -92,7 +92,7 @@ class ServiceManager extends Logging {
   }
 
   /**
-   * 通过服务实例注册服务。
+   * 通过服务实例注册服务，同时注册服务停止方法到shutdown hook。
    */
   def registerByInstance(id: String, service: Service): Service = this.synchronized {
     if (services.contains(id)) throw ServiceAlreadyRegisteredException(s"Service $id already registered, please check.")
@@ -102,7 +102,7 @@ class ServiceManager extends Logging {
       case serv: StreamingService => serv.serve(ssc)
       case unknwon => throw UnknownServiceException(s"Unknown service $id:${unknwon.getClass}")
     }
-    service.startAndStopOnJVMExit()
+    service.startAndStopWhenShutdown()
     services += (id -> service)
     logInfo(s"Service $id:${service.getClass} successfully registered.")
     service

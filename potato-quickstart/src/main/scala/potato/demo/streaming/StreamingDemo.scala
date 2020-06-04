@@ -1,4 +1,4 @@
-package quickstart.streaming
+package potato.demo.streaming
 
 import java.util.Date
 import java.util.concurrent.TimeUnit

@@ -5,7 +5,7 @@ export module_name="hadoop"
 module_usage() {
   cat <<EOF
 Usage:
-  $(basename "$0") hadoop <opts>
+  $(basename "$0") hadoop <opts> [main jar args]
 
 opts:
   --file-merge <args>  file merge function.

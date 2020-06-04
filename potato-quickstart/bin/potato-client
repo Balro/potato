@@ -1,23 +1,20 @@
 #!/usr/bin/env bash
-POTATO_CLIENT_VERSION=0.2.0-SNAPSHOT
-# potato-client只是一个指向potato脚本的一个链接。
+# potato-client只是一个指向potato脚本的一个链接，便于客户端快速调用potato脚本。
 # 使用的potato脚本优先顺序如下:
 #   1. potato-client上级目录的bin/potato。
 #   2. 系统POTATO_HOME变量下的bin/potato。
 #   3. 系统path下搜索到的potato。
 
-# export SPARK_BIN=spark-submit
-
-source_env() {
+source_client_env() {
   test -r /etc/profile && source /etc/profile
   test -r ~/.bash_profile && source ~/.bash_profile
 
-  POTATO_CLIENT_HOME=$(cd -P "$(dirname $0)/../" && pwd || exit 1)
+  POTATO_CLIENT_HOME=$(cd -P "$(dirname "$0")/../" && pwd || exit 1)
   export POTATO_CLIENT_HOME
   export POTATO_CLIENT_BIN_DIR="$POTATO_CLIENT_HOME/bin"
   export POTATO_CLIENT_LIB_DIR="$POTATO_CLIENT_HOME/lib"
-  export POTATO_CLIENT_LOG_DIR="$POTATO_CLIENT_HOME/logs"
 
+  # 定位 POTATO_HOME，等同于使用potato脚本的上级目录，优先级参照使用potato的脚本优先级。
   if [ -x "$POTATO_CLIENT_BIN_DIR/potato" ]; then
     export POTATO_HOME="$POTATO_CLIENT_HOME"
   elif [ "$POTATO_HOME" ]; then
@@ -32,19 +29,19 @@ source_env() {
     exit 1
   fi
 
+  # 如果POTATO_HOME与POTATO_CLIENT_HOME不同，则需要启用POTATO_CLIENT_MODE。
   if [ "$POTATO_CLIENT_HOME" != "$POTATO_HOME" ]; then
-    source "$POTATO_HOME/bin/potato"
-    test "$POTATO_VERSION" != "$POTATO_CLIENT_VERSION" && {
-      echo "version not match, potato version $POTATO_VERSION, client version $POTATO_CLIENT_VERSION" >&2
-      exit 1
-    }
-    export POTATO_LOG_DIR="$POTATO_CLIENT_LOG_DIR"
-    append_dep_jars "$POTATO_CLIENT_LIB_DIR"
+    export POTATO_CLIENT_MODE=1
+    # 是否优先加载客户端包。
+    export POTATO_CLIENT_JAR_FIRST=0
+  else
+    export POTATO_CLIENT_MODE=0
   fi
+
 }
 
 main() {
-  source_env
+  source_client_env
   "$POTATO_HOME/bin/potato" "$@"
 }
 

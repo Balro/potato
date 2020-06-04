@@ -1,4 +1,4 @@
-package quickstart.batch
+package potato.demo.batch
 
 import potato.spark.template._
 

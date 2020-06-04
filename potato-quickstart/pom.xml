@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>potato</groupId>
+    <groupId>quickstart</groupId>
     <artifactId>potato-quickstart</artifactId>
     <version>0.2.0-SNAPSHOT</version>
 
@@ -23,6 +23,7 @@
         <scala.version>${scala.binary.version}.12</scala.version>
         <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
         <spark.version>2.2.0.cloudera2</spark.version>
+        <potato.version>0.2.0-SNAPSHOT</potato.version>
     </properties>
 
     <profiles>
@@ -32,6 +33,9 @@
                 <potato.scope>provided</potato.scope>
                 <assembly.descriptor>src/assembly/default.xml</assembly.descriptor>
             </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
         </profile>
         <profile>
             <id>fat</id>
@@ -44,43 +48,32 @@
             <id>server</id>
             <properties>
                 <assembly.descriptor>src/assembly/server.xml</assembly.descriptor>
+                <potato.scope>compile</potato.scope>
             </properties>
             <dependencies>
                 <dependency>
                     <groupId>potato</groupId>
                     <artifactId>potato-common</artifactId>
-                    <version>${project.version}</version>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>potato</groupId>
                     <artifactId>potato-hadoop</artifactId>
-                    <version>${project.version}</version>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>potato</groupId>
                     <artifactId>potato-hbase</artifactId>
-                    <version>${project.version}</version>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>potato</groupId>
                     <artifactId>potato-hive</artifactId>
-                    <version>${project.version}</version>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>potato</groupId>
                     <artifactId>potato-kafka-0-10</artifactId>
-                    <version>${project.version}</version>
-                    <scope>compile</scope>
                 </dependency>
                 <dependency>
                     <groupId>potato</groupId>
                     <artifactId>potato-spark</artifactId>
-                    <version>${project.version}</version>
-                    <scope>compile</scope>
                 </dependency>
             </dependencies>
             <build>
@@ -140,14 +133,53 @@
         <dependency>
             <groupId>potato</groupId>
             <artifactId>potato-spark</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>potato</groupId>
             <artifactId>potato-kafka-0-10</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-common</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-hadoop</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-hbase</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-hive</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-kafka-0-10</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-spark</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>

@@ -1,4 +1,4 @@
-package quickstart.streaming
+package potato.demo.streaming
 
 import potato.kafka010.source._
 import potato.spark.template._

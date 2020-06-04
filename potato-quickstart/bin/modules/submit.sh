@@ -16,47 +16,18 @@ opts-optional:
 EOF
 }
 
-find_main_class_on_prop_file() {
-  export_prop "$prop_file" spark.potato.main.class main_class
-}
-
-find_main_jar_on_lib_dir() {
-  local base_dir="$POTATO_HOME"
-  test "$POTATO_CLIENT_HOME" && base_dir="$POTATO_CLIENT_HOME"
-  export_prop "$prop_file" spark.potato.main.jar jar_name "not_found"
-  test "$jar_name" == "not_found" && jar_name="$(basename "$base_dir").jar"
-  test -r "$base_dir/lib/$jar_name" && export main_jar="$base_dir/lib/$jar_name" || {
-    echo "main jar not found" >&2
-    exit 1
-  }
-}
-
 submit_app() {
-  local spark_run="$SPARK_BIN"
-
-  test -r "$prop_file" && spark_run="$spark_run --properties-file $prop_file" || {
-    echo "prop_file $prop_file not available" >&2
-    exit 1
+  test "$POTATO_PROP_FILE" || {
+    echo "No prop file specified." >&2
+    return 1
   }
 
-  append_dep_jars "$POTATO_LIB_DIR" && spark_run="$spark_run --jars $DEP_JARS"
+  append_all_jars
 
-  # main_class优先级，-c参数 > 配置文件的spark.potato.main.class参数 > main_jar的Meta值。
-  test "$main_class" || find_main_class_on_prop_file && spark_run="$spark_run --class $main_class"
+  test "$POTATO_MAIN_CLASS" || export_main_class_from_prop_file
+  test "$POTATO_MAIN_JAR" || export_main_jar_from_prop_file || export_main_jar_from_dir
 
-  if [ "$main_jar" ]; then
-    test -r "$main_jar" || {
-      echo "main_jar $main_jar not available" >&2
-      exit 1
-    }
-  else
-    find_main_jar_on_lib_dir
-  fi
-  spark_run="$spark_run $main_jar"
-
-  test "$spark_conf" && spark_run="$spark_run $spark_conf"
-
-  $spark_run "$@"
+  potato_submit "$@"
 }
 
 module_run() {
@@ -68,19 +39,19 @@ module_run() {
       ;;
     "-p" | "--prop-file")
       shift
-      prop_file="$1"
+      export POTATO_PROP_FILE="$1"
       ;;
     "-c" | "--class")
       shift
-      main_class="$1"
+      export POTATO_MAIN_CLASS="$1"
       ;;
     "-j" | "--jar")
       shift
-      main_jar="$1"
+      export POTATO_MAIN_JAR="$1"
       ;;
     "--conf")
       shift
-      spark_conf="$spark_conf --conf $1"
+      POTATO_SPARK_CONF="$POTATO_SPARK_CONF --conf $1"
       ;;
     *)
       break

@@ -46,7 +46,7 @@ object HDFSUtil extends Logging {
    * @param compression     写出文件时使用的压缩格式。
    */
   def merge(spark: SparkSession, source: String, target: String, sourceFormat: String, targetFormat: String,
-            partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 100,
+            partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 20,
             readerOptions: Map[String, String] = Map.empty,
             writerOptions: Map[String, String] = Map.empty,
             compression: String = "snappy"): Array[String] = {
@@ -84,6 +84,7 @@ object HDFSUtil extends Logging {
       implicit val executor: ExecutionContext = ExecutionContext.fromExecutor(
         Executors.newFixedThreadPool(maxParallel, DaemonThreadFactory)
       )
+      spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0) // 对每个分区单独配置分布式作业进行扫描。
       val partitionDF = spark.createDataFrame(spark.sparkContext.makeRDD(partitionRow), partitionSpec.partitionColumns)
       // 过滤分区。
       val filteredPartitionDF = if (partitionFilter == null) partitionDF else partitionDF.where(partitionFilter)
@@ -183,18 +184,20 @@ object HDFSUtil extends Logging {
    * * * 使用分布式作业可以大大提高文件查找效率。
    * * 2. 根据获取的全部子路径，使用[[org.apache.spark.sql.execution.datasources.PartitioningUtils]]来解析为具体的分区信息。
    *
-   * @param spark        sparksession实例。
-   * @param format       sparksession.read.format(source:String)支持的文件格式。
-   * @param path         需要解析的文件或目录。
-   * @param ppdThreshold 允许在driver端解析的路径数量限制，超过该限制会启动并发作业解析schema，可以大大提高解析速度。
-   *                     如果设置为0，由于内部循环调用的bug，会导致直接提交一个并行度的作业，等效于driver端分析。
-   * @param options      用于提供给DataSource的配置，等同于sparksession.read.option(key:String,value:String)支持的参数。
+   * @param spark   sparksession实例。
+   * @param format  sparksession.read.format(source:String)支持的文件格式。
+   * @param path    需要解析的文件或目录。
+   * @param ppdt    允许在driver端解析的路径数量限制，超过该限制会启动并发作业解析schema，可以大大提高解析速度。
+   *                如果设置为0，由于内部循环调用的bug，会导致直接提交一个并行度的作业，等效于driver端分析。
+   * @param ppdp    分布式作业扫描目录时的最大并发数，限制此参数用于在存在大量碎文件的情况下，避免给namenode太大压力。
+   * @param options 用于提供给DataSource的配置，等同于sparksession.read.option(key:String,value:String)支持的参数。
    * @return (dataSchema,partitionSchema)
    */
   def getFileSchema(spark: SparkSession, format: String, path: String,
-                    ppdThreshold: Int = 1,
+                    ppdt: Int = 1, ppdp: Int = 20,
                     options: Map[String, String] = Map.empty): (StructType, StructType) = {
-    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, ppdThreshold)
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, ppdt)
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_PARALLELISM.key, ppdt)
     val source = DataSource(spark, paths = Seq(path), className = format, options = options)
     val method = source.getClass.getDeclaredMethod("getOrInferFileFormatSchema", classOf[FileFormat], classOf[FileStatusCache])
     method.setAccessible(true)

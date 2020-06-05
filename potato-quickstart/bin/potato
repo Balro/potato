@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 export SPARK_BIN=spark2-submit
+export SPARK_ARGS=""
 
 usage() {
   cat <<EOF
@@ -149,7 +150,7 @@ export_main_jar_from_dir() {
 
 # 提交作业到spark-submit。
 potato_submit() {
-  local spark_run="$SPARK_BIN"
+  local spark_run="$SPARK_BIN $SPARK_ARGS"
 
   test "$POTATO_PROP_FILE" && spark_run="$spark_run --properties-file $POTATO_PROP_FILE"
   test "$POTATO_DEP_JARS" && spark_run="$spark_run --jars $POTATO_DEP_JARS"

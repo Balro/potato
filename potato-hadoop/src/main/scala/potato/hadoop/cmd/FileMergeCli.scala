@@ -38,12 +38,15 @@ object FileMergeCli extends CommonCliBase {
     optBuilder().longOpt("parallelism")
       .desc("Equals spark conf: spark.default.parallelism. Default: 1.").hasArg
       .add()
+    optBuilder().longOpt("path-discover-parallelism")
+      .desc(s"Equals spark conf: ${SQLConf.PARALLEL_PARTITION_DISCOVERY_PARALLELISM.key}. Default: 20.").hasArg
+      .add()
     optBuilder().longOpt("max-partition-bytes")
       .desc(s"Equals spark conf: ${SQLConf.FILES_MAX_PARTITION_BYTES.key}. Default: ${SQLConf.FILES_MAX_PARTITION_BYTES.defaultValue.get}")
       .hasArg
       .add()
     optBuilder().longOpt("file-open-cost")
-      .desc(s"Equals spark conf: ${SQLConf.FILES_OPEN_COST_IN_BYTES.key}. Default: 0.").hasArg
+      .desc(s"Equals spark conf: ${SQLConf.FILES_OPEN_COST_IN_BYTES.key}. Default: 1m.").hasArg
       .add()
     optBuilder().longOpt("hadoop-conf")
       .desc("Configs add to hadoop Configuration. e.g. --hadoop-conf key1 value1 --hadoop-conf key2 value2")
@@ -76,9 +79,15 @@ object FileMergeCli extends CommonCliBase {
     import scala.collection.JavaConversions.propertiesAsScalaMap
     val conf = new SparkConf()
     conf.set("spark.default.parallelism", cmd.getOptionValue("parallelism", "1"))
-    conf.set(SQLConf.FILES_MAX_PARTITION_BYTES.key, cmd.getOptionValue("max-partition-bytes", "134217728"))
-    conf.set(SQLConf.FILES_OPEN_COST_IN_BYTES.key, cmd.getOptionValue("file-open-cost", "0"))
-    conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, "1")
+    conf.set(SQLConf.FILES_MAX_PARTITION_BYTES.key, cmd.getOptionValue("max-partition-bytes", (128 * 1024 * 1024).toString))
+    conf.set(SQLConf.FILES_OPEN_COST_IN_BYTES.key, cmd.getOptionValue("file-open-cost", (1024 * 1024).toString))
+    conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 1.toString)
+
+    handleValue("path-discover-parallelism", value => {
+      conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_PARALLELISM.key, value)
+    }, () => {
+      conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_PARALLELISM.key, 20.toString)
+    })
 
     handleValues("spark-conf", _.foreach { f =>
       val kv = f.split("=")

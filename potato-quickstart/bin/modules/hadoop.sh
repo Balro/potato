@@ -1,6 +1,7 @@
 #!/bin/echo
 
 export module_name="hadoop"
+export POTATO_MAIN_JAR=$POTATO_HOME/lib/potato-hadoop-0.2.0-SNAPSHOT.jar
 
 module_usage() {
   cat <<EOF
@@ -17,12 +18,11 @@ module_run() {
   while [ $# -gt 0 ]; do
     case "$1" in
     "--file-merge")
-      main_class="potato.hadoop.cmd.FileMergeCli"
-      exit 0
+      export POTATO_MAIN_CLASS="potato.hadoop.cmd.FileMergeCli"
       ;;
     "--conf")
       shift
-      spark_conf="$spark_conf --conf $1"
+      export POTATO_SPARK_CONF="$POTATO_SPARK_CONF --conf $1"
       ;;
     *)
       break
@@ -30,5 +30,8 @@ module_run() {
     esac
     shift
   done
-  submit_app "$@" || module_usage
+
+  append_dep_jars "$POTATO_LIB_DIR"
+
+  (test "$POTATO_MAIN_CLASS" && potato_submit "$@") || module_usage
 }

@@ -49,14 +49,14 @@ object HDFSUtil extends Logging {
             partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 100,
             readerOptions: Map[String, String] = Map.empty,
             writerOptions: Map[String, String] = Map.empty,
-            compression: String = "snappy"): Unit = {
+            compression: String = "snappy"): Array[String] = {
     implicit def str2Path(str: String): Path = new Path(str)
     // 不生成_SUCCESS文件。
     spark.sparkContext.hadoopConfiguration.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false)
     // 验证服务端是否开启回收站，如服务端未开启回收站，则会抛出异常。
     spark.sparkContext.hadoopConfiguration.setInt("fs.trash.interval", 1)
 
-    val fs = FileSystem.get(spark.sparkContext.hadoopConfiguration)
+    val fs = FileSystem.newInstance(spark.sparkContext.hadoopConfiguration)
     val tmpDir = s"${target.stripSuffix("/")}_merge_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
     if (fs.exists(tmpDir)) throw new PotatoException(s"Tmp dir exists $tmpDir")
 
@@ -69,14 +69,16 @@ object HDFSUtil extends Logging {
       })
     }
 
-    if (partitionRow.isEmpty) { // 非分区路径。
+    val mergedPath = if (partitionRow.isEmpty) { // 非分区路径。
       logInfo(s"No partition detected, start merge directory $target to tmp $tmpDir")
       sourceDF.write
         .mode(SaveMode.Append)
         .format(targetFormat)
         .options(writerOptions.+("compression" -> compression))
         .save(tmpDir)
-      if (!rename(fs, tmpDir, target, overwrite))
+      if (rename(fs, tmpDir, target, overwrite))
+        Array(target)
+      else
         throw new PotatoException(s"Failed to rename $tmpDir to $target.")
     } else { // 分区路径。
       implicit val executor: ExecutionContext = ExecutionContext.fromExecutor(
@@ -130,8 +132,10 @@ object HDFSUtil extends Logging {
       } else {
         throw new PotatoException(s"Some file is still in tmpDir $tmpDir, please check.")
       }
+      filteredPartFragment.map(f => s"$target/$f")
     }
     fs.close()
+    mergedPath
   }
 
   /**

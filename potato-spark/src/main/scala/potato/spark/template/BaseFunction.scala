@@ -17,4 +17,17 @@ trait BaseFunction {
   def createSSC(conf: SparkConf = createConf, dur: Long = -1): StreamingContext = StreamingUtil.createStreamingContext(conf, dur)
 
   def createSpark(conf: SparkConf = createConf): SparkSession = SparkSession.builder().config(conf).getOrCreate()
+
+  class SSCFunction(ssc: StreamingContext) {
+    def startAndWait(timeout: Long = 0): Unit = {
+      ssc.start()
+      if (timeout > 0)
+        ssc.awaitTerminationOrTimeout(timeout)
+      else
+        ssc.awaitTermination
+    }
+  }
+
+  implicit def toSSCFunction(ssc: StreamingContext): SSCFunction = new SSCFunction(ssc)
+
 }

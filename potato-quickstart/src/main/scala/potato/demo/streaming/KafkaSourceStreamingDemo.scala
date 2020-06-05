@@ -10,6 +10,6 @@ object KafkaSourceStreamingDemo extends FullTemplate {
     val source = createDStream[String, String](ssc, Map.empty[String, String])
     source.map(_.value).print()
     ssc.start()
-    ssc.awaitTermination()
+    ssc.awaitTerminationOrTimeout(60000)
   }
 }

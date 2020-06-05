@@ -15,7 +15,7 @@ class KafkaSourceTest {
       POTATO_KAFKA_OFFSETS_STORAGE_AUTO_UPDATE_KEY -> "true"
     ))
 
-    val kafkaParams = Map(
+    implicit val kafkaParams: Map[String, String] = Map(
       "bootstrap.servers" -> "test01:9092",
       "group.id" -> "ks_test_kafka",
       "key.deserializer" -> "org.apache.kafka.common.serialization.StringDeserializer",

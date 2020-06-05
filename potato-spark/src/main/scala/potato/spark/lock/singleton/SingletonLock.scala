@@ -70,7 +70,7 @@ class ZookeeperSingletonLock(lockService: SingletonLockService, quorum: String, 
       true
     } catch {
       case e: NodeExistsException =>
-        logWarning("Old lock exists.", e)
+        logWarning(s"Old lock exists, msg -> ${getMsg._2}", e)
         false
     }
   }

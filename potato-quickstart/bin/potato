@@ -130,7 +130,11 @@ export_main_jar_from_prop_file() {
 
 # 则根据POTATO_CLIENT_HOME目录导出POTATO_MAIN_JAR。
 export_main_jar_from_dir() {
-  test "$POTATO_CLIENT_MODE" -gt 0 && local base_dir="$POTATO_CLIENT_HOME" || local base_dir="$POTATO_HOME"
+  if [ "$POTATO_CLIENT_MODE" -gt 0 ]; then
+    local base_dir="$POTATO_CLIENT_HOME"
+  else
+    local base_dir="$POTATO_HOME"
+  fi
   POTATO_MAIN_JAR_NAME="$(basename "$base_dir").jar"
 
   if [ -f "$base_dir/lib/$POTATO_MAIN_JAR_NAME" ]; then

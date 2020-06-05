@@ -51,7 +51,7 @@ module_run() {
       ;;
     "--conf")
       shift
-      POTATO_SPARK_CONF="$POTATO_SPARK_CONF --conf $1"
+      export POTATO_SPARK_CONF="$POTATO_SPARK_CONF --conf $1"
       ;;
     *)
       break

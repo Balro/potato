@@ -30,7 +30,7 @@ object SingletonLockCli extends CommonCliBase {
     ).required().add()
     optBuilder().longOpt("id").hasArg.required
       .desc("App id, default is app name.").add()
-    optBuilder().longOpt("type").hasArg.required()
+    optBuilder().longOpt("type").hasArg.required
       .desc("Specify the lock type, support type is zookeeper.").add()
     optBuilder().longOpt("zoo-quorum").hasArg
       .desc("Zookeeper quorum which the zookeeper lock will use.").add()

@@ -31,7 +31,10 @@ class StreamingSingletonLockService extends SingletonLockService with StreamingS
 
   override def conf: SparkConf = sc.getConf
 
-  override def stop(): Unit = ssc.stop()
+  override def stop(): Unit = {
+    ssc.stop()
+    manager.release()
+  }
 
   /**
    * 初始化服务。
@@ -55,7 +58,10 @@ class ContextSingletonLockService extends SingletonLockService with ContextServi
 
   override def conf: SparkConf = sc.getConf
 
-  override def stop(): Unit = sc.stop()
+  override def stop(): Unit = {
+    sc.stop()
+    manager.release()
+  }
 
   /**
    * 初始化服务。

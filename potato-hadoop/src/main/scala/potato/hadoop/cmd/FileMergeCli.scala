@@ -39,7 +39,7 @@ object FileMergeCli extends CommonCliBase {
       .desc("Equals spark conf: spark.default.parallelism. Default: 1.").hasArg
       .add()
     optBuilder().longOpt("max-partition-bytes")
-      .desc(s"Equals spark conf: ${SQLConf.FILES_MAX_PARTITION_BYTES.key}. Default: ${SQLConf.FILES_MAX_PARTITION_BYTES.defaultValue}")
+      .desc(s"Equals spark conf: ${SQLConf.FILES_MAX_PARTITION_BYTES.key}. Default: ${SQLConf.FILES_MAX_PARTITION_BYTES.defaultValue.get}")
       .hasArg
       .add()
     optBuilder().longOpt("file-open-cost")
@@ -62,10 +62,10 @@ object FileMergeCli extends CommonCliBase {
       .numberOfArgs(2)
       .add()
     optBuilder().longOpt("compression")
-      .desc("Compression codec to compress outfiles, e.g. none/snappy/lz4 etc. Default: snappy.").hasArg()
+      .desc("Compression codec to compress outfiles, e.g. none/snappy/lz4 etc. Default: snappy.").hasArg
       .add()
     optBuilder().longOpt("max-job-parallelism")
-      .desc("Max concurrence job number. Default: 100.").hasArg()
+      .desc("Max concurrence job number. Default: 100.").hasArg
       .add()
   }
 
@@ -79,10 +79,16 @@ object FileMergeCli extends CommonCliBase {
     conf.set(SQLConf.FILES_MAX_PARTITION_BYTES.key, cmd.getOptionValue("max-partition-bytes", "134217728"))
     conf.set(SQLConf.FILES_OPEN_COST_IN_BYTES.key, cmd.getOptionValue("file-open-cost", "0"))
     conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, "0")
-    cmd.getOptionProperties("spark-conf").foreach(f => conf.set(f._1, f._2))
+
+    handleValues("spark-conf", _.foreach { f =>
+      val kv = f.split("=")
+      conf.set(kv(0), kv(1))
+    })
+
     val spark = SparkSession.builder().appName(cliName).config(conf).getOrCreate()
     cmd.getOptionProperties("hadoop-conf").foreach(f => spark.sparkContext.hadoopConfiguration.set(f._1, f._2))
-    HDFSUtil.merge(spark,
+    console("Merged paths:")
+    console(HDFSUtil.merge(spark,
       source = cmd.getOptionValue("source"),
       target = cmd.getOptionValue("target", cmd.getOptionValue("source")),
       sourceFormat = cmd.getOptionValue("source-format"),
@@ -92,6 +98,7 @@ object FileMergeCli extends CommonCliBase {
       readerOptions = cmd.getOptionProperties("reader-opts").toMap,
       writerOptions = cmd.getOptionProperties("reader-opts").toMap,
       compression = cmd.getOptionValue("compression", "snappy")
-    )
+    ).mkString("\n"))
+    spark.stop()
   }
 }

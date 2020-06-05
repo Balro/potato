@@ -72,7 +72,7 @@ class SingletonLockManager(lockService: SingletonLockService) extends Logging {
           logInfo("Get lock successfully.")
           return
         } else if (force) {
-          logWarning("Get lock failed, try force get lock.")
+          logWarning(s"Get lock failed, try clean old lock ${lock.getMsg._2}.")
           lock.clean()
           if (!lock.tryLock(createMsg)) {
             throw CannotGetSingletonLockException("Force get lock failed.")

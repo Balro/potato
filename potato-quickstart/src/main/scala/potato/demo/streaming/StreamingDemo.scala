@@ -21,6 +21,6 @@ object StreamingDemo extends FullTemplate {
       queue += ssc.sparkContext.makeRDD(Seq("test data: " + new Date().toString))
       TimeUnit.MILLISECONDS.sleep(stream.slideDuration.milliseconds)
     }
-    ssc.awaitTermination()
+    ssc.awaitTerminationOrTimeout(60000)
   }
 }

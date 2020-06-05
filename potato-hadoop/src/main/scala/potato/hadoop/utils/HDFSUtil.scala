@@ -187,11 +187,12 @@ object HDFSUtil extends Logging {
    * @param format       sparksession.read.format(source:String)支持的文件格式。
    * @param path         需要解析的文件或目录。
    * @param ppdThreshold 允许在driver端解析的路径数量限制，超过该限制会启动并发作业解析schema，可以大大提高解析速度。
+   *                     如果设置为0，由于内部循环调用的bug，会导致直接提交一个并行度的作业，等效于driver端分析。
    * @param options      用于提供给DataSource的配置，等同于sparksession.read.option(key:String,value:String)支持的参数。
    * @return (dataSchema,partitionSchema)
    */
   def getFileSchema(spark: SparkSession, format: String, path: String,
-                    ppdThreshold: Int = 0,
+                    ppdThreshold: Int = 1,
                     options: Map[String, String] = Map.empty): (StructType, StructType) = {
     spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, ppdThreshold)
     val source = DataSource(spark, paths = Seq(path), className = format, options = options)

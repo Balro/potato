@@ -78,15 +78,19 @@ object FileMergeCli extends CommonCliBase {
     conf.set("spark.default.parallelism", cmd.getOptionValue("parallelism", "1"))
     conf.set(SQLConf.FILES_MAX_PARTITION_BYTES.key, cmd.getOptionValue("max-partition-bytes", "134217728"))
     conf.set(SQLConf.FILES_OPEN_COST_IN_BYTES.key, cmd.getOptionValue("file-open-cost", "0"))
-    conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, "0")
+    conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, "1")
 
     handleValues("spark-conf", _.foreach { f =>
       val kv = f.split("=")
       conf.set(kv(0), kv(1))
     })
-
     val spark = SparkSession.builder().appName(cliName).config(conf).getOrCreate()
-    cmd.getOptionProperties("hadoop-conf").foreach(f => spark.sparkContext.hadoopConfiguration.set(f._1, f._2))
+
+    handleValues("hadoop-conf", _.foreach { f =>
+      val kv = f.split("=")
+      spark.sparkContext.hadoopConfiguration.set(kv(0), kv(1))
+    })
+
     console("Merged paths:")
     console(HDFSUtil.merge(spark,
       source = cmd.getOptionValue("source"),

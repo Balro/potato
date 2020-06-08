@@ -35,6 +35,9 @@ object FileMergeCli extends CommonCliBase {
     optBuilder().longOpt("partition-filter")
       .desc("Sql expression to filter partitions, like \"ymd=20200101 and type='a'\".").hasArg
       .add()
+    optBuilder().longOpt("no-partition")
+      .desc("Turn off partition awareness to improve performance. Only used for no partition path.").hasArg(false)
+      .add()
     optBuilder().longOpt("parallelism")
       .desc("Equals spark conf: spark.default.parallelism. Default: 1.").hasArg
       .add()
@@ -101,7 +104,7 @@ object FileMergeCli extends CommonCliBase {
     })
 
     console("Merged paths:")
-    console(HDFSUtil.merge(spark,
+    console(HDFSUtil.mergePartitionedPathV1(spark,
       source = cmd.getOptionValue("source"),
       target = cmd.getOptionValue("target", cmd.getOptionValue("source")),
       sourceFormat = cmd.getOptionValue("source-format"),

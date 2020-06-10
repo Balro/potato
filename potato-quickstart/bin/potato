@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-export SPARK_BIN=spark2-submit
-export SPARK_ARGS=""
+test "$SPARK_BIN" || export SPARK_BIN=spark2-submit
+export SPARK_ARGS="$SPARK_ARGS"
 
 usage() {
   cat <<EOF

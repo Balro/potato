@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.hdfs.HdfsConfiguration
 import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.internal.SQLConf
 import org.junit.Test
 import potato.hadoop.cmd.FileMergeCli
 
@@ -60,9 +61,18 @@ class HDFSUtilTest {
   @Test
   def mergePartitionedPathV1Test(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 1)
     println(HDFSUtil.mergePartitionedPathV1(spark, "/baluo_out", "/baluo_out",
       "parquet", "parquet", compression = "none"))
     TimeUnit.DAYS.sleep(1)
+  }
 
+  @Test
+  def mergePartitionedPathV2Test(): Unit = {
+    val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 1)
+    println(HDFSUtil.mergePartitionedPathV2(spark, "/baluo_out", "/baluo_out",
+      "parquet", "parquet", intermediateCompression = "none", targetCompression = "none"))
+    TimeUnit.DAYS.sleep(1)
   }
 }

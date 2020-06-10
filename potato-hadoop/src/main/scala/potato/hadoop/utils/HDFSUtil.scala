@@ -5,10 +5,10 @@ import java.util.concurrent.Executors
 import org.apache.hadoop.fs.{FileSystem, Path, Trash}
 import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.internal.Logging
+import org.apache.spark.sql._
 import org.apache.spark.sql.execution.datasources._
 import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql._
 import org.apache.spark.unsafe.types.UTF8String
 import org.apache.spark.{SparkConf, SparkContext}
 import potato.common.exception.PotatoException
@@ -16,7 +16,7 @@ import potato.common.threads.DaemonThreadFactory
 
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutor, ExecutionContextExecutorService, Future}
+import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.Failure
 
 object HDFSUtil extends Logging {
@@ -48,13 +48,14 @@ object HDFSUtil extends Logging {
                              overwrite: Boolean = true,
                              readerOptions: Map[String, String] = Map.empty,
                              writerOptions: Map[String, String] = Map.empty,
-                             compression: String = "snappy"): Unit = {
+                             compression: String = "snappy"): String = {
     // 不生成_SUCCESS文件。
     spark.sparkContext.hadoopConfiguration.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false)
     // 验证服务端是否开启回收站，如服务端未开启回收站，则会抛出异常。
     spark.sparkContext.hadoopConfiguration.setInt("fs.trash.interval", 1)
 
     val fs = FileSystem.newInstance(spark.sparkContext.hadoopConfiguration)
+    if (!overwrite && fs.exists(target)) throw new PotatoException(s"Target dir exists $target, please enable --overwrite flag.")
     val tmpDir = s"${target.stripSuffix("/")}_merge_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
     if (fs.exists(tmpDir)) throw new PotatoException(s"Tmp dir exists $tmpDir")
 
@@ -75,16 +76,19 @@ object HDFSUtil extends Logging {
       throw new PotatoException(s"Failed to rename $tmpDir to $target.")
 
     fs.close()
+    target
   }
 
   /**
    * 利用sparksql合并指定目录，适用于分区目录。
    * v2版本：文件合并分两步进行。
    * * step1: 对整个目录进行分区和文件结构扫描，并进行初步合并，生成临时目录。
-   * * step2: 对生成的临时目录进行二次合并，对每个分区单独创建df并合并。
+   * * step2: 对生成的临时目录进行二次合并，对每个分区单独创建df并合并，算法等同v1。
    * 优点：
-   * * 适合需要合并的分区数占目录总分区数比例较大，且存在大量小文件时的情景。
-   * * 在step1时只需要对根目录进行一次扫描，
+   * * 当文件总大小比较小，且碎文件非常多时，可以分两步走，可以降低namenode的压力。
+   * 缺点：
+   * * 由于需要两步进行合并，因此，当文件大小比较大时，需要消耗v1版本两倍的磁盘io。
+   * * 因此不适合文件大小比较大的场景。
    *
    * 合并后文件大小影响参数，相关参数请在调用方法前设置:
    * * spark并发作业的partition数量，每个启动的partition都会生成一个文件。
@@ -97,107 +101,60 @@ object HDFSUtil extends Logging {
    * 对于存在少量子目录，但是每个子目录存在大量小文件的情况来说，尽可能启用分布式分区发现，可以大大提升分区解析效率。
    * * SQLConf:spark.sql.sources.parallelPartitionDiscovery.threshold # 建议设置为0.
    *
-   * @param source          数据源目录。
-   * @param target          目标目录，默认与数据源目录相同，即新目录会覆盖原目录。
-   * @param sourceFormat    源目录文件格式。
-   * @param targetFormat    目标目录文件格式。
-   * @param overwrite       当目标路径存在时，是否强制替换，默认为true。
-   * @param partitionFilter 过滤条件，必须对分区进行过滤，目前尚未对过滤条件是否指定分区外字段进行检查，须调用方法时外部确认。
-   * @param maxParallel     同时写入分区启用的最大作业数。
-   * @param readerOptions   额外加载入DataFrameReader的参数。
-   * @param writerOptions   额外加载入DataFrameWriter的参数。
-   * @param compression     写出文件时使用的压缩格式。
+   * @param source                  数据源目录。
+   * @param target                  目标目录，默认与数据源目录相同，即新目录会覆盖原目录。
+   * @param sourceFormat            源目录文件格式。
+   * @param targetFormat            目标目录文件格式。
+   * @param overwrite               当目标路径存在时，是否强制替换，默认为true。
+   * @param partitionFilter         过滤条件，必须对分区进行过滤，目前尚未对过滤条件是否指定分区外字段进行检查，须调用方法时外部确认。
+   * @param maxParallel             同时写入分区启用的最大作业数。
+   * @param readerOptions           额外加载入DataFrameReader的参数。
+   * @param writerOptions           额外加载入DataFrameWriter的参数。
+   * @param intermediateCompression 中间文件时使用的压缩格式。
+   * @param targetCompression       写出文件时使用的压缩格式。
    */
   def mergePartitionedPathV2(spark: SparkSession, source: String, target: String, sourceFormat: String, targetFormat: String,
                              partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 20,
-                             readerOptions: Map[String, String] = Map.empty,
-                             writerOptions: Map[String, String] = Map.empty,
-                             compression: String = "snappy"): Array[String] = {
+                             readerOptions: Map[String, String] = Map.empty, writerOptions: Map[String, String] = Map.empty,
+                             intermediateCompression: String = "snappy", targetCompression: String = "snappy"): Seq[String] = {
     // 不生成_SUCCESS文件。
     spark.sparkContext.hadoopConfiguration.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false)
     // 验证服务端是否开启回收站，如服务端未开启回收站，则会抛出异常。
     spark.sparkContext.hadoopConfiguration.setInt("fs.trash.interval", 1)
 
     val fs = FileSystem.newInstance(spark.sparkContext.hadoopConfiguration)
-    val tmpDir = s"${target.stripSuffix("/")}_merge_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
+    if (!overwrite && fs.exists(target)) throw new PotatoException(s"Target dir exists $target, please enable --overwrite flag.")
+    val tmpDir = s"${target.stripSuffix("/")}_merge_v2_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
     if (fs.exists(tmpDir)) throw new PotatoException(s"Tmp dir exists $tmpDir")
 
     val sourceDF = spark.read.options(readerOptions).format(sourceFormat).load(source)
     val partitionSpec = getPartitionSpecFromDS(sourceDF)
     if (partitionSpec.partitionColumns.isEmpty)
-      throw new PotatoException(s"This method does not support no partitioned path $source.")
+      return Seq(mergeNoPartitionedPath(spark, source, target, sourceFormat, targetFormat, overwrite, readerOptions, writerOptions))
 
-    sourceDF.write.mode(SaveMode.ErrorIfExists).format(targetFormat).options(writerOptions.+("compression" -> compression)).save(tmpDir)
+    val partitionNames = partitionSpec.partitionColumns.map(_.name)
+    // step1, 对要合并的文件进行粗粒度合并。
+    val filteredPartitionDF = if (partitionFilter == null) sourceDF else sourceDF.where(partitionFilter) // 过滤分区。
+    filteredPartitionDF.write.option("compression", intermediateCompression) // 中间结果固定使用snappy压缩。
+      .format(sourceFormat).partitionBy(partitionNames: _*).mode(SaveMode.ErrorIfExists)
+      .save(tmpDir)
 
-    val partitionStr = partitionSpec.partitionColumns.map(_.name)
-    val partitionRow = partitionSpec.partitions.map { ps =>
-      Row.fromSeq(ps.values.toSeq(partitionSpec.partitionColumns).map { p =>
-        if (p.isInstanceOf[UTF8String]) p.toString else p
-      })
-    }
+    // step2，对中间文件进行细粒度合并。
+    val mergedPath = mergePartitionedPathV1(spark, tmpDir, target, sourceFormat, targetFormat, partitionFilter, overwrite, maxParallel, readerOptions, writerOptions, targetCompression)
 
-    implicit val executor: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(
-      Executors.newFixedThreadPool(maxParallel, DaemonThreadFactory)
-    )
+    // 执行到这一步，已经说明step2正常完成，所以step1的临时目录可以直接删除，无需进行检测。
+    logInfo(s"Delete tmp directory $tmpDir")
+    moveToTrash(fs, tmpDir)
 
-    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0) // 对每个分区单独配置分布式作业进行扫描。
-    val partitionDF = spark.createDataFrame(spark.sparkContext.makeRDD(partitionRow), partitionSpec.partitionColumns)
-    // 过滤分区。
-    val filteredPartitionDF = if (partitionFilter == null) partitionDF else partitionDF.where(partitionFilter)
-    logInfo("Partition detected.")
-    filteredPartitionDF.show(Int.MaxValue - 1, truncate = false)
-    // 组合分区路径片段，如 Map(ymd->20200101,type->"a") 将组合为 "ymd=20200101/type=a" 。
-    val filteredPartFragment = filteredPartitionDF.collect().map { r =>
-      partitionStr.zip(r.toSeq.map(_.toString)).toMap
-    }.map(p => PartitioningUtils.getPathFragment(p, partitionSpec.partitionColumns))
-
-    // 用于对每一个分区提交子作业。
-    val jobs: Future[mutable.ArraySeq[Unit]] = Future.sequence(filteredPartFragment.map { f =>
-      Future {
-        try {
-          logInfo(s"Merging directory $source/$f to $tmpDir/$f started.")
-          // 为每个分区单独创建df进行写入，避免全表创建df导致partition数量过多的问题。
-          spark.read.options(readerOptions).format(sourceFormat).load(s"$source/$f").write
-            .mode(SaveMode.ErrorIfExists)
-            .format(targetFormat)
-            .options(writerOptions.+("compression" -> compression))
-            .save(s"$tmpDir/$f")
-          logInfo(s"Merging directory $source/$f to $tmpDir/$f finished.")
-        } catch {
-          case e: Exception =>
-            spark.close() // 当有分区失败时停止作业。
-            throw e
-        }
-      }
-    })
-    Await.ready(jobs, Duration.Inf)
-    jobs.value.get match {
-      case Failure(e) => throw e
-      case _ =>
-    }
-
-    // 单独移动分区。
-    filteredPartFragment.foreach { f =>
-      if (!rename(fs, s"$tmpDir/$f", s"$target/$f", overwrite))
-        throw new PotatoException(s"Failed to rename $tmpDir/$f to $target/$f.")
-    }
-
-    // 临时目录存在未移动的文件。
-    if (dirOnly(fs, tmpDir)) {
-      logInfo(s"Delete tmp directory $tmpDir")
-      fs.delete(tmpDir, true)
-    } else {
-      throw new PotatoException(s"Some file is still in tmpDir $tmpDir, please check.")
-    }
     fs.close()
-    filteredPartFragment.map(f => s"$target/$f")
+    mergedPath
   }
 
   /**
    * 利用sparksql合并指定目录，适用于分区目录。
    * v1版本：
    * * 在扫描分区信息时不扫描文件结构，大大提高分区扫描效率。之后根据分区过滤条件对指定分区单独创建df进行合并。
-   * * 适合需要合并的分区数占目录总分区数比例较小的情景。
+   * * 适合大部分文件合并场景。
    *
    * 合并后文件大小影响参数，相关参数请在调用方法前设置:
    * * spark并发作业的partition数量，每个启动的partition都会生成一个文件。
@@ -225,14 +182,15 @@ object HDFSUtil extends Logging {
                              partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 20,
                              readerOptions: Map[String, String] = Map.empty,
                              writerOptions: Map[String, String] = Map.empty,
-                             compression: String = "snappy"): Array[String] = {
+                             compression: String = "snappy"): Seq[String] = {
     // 不生成_SUCCESS文件。
     spark.sparkContext.hadoopConfiguration.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false)
     // 验证服务端是否开启回收站，如服务端未开启回收站，则会抛出异常。
     spark.sparkContext.hadoopConfiguration.setInt("fs.trash.interval", 1)
 
     val fs = FileSystem.newInstance(spark.sparkContext.hadoopConfiguration)
-    val tmpDir = s"${target.stripSuffix("/")}_merge_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
+    if (!overwrite && fs.exists(target)) throw new PotatoException(s"Target dir exists $target, please enable --overwrite flag.")
+    val tmpDir = s"${target.stripSuffix("/")}_merge_v1_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
     if (fs.exists(tmpDir)) throw new PotatoException(s"Tmp dir exists $tmpDir")
 
     val partitionSpec = getPartitionSpecFromPath(spark, source,
@@ -240,8 +198,9 @@ object HDFSUtil extends Logging {
       spark.sessionState.conf.parallelPartitionDiscoveryParallelism,
       readerOptions
     )
+
     if (partitionSpec.partitionColumns.isEmpty)
-      throw new PotatoException(s"This method does not support no partitioned path $source.")
+      return Seq(mergeNoPartitionedPath(spark, source, target, sourceFormat, targetFormat, overwrite, readerOptions, writerOptions))
 
     val partitionNames = partitionSpec.partitionColumns.map(_.name)
     val partitionRow = partitionSpec.partitions.map { ps =>
@@ -250,11 +209,6 @@ object HDFSUtil extends Logging {
       })
     }
 
-    implicit val executor: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(
-      Executors.newFixedThreadPool(maxParallel, DaemonThreadFactory)
-    )
-
-    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0) // 对每个分区单独配置分布式作业进行扫描。
     val partitionDF = spark.createDataFrame(spark.sparkContext.makeRDD(partitionRow), partitionSpec.partitionColumns)
     // 过滤分区。
     val filteredPartitionDF = if (partitionFilter == null) partitionDF else partitionDF.where(partitionFilter)
@@ -264,6 +218,11 @@ object HDFSUtil extends Logging {
       partitionNames.zip(r.toSeq.map(_.toString)).toMap
     }.map(p => PartitioningUtils.getPathFragment(p, partitionSpec.partitionColumns))
 
+    implicit val executor: ExecutionContextExecutorService = ExecutionContext.fromExecutorService(
+      Executors.newFixedThreadPool(maxParallel, DaemonThreadFactory)
+    )
+    val oldPPDT = spark.conf.get(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key)
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0) // 对每个分区单独配置分布式作业进行扫描。 todo
     // 用于对每一个分区提交子作业。
     val jobs: Future[mutable.ArraySeq[Unit]] = Future.sequence(filteredPartFragment.map { f =>
       Future {
@@ -284,6 +243,7 @@ object HDFSUtil extends Logging {
       }
     })
     Await.ready(jobs, Duration.Inf)
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, oldPPDT) // 作业结束后恢复旧参数。 todo
     jobs.value.get match {
       case Failure(e) => throw e
       case _ =>
@@ -298,7 +258,7 @@ object HDFSUtil extends Logging {
     // 临时目录存在未移动的文件。
     if (dirOnly(fs, tmpDir)) {
       logInfo(s"Delete tmp directory $tmpDir")
-      fs.delete(tmpDir, true)
+      moveToTrash(fs, tmpDir)
     } else {
       throw new PotatoException(s"Some file is still in tmpDir $tmpDir, please check.")
     }
@@ -428,7 +388,7 @@ object HDFSUtil extends Logging {
                                options: Map[String, String] = Map.empty
                               ): PartitionSpec = {
     spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, ppdt)
-    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_PARALLELISM.key, ppdt)
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_PARALLELISM.key, ppdp)
     val tempFileIndex = {
       val hadoopConf = spark.sessionState.newHadoopConf()
       val globbedPaths = {

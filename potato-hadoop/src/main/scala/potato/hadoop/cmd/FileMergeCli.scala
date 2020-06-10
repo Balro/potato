@@ -6,6 +6,7 @@ import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.internal.SQLConf
 import potato.hadoop.utils.HDFSUtil
 import potato.common.cmd.CommonCliBase
+import potato.common.exception.ArgParseException
 
 object FileMergeCli extends CommonCliBase {
   override val cliName: String = "FileMergeCli"
@@ -49,7 +50,7 @@ object FileMergeCli extends CommonCliBase {
       .hasArg
       .add()
     optBuilder().longOpt("file-open-cost")
-      .desc(s"Equals spark conf: ${SQLConf.FILES_OPEN_COST_IN_BYTES.key}. Default: 1m.").hasArg
+      .desc(s"Equals spark conf: ${SQLConf.FILES_OPEN_COST_IN_BYTES.key}. Default: 100k.").hasArg
       .add()
     optBuilder().longOpt("hadoop-conf")
       .desc("Configs add to hadoop Configuration. e.g. --hadoop-conf key1 value1 --hadoop-conf key2 value2")
@@ -70,8 +71,14 @@ object FileMergeCli extends CommonCliBase {
     optBuilder().longOpt("compression")
       .desc("Compression codec to compress outfiles, e.g. none/snappy/lz4 etc. Default: snappy.").hasArg
       .add()
+    optBuilder().longOpt("overwrite")
+      .desc("Whether to overwrite the target directory. Default: false.").hasArg(false)
+      .add()
     optBuilder().longOpt("max-job-parallelism")
-      .desc("Max concurrence job number. Default: 100.").hasArg
+      .desc("Max concurrence job number. Default: 20.").hasArg
+      .add()
+    optBuilder().longOpt("merge-version")
+      .desc("If the number of partitions to be merged accounts for a large proportion of the total number of partitions, the v2 version is recommended. Default is v1 .").hasArg
       .add()
   }
 
@@ -83,7 +90,7 @@ object FileMergeCli extends CommonCliBase {
     val conf = new SparkConf()
     conf.set("spark.default.parallelism", cmd.getOptionValue("parallelism", "1"))
     conf.set(SQLConf.FILES_MAX_PARTITION_BYTES.key, cmd.getOptionValue("max-partition-bytes", (128 * 1024 * 1024).toString))
-    conf.set(SQLConf.FILES_OPEN_COST_IN_BYTES.key, cmd.getOptionValue("file-open-cost", (1024 * 1024).toString))
+    conf.set(SQLConf.FILES_OPEN_COST_IN_BYTES.key, cmd.getOptionValue("file-open-cost", (100 * 1024).toString))
     conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 1.toString)
 
     handleValue("path-discover-parallelism", value => {
@@ -104,17 +111,50 @@ object FileMergeCli extends CommonCliBase {
     })
 
     console("Merged paths:")
-    console(HDFSUtil.mergePartitionedPathV1(spark,
-      source = cmd.getOptionValue("source"),
-      target = cmd.getOptionValue("target", cmd.getOptionValue("source")),
-      sourceFormat = cmd.getOptionValue("source-format"),
-      targetFormat = cmd.getOptionValue("target-format", cmd.getOptionValue("source-format")),
-      partitionFilter = cmd.getOptionValue("partition-filter"),
-      maxParallel = cmd.getOptionValue("max-job-parallelism", "100").toInt,
-      readerOptions = cmd.getOptionProperties("reader-opts").toMap,
-      writerOptions = cmd.getOptionProperties("reader-opts").toMap,
-      compression = cmd.getOptionValue("compression", "snappy")
-    ).mkString("\n"))
+    handleKey("no-partition", { () =>
+      console(HDFSUtil.mergeNoPartitionedPath(spark,
+        source = cmd.getOptionValue("source"),
+        target = cmd.getOptionValue("target", cmd.getOptionValue("source")),
+        sourceFormat = cmd.getOptionValue("source-format"),
+        targetFormat = cmd.getOptionValue("target-format", cmd.getOptionValue("source-format")),
+        overwrite = cmd.hasOption("overwrite"),
+        readerOptions = cmd.getOptionProperties("reader-opts").toMap,
+        writerOptions = cmd.getOptionProperties("reader-opts").toMap,
+        compression = cmd.getOptionValue("compression", "snappy")
+      ))
+    }, { () =>
+      cmd.getOptionValue("merge-version", "v1") match {
+        case "v1" =>
+          console(HDFSUtil.mergePartitionedPathV1(spark,
+            source = cmd.getOptionValue("source"),
+            target = cmd.getOptionValue("target", cmd.getOptionValue("source")),
+            sourceFormat = cmd.getOptionValue("source-format"),
+            targetFormat = cmd.getOptionValue("target-format", cmd.getOptionValue("source-format")),
+            overwrite = cmd.hasOption("overwrite"),
+            partitionFilter = cmd.getOptionValue("partition-filter"),
+            maxParallel = cmd.getOptionValue("max-job-parallelism", "20").toInt,
+            readerOptions = cmd.getOptionProperties("reader-opts").toMap,
+            writerOptions = cmd.getOptionProperties("reader-opts").toMap,
+            compression = cmd.getOptionValue("compression", "snappy")
+          ).mkString("\n"))
+        case "v2" =>
+          console(HDFSUtil.mergePartitionedPathV2(spark,
+            source = cmd.getOptionValue("source"),
+            target = cmd.getOptionValue("target", cmd.getOptionValue("source")),
+            sourceFormat = cmd.getOptionValue("source-format"),
+            targetFormat = cmd.getOptionValue("target-format", cmd.getOptionValue("source-format")),
+            overwrite = cmd.hasOption("overwrite"),
+            partitionFilter = cmd.getOptionValue("partition-filter"),
+            maxParallel = cmd.getOptionValue("max-job-parallelism", "20").toInt,
+            readerOptions = cmd.getOptionProperties("reader-opts").toMap,
+            writerOptions = cmd.getOptionProperties("reader-opts").toMap,
+            targetCompression = cmd.getOptionValue("compression", "snappy")
+          ).mkString("\n"))
+        case other =>
+          throw ArgParseException(s"Arg merge-version not support $other.")
+      }
+    })
+
     spark.stop()
   }
 }

@@ -20,12 +20,9 @@ object KafkaSinkUtil {
   def saveToKafka[K, V](rdd: RDD[ProducerRecord[K, V]], props: Properties): Unit = {
     rdd.foreachPartition { part =>
       GlobalProducerCache.withProducer[K, V, Unit](props) { producer =>
-        part.foreach { item =>
-          producer.send(item)
-        }
+        part.foreach(producer.send)
         producer.flush()
       }
-      GlobalProducerCache.getCachedProducer(props)
     }
   }
 }

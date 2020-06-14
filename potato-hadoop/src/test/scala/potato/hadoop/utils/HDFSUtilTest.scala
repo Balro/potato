@@ -75,4 +75,18 @@ class HDFSUtilTest {
       "parquet", "parquet", intermediateCompression = "none", targetCompression = "none"))
     TimeUnit.DAYS.sleep(1)
   }
+
+  @Test
+  def tmpTest(): Unit = {
+    val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0)
+    val start = System.currentTimeMillis()
+    val df = spark.read.format("parquet").load("/baluo_out/ymd=20200528/")
+//    val df = spark.read.format("parquet").load("/baluo_out")
+    //    val df = spark.read.format("parquet").load("/baluo_out/ymd=20200522")
+    //    val df = spark.read.format("parquet").load("/baluo_out/ymd=20200522/type=a")
+    println(df.count() + ":" + (System.currentTimeMillis() - start))
+    df.printSchema()
+    TimeUnit.DAYS.sleep(1)
+  }
 }

@@ -25,7 +25,6 @@ object KafkaSinkUtil {
         }
         producer.flush()
       }
-      GlobalProducerCache.getCachedProducer(props)
     }
   }
 }

@@ -222,18 +222,27 @@ object HDFSUtil extends Logging {
       Executors.newFixedThreadPool(maxParallel, DaemonThreadFactory)
     )
     val oldPPDT = spark.conf.get(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key)
-    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0) // 对每个分区单独配置分布式作业进行扫描。 todo
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0)
     // 用于对每一个分区提交子作业。
     val jobs: Future[mutable.ArraySeq[Unit]] = Future.sequence(filteredPartFragment.map { f =>
       Future {
         try {
           logInfo(s"Merging directory $source/$f to $tmpDir/$f started.")
           // 为每个分区单独创建df进行写入，避免全表创建df导致partition数量过多的问题。
-          spark.read.options(readerOptions).format(sourceFormat).load(s"$source/$f").write
+          //          spark.read.options(readerOptions).format(sourceFormat).load(s"$source/$f").write
+          //            .mode(SaveMode.ErrorIfExists)
+          //            .format(targetFormat)
+          //            .options(writerOptions.+("compression" -> compression))
+          //            .save(s"$tmpDir/$f")
+          //todo
+          val tmp = spark.read.options(readerOptions).format(sourceFormat).load(s"$source/$f")
+          println("tmp df loaded")
+          tmp.write
             .mode(SaveMode.ErrorIfExists)
             .format(targetFormat)
             .options(writerOptions.+("compression" -> compression))
             .save(s"$tmpDir/$f")
+          //todo
           logInfo(s"Merging directory $source/$f to $tmpDir/$f finished.")
         } catch {
           case e: Exception =>
@@ -243,7 +252,7 @@ object HDFSUtil extends Logging {
       }
     })
     Await.ready(jobs, Duration.Inf)
-    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, oldPPDT) // 作业结束后恢复旧参数。 todo
+    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, oldPPDT)
     jobs.value.get match {
       case Failure(e) => throw e
       case _ =>

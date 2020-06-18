@@ -9,7 +9,7 @@ import org.apache.spark.sql._
 import org.apache.spark.sql.catalyst.util.CaseInsensitiveMap
 import org.apache.spark.sql.execution.datasources._
 import org.apache.spark.sql.internal.SQLConf
-import org.apache.spark.sql.types.{ArrayType, StringType, StructField, StructType}
+import org.apache.spark.sql.types.StructType
 import org.apache.spark.unsafe.types.UTF8String
 import org.apache.spark.{SparkConf, SparkContext}
 import potato.common.exception.PotatoException
@@ -19,13 +19,9 @@ import scala.collection.mutable
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.Failure
-import org.json4s._
-import org.json4s.jackson._
 
 object HDFSUtil extends Logging {
   implicit def str2Path(str: String): Path = new Path(str)
-
-  implicit val fmt: Formats = DefaultFormats
 
   /**
    * 利用sparksql合并指定目录，适用于无分区目录。
@@ -378,8 +374,7 @@ object HDFSUtil extends Logging {
           pathName.contains("=") ||
           pathName.startsWith(".") ||
           pathName.endsWith("._COPYING_") ||
-          pathName.startsWith("_common_metadata") ||
-          pathName.startsWith("_metadata")
+          pathName.contains("metadata")
         ))
         return Option(status.getPath)
     }

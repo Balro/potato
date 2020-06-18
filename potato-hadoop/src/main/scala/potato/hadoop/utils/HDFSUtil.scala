@@ -6,9 +6,10 @@ import org.apache.hadoop.fs.{FileSystem, Path, Trash}
 import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql._
+import org.apache.spark.sql.catalyst.util.CaseInsensitiveMap
 import org.apache.spark.sql.execution.datasources._
 import org.apache.spark.sql.internal.SQLConf
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.{ArrayType, StringType, StructField, StructType}
 import org.apache.spark.unsafe.types.UTF8String
 import org.apache.spark.{SparkConf, SparkContext}
 import potato.common.exception.PotatoException
@@ -18,9 +19,13 @@ import scala.collection.mutable
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.Failure
+import org.json4s._
+import org.json4s.jackson._
 
 object HDFSUtil extends Logging {
   implicit def str2Path(str: String): Path = new Path(str)
+
+  implicit val fmt: Formats = DefaultFormats
 
   /**
    * 利用sparksql合并指定目录，适用于无分区目录。
@@ -42,13 +47,12 @@ object HDFSUtil extends Logging {
    * @param readerOptions 额外加载入DataFrameReader的参数。
    * @param writerOptions 额外加载入DataFrameWriter的参数。
    * @param compression   写出文件时使用的压缩格式。
+   * @param schema        显示指定文件schema，指定schema中不应包含分区信息。如schema为null，则会使用spark的默认schema机制，比较影响性能。
    */
   def mergeNoPartitionedPath(spark: SparkSession, source: String, target: String,
-                             sourceFormat: String, targetFormat: String,
-                             overwrite: Boolean = true,
-                             readerOptions: Map[String, String] = Map.empty,
-                             writerOptions: Map[String, String] = Map.empty,
-                             compression: String = "snappy"): String = {
+                             sourceFormat: String, targetFormat: String, overwrite: Boolean = true,
+                             readerOptions: Map[String, String] = Map.empty, writerOptions: Map[String, String] = Map.empty,
+                             compression: String = "snappy", schema: StructType = null): String = {
     // 不生成_SUCCESS文件。
     spark.sparkContext.hadoopConfiguration.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false)
     // 验证服务端是否开启回收站，如服务端未开启回收站，则会抛出异常。
@@ -59,7 +63,7 @@ object HDFSUtil extends Logging {
     val tmpDir = s"${target.stripSuffix("/")}_merge_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
     if (fs.exists(tmpDir)) throw new PotatoException(s"Tmp dir exists $tmpDir")
 
-    val sourceDF = spark.read.options(readerOptions).format(sourceFormat).load(source)
+    val sourceDF = spark.read.options(readerOptions).format(sourceFormat).schema(schema).load(source)
 
     if (getPartitionSpecFromDS(sourceDF).partitionColumns.nonEmpty)
       throw new PotatoException(s"This method does not support partitioned path $source.")
@@ -81,80 +85,9 @@ object HDFSUtil extends Logging {
 
   /**
    * 利用sparksql合并指定目录，适用于分区目录。
-   * v2版本：文件合并分两步进行。
-   * * step1: 对整个目录进行分区和文件结构扫描，并进行初步合并，生成临时目录。
-   * * step2: 对生成的临时目录进行二次合并，对每个分区单独创建df并合并，算法等同v1。
-   * 优点：
-   * * 当文件总大小比较小，且碎文件非常多时，可以分两步走，可以降低namenode的压力。
-   * 缺点：
-   * * 由于需要两步进行合并，因此，当文件大小比较大时，需要消耗v1版本两倍的磁盘io。
-   * * 因此不适合文件大小比较大的场景。
-   *
-   * 合并后文件大小影响参数，相关参数请在调用方法前设置:
-   * * spark并发作业的partition数量，每个启动的partition都会生成一个文件。
-   * * * 计算公式: maxSplitBytes = min(maxPartitionBytes,max(totalSize/parallelism,fileOpenCost))
-   * * * 参考 [[org.apache.spark.sql.execution.FileSourceScanExec]].createNonBucketedReadRDD#423
-   * * 重要参数:
-   * * * SparkConf:spark.default.parallelism # 请在创建spark前进行配置。
-   * * * SQLConf:spark.sql.files.maxPartitionBytes # 限制spark-sql解析文件时生成分区的最大大小，限制该值可以避免生成不可切割的超大文件。
-   * * * SQLConf:spark.sql.files.openCostInBytes # 降低该值可以使每个分区合并更多的小文件。
-   * 对于存在少量子目录，但是每个子目录存在大量小文件的情况来说，尽可能启用分布式分区发现，可以大大提升分区解析效率。
-   * * SQLConf:spark.sql.sources.parallelPartitionDiscovery.threshold # 建议设置为0.
-   *
-   * @param source                  数据源目录。
-   * @param target                  目标目录，默认与数据源目录相同，即新目录会覆盖原目录。
-   * @param sourceFormat            源目录文件格式。
-   * @param targetFormat            目标目录文件格式。
-   * @param overwrite               当目标路径存在时，是否强制替换，默认为true。
-   * @param partitionFilter         过滤条件，必须对分区进行过滤，目前尚未对过滤条件是否指定分区外字段进行检查，须调用方法时外部确认。
-   * @param maxParallel             同时写入分区启用的最大作业数。
-   * @param readerOptions           额外加载入DataFrameReader的参数。
-   * @param writerOptions           额外加载入DataFrameWriter的参数。
-   * @param intermediateCompression 中间文件时使用的压缩格式。
-   * @param targetCompression       写出文件时使用的压缩格式。
-   */
-  def mergePartitionedPathV2(spark: SparkSession, source: String, target: String, sourceFormat: String, targetFormat: String,
-                             partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 20,
-                             readerOptions: Map[String, String] = Map.empty, writerOptions: Map[String, String] = Map.empty,
-                             intermediateCompression: String = "snappy", targetCompression: String = "snappy"): Seq[String] = {
-    // 不生成_SUCCESS文件。
-    spark.sparkContext.hadoopConfiguration.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false)
-    // 验证服务端是否开启回收站，如服务端未开启回收站，则会抛出异常。
-    spark.sparkContext.hadoopConfiguration.setInt("fs.trash.interval", 1)
-
-    val fs = FileSystem.newInstance(spark.sparkContext.hadoopConfiguration)
-    if (!overwrite && fs.exists(target)) throw new PotatoException(s"Target dir exists $target, please enable --overwrite flag.")
-    val tmpDir = s"${target.stripSuffix("/")}_merge_v2_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
-    if (fs.exists(tmpDir)) throw new PotatoException(s"Tmp dir exists $tmpDir")
-
-    val sourceDF = spark.read.options(readerOptions).format(sourceFormat).load(source)
-    val partitionSpec = getPartitionSpecFromDS(sourceDF)
-    if (partitionSpec.partitionColumns.isEmpty)
-      return Seq(mergeNoPartitionedPath(spark, source, target, sourceFormat, targetFormat, overwrite, readerOptions, writerOptions))
-
-    val partitionNames = partitionSpec.partitionColumns.map(_.name)
-    // step1, 对要合并的文件进行粗粒度合并。
-    val filteredPartitionDF = if (partitionFilter == null) sourceDF else sourceDF.where(partitionFilter) // 过滤分区。
-    filteredPartitionDF.write.option("compression", intermediateCompression) // 中间结果固定使用snappy压缩。
-      .format(sourceFormat).partitionBy(partitionNames: _*).mode(SaveMode.ErrorIfExists)
-      .save(tmpDir)
-
-    // step2，对中间文件进行细粒度合并。
-    val mergedPath = mergePartitionedPathV1(spark, tmpDir, target, sourceFormat, targetFormat, partitionFilter, overwrite, maxParallel, readerOptions, writerOptions, targetCompression)
-
-    // 执行到这一步，已经说明step2正常完成，所以step1的临时目录可以直接删除，无需进行检测。
-    logInfo(s"Delete tmp directory $tmpDir")
-    moveToTrash(fs, tmpDir)
-
-    fs.close()
-    mergedPath
-  }
-
-  /**
-   * 利用sparksql合并指定目录，适用于分区目录。
-   * v1版本：
    * * 在扫描分区信息时不扫描文件结构，大大提高分区扫描效率。之后根据分区过滤条件对指定分区单独创建df进行合并。
    * * 适合大部分文件合并场景。
+   * * 必须确保分区目录下所有叶子文件的schema保持一致。
    *
    * 合并后文件大小影响参数，相关参数请在调用方法前设置:
    * * spark并发作业的partition数量，每个启动的partition都会生成一个文件。
@@ -177,12 +110,12 @@ object HDFSUtil extends Logging {
    * @param readerOptions   额外加载入DataFrameReader的参数。
    * @param writerOptions   额外加载入DataFrameWriter的参数。
    * @param compression     写出文件时使用的压缩格式。
+   * @param schema          显示指定文件schema，指定schema中不应包含分区信息。如schema为null，则会使用spark的默认schema机制，比较影响性能。
    */
-  def mergePartitionedPathV1(spark: SparkSession, source: String, target: String, sourceFormat: String, targetFormat: String,
-                             partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 20,
-                             readerOptions: Map[String, String] = Map.empty,
-                             writerOptions: Map[String, String] = Map.empty,
-                             compression: String = "snappy"): Seq[String] = {
+  def mergePartitionedPath(spark: SparkSession, source: String, target: String, sourceFormat: String, targetFormat: String,
+                           partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 20,
+                           readerOptions: Map[String, String] = Map.empty, writerOptions: Map[String, String] = Map.empty,
+                           compression: String = "snappy", schema: StructType = null): Seq[String] = {
     // 不生成_SUCCESS文件。
     spark.sparkContext.hadoopConfiguration.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false)
     // 验证服务端是否开启回收站，如服务端未开启回收站，则会抛出异常。
@@ -200,7 +133,7 @@ object HDFSUtil extends Logging {
     )
 
     if (partitionSpec.partitionColumns.isEmpty)
-      return Seq(mergeNoPartitionedPath(spark, source, target, sourceFormat, targetFormat, overwrite, readerOptions, writerOptions))
+      return Seq(mergeNoPartitionedPath(spark, source, target, sourceFormat, targetFormat, overwrite, readerOptions, writerOptions, compression, schema))
 
     val partitionNames = partitionSpec.partitionColumns.map(_.name)
     val partitionRow = partitionSpec.partitions.map { ps =>
@@ -229,20 +162,11 @@ object HDFSUtil extends Logging {
         try {
           logInfo(s"Merging directory $source/$f to $tmpDir/$f started.")
           // 为每个分区单独创建df进行写入，避免全表创建df导致partition数量过多的问题。
-          //          spark.read.options(readerOptions).format(sourceFormat).load(s"$source/$f").write
-          //            .mode(SaveMode.ErrorIfExists)
-          //            .format(targetFormat)
-          //            .options(writerOptions.+("compression" -> compression))
-          //            .save(s"$tmpDir/$f")
-          //todo
-          val tmp = spark.read.options(readerOptions).format(sourceFormat).load(s"$source/$f")
-          println("tmp df loaded")
-          tmp.write
+          spark.read.options(readerOptions).format(sourceFormat).schema(schema).load(s"$source/$f").write
             .mode(SaveMode.ErrorIfExists)
             .format(targetFormat)
             .options(writerOptions.+("compression" -> compression))
             .save(s"$tmpDir/$f")
-          //todo
           logInfo(s"Merging directory $source/$f to $tmpDir/$f finished.")
         } catch {
           case e: Exception =>
@@ -409,5 +333,56 @@ object HDFSUtil extends Logging {
       new InMemoryFileIndex(spark, globbedPaths, options, None, NoopCache)
     }
     tempFileIndex.partitionSpec()
+  }
+
+  /**
+   * 获取给定文件的data schema信息。
+   *
+   * @param format 文件格式。
+   */
+  def getDataFileSchema(spark: SparkSession, path: String, format: String, readerOptions: Map[String, String] = Map.empty): StructType = {
+    val fs = path.getFileSystem(spark.sparkContext.hadoopConfiguration)
+    val fileStatus = fs.getFileStatus(path)
+    if (fileStatus.isDirectory)
+      throw new PotatoException(s"Path $path is a directory, bug method getDateFileSchema only support data file.")
+
+    val providingClass = DataSource.lookupDataSource(format)
+
+    providingClass.newInstance() match {
+      case format: FileFormat =>
+        format.inferSchema(
+          spark,
+          CaseInsensitiveMap(readerOptions),
+          Seq(fileStatus)) match {
+          case Some(schema) => schema
+          case None => throw new PotatoException("")
+        }
+      case _ =>
+        throw new PotatoException(s"Data source $format does not support streamed reading")
+    }
+  }
+
+  /**
+   * 返回给定目录下的第一个数据文件，如果未找到有效数据文件，则返回None。
+   */
+  def firstDataFile(spark: SparkSession, path: String): Option[Path] = {
+    val p: Path = path
+    val fs = p.getFileSystem(spark.sparkContext.hadoopConfiguration)
+    val ite = fs.listFiles(p, true)
+    while (ite.hasNext) {
+      val status = ite.next()
+      val pathName = status.getPath.getName
+      if (!(
+        status.isDirectory ||
+          pathName.startsWith("_") ||
+          pathName.contains("=") ||
+          pathName.startsWith(".") ||
+          pathName.endsWith("._COPYING_") ||
+          pathName.startsWith("_common_metadata") ||
+          pathName.startsWith("_metadata")
+        ))
+        return Option(status.getPath)
+    }
+    None
   }
 }

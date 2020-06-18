@@ -27,7 +27,7 @@ class HDFSUtilTest {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_merge_test")
       .config("spark.default.parallelism", 1)
       .getOrCreate()
-    HDFSUtil.mergePartitionedPathV1(spark,
+    HDFSUtil.mergePartitionedPath(spark,
       "hdfs://test01/user/hive/warehouse/baluo_test.db/test2/",
       "hdfs://test01/user/hive/warehouse/baluo_test.db/test3/",
       "text",
@@ -59,34 +59,23 @@ class HDFSUtilTest {
   }
 
   @Test
-  def mergePartitionedPathV1Test(): Unit = {
+  def mergePartitionedPathTest(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
     spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 1)
-    println(HDFSUtil.mergePartitionedPathV1(spark, "/baluo_out", "/baluo_out",
+    println(HDFSUtil.mergePartitionedPath(spark, "/baluo_out", "/baluo_out",
       "parquet", "parquet", compression = "none"))
     TimeUnit.DAYS.sleep(1)
   }
 
   @Test
-  def mergePartitionedPathV2Test(): Unit = {
+  def gatDataFileSchemaTest(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
-    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 1)
-    println(HDFSUtil.mergePartitionedPathV2(spark, "/baluo_out", "/baluo_out",
-      "parquet", "parquet", intermediateCompression = "none", targetCompression = "none"))
-    TimeUnit.DAYS.sleep(1)
+    println(HDFSUtil.getDataFileSchema(spark, "/user/hive/warehouse/baluo_test.db/test/ymd=20200522/hour=01/minute=01/000000_0", "parquet"))
   }
 
   @Test
-  def tmpTest(): Unit = {
+  def firstDataFileTest(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
-    spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0)
-    val start = System.currentTimeMillis()
-    val df = spark.read.format("parquet").load("/baluo_out/ymd=20200528/")
-//    val df = spark.read.format("parquet").load("/baluo_out")
-    //    val df = spark.read.format("parquet").load("/baluo_out/ymd=20200522")
-    //    val df = spark.read.format("parquet").load("/baluo_out/ymd=20200522/type=a")
-    println(df.count() + ":" + (System.currentTimeMillis() - start))
-    df.printSchema()
-    TimeUnit.DAYS.sleep(1)
+    println(HDFSUtil.firstDataFile(spark, "/user/hive/warehouse/baluo_test.db/test"))
   }
 }

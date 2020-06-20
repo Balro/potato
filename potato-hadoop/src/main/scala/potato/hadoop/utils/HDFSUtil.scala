@@ -119,7 +119,7 @@ object HDFSUtil extends Logging {
 
     val fs = FileSystem.newInstance(spark.sparkContext.hadoopConfiguration)
     if (!overwrite && fs.exists(target)) throw new PotatoException(s"Target dir exists $target, please enable --overwrite flag.")
-    val tmpDir = s"${target.stripSuffix("/")}_merge_v1_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
+    val tmpDir = s"${target.stripSuffix("/")}_merge_${System.currentTimeMillis()}_${spark.sparkContext.applicationId}"
     if (fs.exists(tmpDir)) throw new PotatoException(s"Tmp dir exists $tmpDir")
 
     val partitionSpec = getPartitionSpecFromPath(spark, source,

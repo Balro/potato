@@ -30,22 +30,33 @@ object KafkaOffsetCli extends CommonCliBase {
    * 预处理，添加[[org.apache.commons.cli.Option]]。
    */
   override def initOptions(opts: Options): Unit = {
-    optBuilder().longOpt("prop-file").hasArg
-      .desc("Property files to load, can be overwrite by other args.").add()
-    optBuilder().longOpt("bootstrap-servers").hasArg.add()
-    optBuilder().longOpt("group").hasArg.add()
-    optBuilder().longOpt("topics").hasArg
-      .desc("Can specify multiple topics, e.g. --topics tpc1,tpc2 --topics tpc3 .").add()
-    optBuilder().longOpt("storage-type").hasArg
-      .desc("Supported kafka,hbase,zookeeper(not recommended).").add()
-    optBuilder().longOpt("conf").hasArg
-      .desc("Specify additional conf. e.g. --conf k1=v1 --conf k2=v2").add()
-    optBuilder().longOpt("hbase-quorum").hasArg
-      .desc("Zookeeper quorum, e.g. zoo1,zoo2").add()
-    optBuilder().longOpt("hbase-port").hasArg
-      .desc("Zookeeper port, default 2181 .").add()
+    optBuilder().longOpt("prop-file")
+      .desc("Property files to load, can be overwrite by other args.").hasArg
+      .add()
+    optBuilder().longOpt("bootstrap-servers")
+      .desc("Specify kafka servers to get offsets.").required.hasArg
+      .add()
+    optBuilder().longOpt("group")
+      .desc("Consumer group to manage.").required.hasArg
+      .add()
+    optBuilder().longOpt("topics")
+      .desc("Topics to manage, e.g. --topics tpc1,tpc2 --topics tpc3 .").required.hasArg
+      .add()
+    optBuilder().longOpt("storage-type")
+      .desc("Supported kafka,hbase,zookeeper(not recommended).").required.hasArg
+      .add()
+    optBuilder().longOpt("conf")
+      .desc("Specify additional conf. e.g. --conf k1=v1 --conf k2=v2").hasArg
+      .add()
+    optBuilder().longOpt("hbase-quorum")
+      .desc("HBase zookeeper quorum, e.g. zoo1,zoo2. Default: localhost").hasArg
+      .add()
+    optBuilder().longOpt("hbase-port")
+      .desc("HBase zookeeper port, default 2181 .").hasArg
+      .add()
     optBuilder().longOpt("execute")
-      .desc("Used to confirm some actions, like --reset action .").add()
+      .desc("Used to confirm some actions, like --reset action .")
+      .add()
     groupBuilder()
       .addOption(optBuilder().longOpt("show").desc("Show subscribe partitions and offset lag.").build())
       .addOption(optBuilder().longOpt("reset").desc(
@@ -53,7 +64,8 @@ object KafkaOffsetCli extends CommonCliBase {
           |Reset offsets to earliest(--to-earliest) or latest(--to-latest).
           |It will only show the offset by default. Use --execute flag to confirm.
           |""".stripMargin.trim).build())
-      .required().add()
+      .required().
+      add()
     groupBuilder().addOption(optBuilder().longOpt("to-earliest").build())
       .addOption(optBuilder().longOpt("to-latest").build())
       .add()

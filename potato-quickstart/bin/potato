@@ -15,6 +15,7 @@ Usage:
   modules:
     submit        ->  submit app to spark.
     hadoop        ->  manage hadoop utils.
+    hive          ->  manage hive utils.
     kafka         ->  manage kafka010 utils.
     spark         ->  manage spark utils.
 EOF

@@ -15,7 +15,7 @@ class HDFSUtilTest {
   @Test
   def mergeCliTest(): Unit = {
     FileMergeCli.main(("--spark-conf spark.master local[*] " +
-      "--source hdfs://test01/user/hive/warehouse/baluo_test.db/test2/ " +
+      "--source hdfs://test01/user/hive/warehouse/test.db/test2/ " +
       "--partition-filter type='a' " +
       "--source-format text " +
       "--target-format parquet " +
@@ -28,8 +28,8 @@ class HDFSUtilTest {
       .config("spark.default.parallelism", 1)
       .getOrCreate()
     HDFSUtil.mergePartitionedPath(spark,
-      "hdfs://test01/user/hive/warehouse/baluo_test.db/test2/",
-      "hdfs://test01/user/hive/warehouse/baluo_test.db/test3/",
+      "hdfs://test01/user/hive/warehouse/test.db/test2/",
+      "hdfs://test01/user/hive/warehouse/test.db/test3/",
       "text",
       "text",
       compression = "gzip"
@@ -41,20 +41,20 @@ class HDFSUtilTest {
   @Test
   def dirOnlyTest(): Unit = {
     val fs = FileSystem.get(new HdfsConfiguration())
-    println(HDFSUtil.dirOnly(fs, new Path("/baluo_out_merge_1590068372135_local-1590068370367/ymd=20200519")))
+    println(HDFSUtil.dirOnly(fs, new Path("/out_merge_1590068372135_local-1590068370367/ymd=20200519")))
   }
 
   @Test
   def gatPartitionSpecFromPathTest(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
-    val parts = HDFSUtil.getPartitionSpecFromPath(spark, "/baluo_out")
+    val parts = HDFSUtil.getPartitionSpecFromPath(spark, "/out")
     println(parts)
   }
 
   @Test
   def mergeNoPartitionedPathTest(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
-    HDFSUtil.mergeNoPartitionedPath(spark, "/baluo_out/ymd=20200519/type=a", "/baluo_out/ymd=20200519/type=a",
+    HDFSUtil.mergeNoPartitionedPath(spark, "/out/ymd=20200519/type=a", "/out/ymd=20200519/type=a",
       "parquet", "parquet", compression = "none")
   }
 
@@ -62,7 +62,7 @@ class HDFSUtilTest {
   def mergePartitionedPathTest(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
     spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 1)
-    println(HDFSUtil.mergePartitionedPath(spark, "/baluo_out", "/baluo_out",
+    println(HDFSUtil.mergePartitionedPath(spark, "/out", "/out",
       "parquet", "parquet", compression = "none"))
     TimeUnit.DAYS.sleep(1)
   }
@@ -70,12 +70,12 @@ class HDFSUtilTest {
   @Test
   def gatDataFileSchemaTest(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
-    println(HDFSUtil.getDataFileSchema(spark, "/user/hive/warehouse/baluo_test.db/test/ymd=20200522/hour=01/minute=01/000000_0", "parquet"))
+    println(HDFSUtil.getDataFileSchema(spark, "/user/hive/warehouse/test.db/test/ymd=20200522/hour=01/minute=01/000000_0", "parquet"))
   }
 
   @Test
   def firstDataFileTest(): Unit = {
     val spark = SparkSession.builder().master("local[*]").appName("hdfs_util_test").getOrCreate()
-    println(HDFSUtil.firstDataFile(spark, "/user/hive/warehouse/baluo_test.db/test"))
+    println(HDFSUtil.firstDataFile(spark, "/user/hive/warehouse/test.db/test"))
   }
 }

@@ -26,9 +26,6 @@ object HiveExportCli extends CommonCliBase {
     optBuilder().longOpt("sql")
       .desc("Spark sql to extra hive data.").hasArg.required
       .add()
-    optBuilder().longOpt("spark-conf")
-      .desc("Config writer, e.g. --writer-conf k1=v1 --writer-conf k2=v2.").hasArg
-      .add()
   }
 
   /**
@@ -37,17 +34,13 @@ object HiveExportCli extends CommonCliBase {
   override def handleCmd(cmd: CommandLine): Unit = {
     val conf = new SparkConf()
     handleValue("prop-file", file => conf.loadPropertyFile(file))
-    handleValues("spark-conf", _.foreach { f =>
-      val kv = f.split("=")
-      conf.set(kv(0), kv(1))
-    })
     val spark = SparkSession.builder().enableHiveSupport().config(conf).getOrCreate()
     val extraDF: DataFrame = handleValue("sql", sql => spark.sql(sql))
     val writer = extraDF.potatoWrite
     handleValue("writer", f => writer.format(f))
     handleValues("writer-conf", _.foreach { f =>
       val kv = f.split("=")
-      conf.set(kv(0), kv(1))
+      writer.option(kv(0), kv(1))
     })
     writer.save()
   }

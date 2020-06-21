@@ -1,7 +1,7 @@
-# potato-kafka  
+# potato-kafka-0-8  
 
 ## 简介  
-kafka插件，提供source、sink与offsets管理工具。  
+kafka旧版本api插件，提供source、sink与offsets管理工具，已废弃不再维护。  
 
 ## 类说明  
 * spark.potato.kafka.offsets.cmd.OffsetsCmd  

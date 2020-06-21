@@ -22,8 +22,8 @@ install_project() {
 install_archetype() {
   cd "$BIN"/potato-quickstart && {
     mvn -DskipTests clean archetype:create-from-project
-    cp bin/potato* target/generated-sources/archetype/src/main/resources/archetype-resources/bin/
-    sed -i_bak 's|<include>\*\*/\*.</include>|<include>\*\*/\*</include>|g' target/generated-sources/archetype/src/main/resources/META-INF/maven/archetype-metadata.xml
+    cp bin/potato* target/generated-sources/archetype/target/classes/archetype-resources/bin/
+    sed -i_bak 's|<include>\*\*/\*.</include>|<include>\*\*/\*</include>|g' target/generated-sources/archetype/target/classes/META-INF/maven/archetype-metadata.xml
     cd target/generated-sources/archetype/ && mvn -DskipTests install
   }
 }

@@ -1,174 +1,125 @@
 # spark_streaming_potato
 
 ## 简介  
-spark开发插件，包含多种组件的source、sink模块，和作业管理模块。  
+spark开发插件，将常用到的功能进行封装，以便于快速开发。  
 
 ## 模块说明  
 具体模块使用方式，请查看模块内的readme文档。  
 
 简略说明见下:    
 * potato-common  
-    各种通用公共类、特质。
+    各种通用公共类、特质。 
 * potato-hadoop  
-    Configuration的序列化类。  
+    Configuration的序列化工具和小文件合并工具。  
+* potato-hive  
+    Hive数据export工具，目前支持export到kafka。  
 * potato-hbase  
     sink与table访问工具。
-* potato-kafka  
-    source、sink与offsets管理工具。  
-* potato-lock  
-    sc与ssc管理工具，提供分布式锁与心跳功能。  
-* potato-monitor  
-    streaming批次积压检测上报工具。  
+* potato-kafka08(废弃)  
+    基于旧版本api的source、sink与offsets管理工具。  
+* potato-kafka010  
+    基于新版本api的source、sink与offsets管理工具。  
 * potato-quickstart  
     作业打包与命令行管理工具。  
-* potato-template  
-    作业模板，提供开发参考。  
+* potato-spark  
+    spark相关插件，包含模板、单例锁、流处理监控等插件。  
 
-## 快速开始  
+## 开发实例  
 ### 准备工作  
 1. 下载源码并解压。  
 2. 执行`./install.sh install`安装项目到本地maven仓库。  
 3. 执行`./install.sh create [dir]`通过quickstart骨架创建项目到指定目录，或者在IDE里通过quickstart骨架直接创建项目。  
 
-### 开始开发    
+### 代码开发    
 #### 批处理  
 代码示例
-```scala
-package spark.potato.quickstart.batch
+```text
+package potato.demo.batch
 
-import spark.potato.template.batch.BatchTemplate
+import potato.spark.template._
 
-object BatchDemo extends BatchTemplate {
-  override def doWork(): Unit = {
-    val sc = createContext()
+object BatchDemo extends FullTemplate {
+  override def main(args: Array[String]): Unit = {
+    val sc = createSC().withService.stopWhenShutdown
     println(sc.makeRDD(0 until 10).sum())
   }
 }
 ```  
-配置示例
-```properties
+
+配置示例  
+```text
 ################################################################
-# potato submit config                                         #
+# 注意！所有非 spark. 前缀的参数，均不会被SparkConf加载。            #
+# 如需添加自定义参数后在程序中调用，请注意此规则。                    #
 ################################################################
-# spark-submit脚本，用于在某些集群中区别spark1和spark2，比如cdh。
-spark.potato.submit.bin=spark2-submit
-# todo 重要参数！主类入口。
-spark.potato.submit.main.class=spark.potato.quickstart.batch.BatchDemo
-spark.potato.submit.main.jar=potato-quickstart-0.1.1-SNAPSHOT.jar
+#
+#
 ################################################################
 # spark config                                                 #
 ################################################################
-# todo 重要参数！作业名称，用于运行锁的标识，必须唯一。
-spark.app.name=BatchDemo
+# 作业名称。
+spark.app.name=BatchDemoTest
+# 指向提交作业使用的主类。
+spark.potato.main.class=potato.demo.batch.BatchDemo
+#spark.potato.main.jar=potato-test-1.0-SNAPSHOT.jar
+# streaming context批处理时间。
+spark.potato.spark.streaming.batch.duration.ms=5000
+# 需要开启附加服务，配置值为服务名称，如不开启附加服务，请删除此参数或配置为'false'
+spark.potato.spark.additional.services=ContextSingletonLock
+# 需要开启自定义服务，配置值为类全限定名，如不开启附加服务，请删除此参数或配置为'false'
+#spark.potato.spark.custom.services.class=class.of.A,class.of.B
+### 锁配置。
+# 获取锁最大重试次数。
+spark.potato.lock.singleton.try.max=3
+# 获取锁重试间隔。
+spark.potato.lock.singleton.try.interval.ms=30000
+# 是否强制获取锁，如配置true，则会清楚旧锁。
+spark.potato.lock.singleton.force=true
+# 锁心跳间隔。
+spark.potato.lock.singleton.heartbeat.interval.ms=10000
+# 锁心跳超时时间。
+spark.potato.lock.singleton.heartbeat.timeout.ms=90000
+# 锁存储类型。
+spark.potato.lock.singleton.type=zookeeper
+# zookeeper锁地址。
+spark.potato.lock.singleton.zookeeper.quorum=test01:2181
+# zookeeper锁路径。
+spark.potato.lock.singleton.zookeeper.path=/potato/spark/lock/singleton
+################################################################
+# spark resource config                                        #
+################################################################
 spark.master=yarn
 spark.submit.deployMode=client
-# ...
-################################################################
-# potato common config                                         #
-################################################################
-# todo 重要参数！streaming context批处理时间。
-spark.potato.common.streaming.batch.duration.ms=5000
-# 附加服务列表，全限定类名。如不开启附加服务，请删除此参数或配置为'false'。
-spark.potato.common.additional.services=spark.potato.lock.running.ContextRunningLockService
-# ...
-################################################################
-# potato lock config                                           #
-################################################################
-# ...
-# zookeeper锁地址。
-spark.potato.lock.running.zookeeper.quorum=test01:2181
-# zookeeper锁路径。
-spark.potato.lock.running.zookeeper.path=/potato/lock/running
-```  
-#### 流处理  
-代码示例  
-```scala
-package spark.potato.quickstart.streaming
+spark.driver.cores=1
+spark.driver.memory=512m
+spark.executor.cores=2
+spark.executor.memory=512m
+## 启用dynamicAllocation。
+spark.shuffle.service.enabled=true
+spark.dynamicAllocation.enabled=true
+spark.dynamicAllocation.executorIdleTimeout=60s
+spark.dynamicAllocation.cachedExecutorIdleTimeout=1h
+spark.dynamicAllocation.initialExecutors=1
+spark.dynamicAllocation.maxExecutors=2
+spark.dynamicAllocation.minExecutors=1
+spark.dynamicAllocation.schedulerBacklogTimeout=5s
+spark.dynamicAllocation.sustainedSchedulerBacklogTimeout=5s
+## 仅在staticAllocation模式生效。
+# spark.executor.instances=2
+## classpath参数，仅在cluster模式生效。
+spark.driver.userClassPathFirst=false
+spark.executor.userClassPathFirst=false
+## receiver背压。在kafka源下不生效。
+#spark.streaming.backpressure.enabled=true
+#spark.streaming.backpressure.initialRate
+#spark.streaming.stopGracefullyOnShutdown
+spark.yarn.driver.memoryOverhead=512m
+spark.yarn.executor.memoryOverhead=512m
+spark.yarn.queue=default
+spark.yarn.submit.waitAppCompletion=true
+```
 
-import java.util.Date
-import java.util.concurrent.TimeUnit
-
-import org.apache.spark.rdd.RDD
-import org.apache.spark.streaming.StreamingContext
-import spark.potato.common.context.StreamingContextUtil
-import spark.potato.template.streaming.StreamingTemplate
-
-import scala.collection.mutable
-
-object StreamingDemo extends StreamingTemplate {
-  private val queue = mutable.Queue.empty[RDD[String]]
-
-  override def doWork(): Unit = {
-    val ssc = createStreamingContext()
-    val stream = ssc.queueStream(queue)
-    stream.print()
-    start(ssc)
-  }
-
-  override def afterStart(ssc: StreamingContext): Unit = {
-    while (!ssc.sparkContext.isStopped) {
-      queue += ssc.sparkContext.makeRDD(Seq("test data: " + new Date().toString))
-      TimeUnit.MILLISECONDS.sleep(StreamingContextUtil.getBatchDuration(ssc).milliseconds)
-    }
-  }
-}
-```  
-配置示例  
-```properties
-################################################################
-# potato submit config                                         #
-################################################################
-# spark-submit脚本，用于在某些集群中区别spark1和spark2，比如cdh。
-spark.potato.submit.bin=spark2-submit
-# todo 重要参数！主类入口。
-spark.potato.submit.main.class=spark.potato.quickstart.streaming.StreamingDemo
-spark.potato.submit.main.jar=potato-quickstart-0.1.1-SNAPSHOT.jar
-################################################################
-# spark config                                                 #
-################################################################
-# todo 重要参数！作业名称，用于运行锁的标识，必须唯一。
-spark.app.name=StreamingDemo
-spark.master=yarn
-spark.submit.deployMode=cluster
-# ...
-################################################################
-# potato common config                                         #
-################################################################
-# todo 重要参数！streaming context批处理时间。
-spark.potato.common.streaming.batch.duration.ms=5000
-# 附加服务列表，全限定类名。如不开启附加服务，请删除此参数或配置为'false'。
-spark.potato.common.additional.services=spark.potato.lock.running.StreamingRunningLockService,spark.potato.monitor.backlog.BacklogMonitorService
-# ...
-################################################################
-# potato lock config                                           #
-################################################################
-# ...
-# zookeeper锁地址。
-spark.potato.lock.running.zookeeper.quorum=test01:2181
-# zookeeper锁路径。
-spark.potato.lock.running.zookeeper.path=/potato/lock/running
-################################################################
-# potato monitor config                                        #
-################################################################
-# 批次积压告警阈值。
-spark.potato.monitor.backlog.delay.ms=60000
-# 批次积压告警间隔。
-spark.potato.monitor.backlog.reporter.interval.ms=600000
-# 批次积压告警最大次数。
-spark.potato.monitor.backlog.reporter.max=3
-# 批次积压告警类型。
-spark.potato.monitor.backlog.reporter.type=ding
-# 钉钉告警token。
-spark.potato.monitor.backlog.reporter.ding.token=xxx
-# 钉钉告警是否at所有人。
-spark.potato.monitor.backlog.reporter.ding.at.all=false
-# 钉钉告警需要at的手机号列表。
-spark.potato.monitor.backlog.reporter.ding.at.phones=123,456
-```  
 ### 部署
-quickstart骨架已集成maven-assembly插件，直接执行`mvn clean package`即可打包tar包。  
-将tar包传入集群并解压，执行`./bin/potato.sh -p [prop_file] -m submit`即可提交作业。  
-已配置RunningLock的作业，可以通过`./bin/potato.sh -p [prop_file] -m lock -- clear`远程停止作业。
-
-## 注意  
-个人项目不可避免存在存在bug，使用前请先对代码进行测试，如发现bug望及时反馈。
+使用quickstart骨架，以fat包为例。  
+执行`mvn clean package -DskipTests`生成tar包，注意调过测试。  
+将tar包传入集群并解压，执行`./bin/potato submit -p conf/potato/demo/batch/BatchDemo.properties`提交作业。  

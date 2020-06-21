@@ -1,0 +1,13 @@
+package potato.common
+
+package object conf {
+  val POTATO_PREFIX = "spark.potato."
+  val POTATO_COMMON_PREFIX: String = POTATO_PREFIX + "common."
+
+  val POTATO_COMMON_SENDER_PREFIX: String = POTATO_COMMON_PREFIX + "sender."
+
+  val POTATO_COMMON_SENDER_DING_PREFIX: String = POTATO_COMMON_SENDER_PREFIX + "ding."
+  val POTATO_COMMON_SENDER_DING_TOKEN_KEY: String = POTATO_COMMON_SENDER_DING_PREFIX + "token"
+  val POTATO_COMMON_SENDER_DING_AT_KEY: String = POTATO_COMMON_SENDER_DING_PREFIX + "at"
+  val POTATO_COMMON_SENDER_DING_AT_DEFAULT: String = "none" // all|none|123,456
+}

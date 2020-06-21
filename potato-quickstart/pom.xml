@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>quickstart.spark.potato</groupId>
+    <groupId>quickstart</groupId>
     <artifactId>potato-quickstart</artifactId>
-    <version>0.1.2-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
 
     <repositories>
         <repository>
@@ -23,8 +23,75 @@
         <scala.version>${scala.binary.version}.12</scala.version>
         <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
         <spark.version>2.2.0.cloudera2</spark.version>
-        <potato.version>0.1.2-SNAPSHOT</potato.version>
+        <potato.version>0.2.0-SNAPSHOT</potato.version>
     </properties>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <properties>
+                <potato.scope>provided</potato.scope>
+                <assembly.descriptor>src/assembly/default.xml</assembly.descriptor>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>fat</id>
+            <properties>
+                <potato.scope>compile</potato.scope>
+                <assembly.descriptor>src/assembly/fat.xml</assembly.descriptor>
+            </properties>
+        </profile>
+        <profile>
+            <id>server</id>
+            <properties>
+                <assembly.descriptor>src/assembly/server.xml</assembly.descriptor>
+                <potato.scope>compile</potato.scope>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-common</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-hadoop</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-hbase</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-hive</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-kafka-0-10</artifactId>
+                </dependency>
+                <dependency>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-spark</artifactId>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <!-- 服务端禁止打包额外代码，仅需要打包依赖项。 -->
+                    <plugin>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <version>3.1.1</version>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/*</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
@@ -58,21 +125,61 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>spark.potato</groupId>
-            <artifactId>potato-template</artifactId>
-            <version>${potato.version}</version>
+            <groupId>org.apache.spark</groupId>
+            <artifactId>spark-sql_${scala.binary.version}</artifactId>
+            <version>${spark.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>spark.potato</groupId>
-            <artifactId>potato-hbase</artifactId>
-            <version>${potato.version}</version>
+            <groupId>potato</groupId>
+            <artifactId>potato-spark</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.elasticsearch</groupId>
-            <artifactId>elasticsearch-spark-20_${scala.binary.version}</artifactId>
-            <version>6.3.0</version>
+            <groupId>potato</groupId>
+            <artifactId>potato-kafka-0-10</artifactId>
         </dependency>
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-common</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-hadoop</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-hbase</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-hive</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-kafka-0-10</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-spark</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
@@ -108,11 +215,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.5.5</version>
-                <configuration>
-                    <descriptors>
-                        <descriptor>src/assembly/app.xml</descriptor>
-                    </descriptors>
-                </configuration>
                 <executions>
                     <execution>
                         <id>bin</id>
@@ -122,6 +224,11 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <descriptors>
+                        <descriptor>${assembly.descriptor}</descriptor>
+                    </descriptors>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>

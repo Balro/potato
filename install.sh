@@ -22,6 +22,8 @@ install_project() {
 install_archetype() {
   cd "$BIN"/potato-quickstart && {
     mvn -DskipTests clean archetype:create-from-project
+    cp bin/potato* target/generated-sources/archetype/src/main/resources/archetype-resources/bin/
+    sed -i_bak 's|<include>\*\*/\*.</include>|<include>\*\*/\*</include>|g' target/generated-sources/archetype/src/main/resources/META-INF/maven/archetype-metadata.xml
     cd target/generated-sources/archetype/ && mvn -DskipTests install
   }
 }
@@ -30,14 +32,14 @@ create_project() {
   if [ $# -gt 0 ]; then
     if [ -d "$1" ]; then
       cd "$1" && mvn archetype:generate \
-        -DarchetypeGroupId=quickstart.spark.potato -DarchetypeArtifactId=potato-quickstart-archetype
+        -DarchetypeGroupId=quickstart -DarchetypeArtifactId=potato-quickstart-archetype
     else
       echo "$1 is a not valied directory." >&2
       exit
     fi
   else
     mvn archetype:generate \
-      -DarchetypeGroupId=spark.potato -DarchetypeArtifactId=potato-quickstart-archetype
+      -DarchetypeGroupId=quickstart -DarchetypeArtifactId=potato-quickstart-archetype
   fi
 }
 

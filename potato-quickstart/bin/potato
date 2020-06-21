@@ -1,0 +1,216 @@
+#!/usr/bin/env bash
+
+test "$SPARK_BIN" || export SPARK_BIN=spark2-submit
+export SPARK_ARGS="$SPARK_ARGS"
+
+usage() {
+  cat <<EOF
+Usage:
+  $(basename "$0") [opts] <module> [module_args]
+
+  opts:
+    -h|--help     ->  show module usage.
+    -v|--version  ->  show potato version.
+
+  modules:
+    submit        ->  submit app to spark.
+    hadoop        ->  manage hadoop utils.
+    hive          ->  manage hive utils.
+    kafka         ->  manage kafka010 utils.
+    spark         ->  manage spark utils.
+EOF
+}
+
+source_env() {
+  test -r /etc/profile && source /etc/profile
+  test -r ~/.bash_profile && source ~/.bash_profile
+
+  test -z "$POTATO_HOME" && POTATO_HOME=$(cd -P "$(dirname "$0")/../" && pwd || exit)
+  test -z "$POTATO_BIN_DIR" && POTATO_BIN_DIR=$POTATO_HOME/bin
+  test -z "$POTATO_LIB_DIR" && POTATO_LIB_DIR=$POTATO_HOME/lib
+  export POTATO_HOME
+  export POTATO_BIN_DIR
+  export POTATO_LIB_DIR
+
+  # 定位spark-submit脚本。
+  if [ "$SPARK_BIN" ]; then
+    hash "$SPARK_BIN" || test -x "$SPARK_BIN" || {
+      echo "env SPARK_BIN:$SPARK_BIN not valid."
+      exit 1
+    }
+  elif hash spark-submit; then
+    SPARK_BIN=spark-submit
+  elif [ -x "$SPARK_HOME/bin/spark-submit" ]; then
+    SPARK_BIN=$SPARK_HOME/bin/spark-submit
+  else
+    echo "spark-submit not found" >&2
+    exit 1
+  fi
+  export SPARK_BIN
+
+  # 默认关闭客户端模式。
+  test "$POTATO_CLIENT_MODE" || export POTATO_CLIENT_MODE=0
+}
+
+# 将给定目录中的文件追加到POTATO_DEP_JARS。
+# append_dep_jars <jars_dir>
+append_dep_jars() {
+  local dep_jars_dir="$1"
+  if [ ! -d "$dep_jars_dir" ]; then
+    echo "$dep_jars_dir not found."
+    exit 1
+  fi
+  for jar in "$dep_jars_dir"/*; do
+    test -r "$jar" && {
+      if [ "$POTATO_DEP_JARS" ]; then
+        POTATO_DEP_JARS="$jar,$POTATO_DEP_JARS"
+      else
+        POTATO_DEP_JARS="$jar"
+      fi
+    }
+  done
+  export POTATO_DEP_JARS
+}
+
+# 加载依赖jar包。
+append_all_jars() {
+  if [ "$POTATO_CLIENT_MODE" -gt 0 ]; then
+    if [ "$POTATO_CLIENT_JAR_FIRST" -gt 0 ]; then
+      append_dep_jars "$POTATO_CLIENT_LIB_DIR"
+      append_dep_jars "$POTATO_LIB_DIR"
+    else
+      append_dep_jars "$POTATO_LIB_DIR"
+      append_dep_jars "$POTATO_CLIENT_LIB_DIR"
+    fi
+  else
+    append_dep_jars "$POTATO_LIB_DIR"
+  fi
+}
+
+# 在给定文件中查找配置并导出。
+# usage: export_prop <conf_file> <conf_key> <key_name> [default_value]
+export_prop() {
+  eval "local ${3}_=\"$(grep "^$2=" "$1" | tail -n 1 | awk -F '=' '{print $2}')\""
+  test "$(eval echo \$"${3}"_)" && {
+    eval export "$3"=\$"${3}"_
+    return 0
+  }
+  test "$4" && {
+    export "$3"="$4"
+    return 0
+  }
+  echo "Prop $3:$2 not found in $1" >&2
+  return 1
+}
+
+# 从配置文件导出POTATO_MAIN_CLASS。
+export_main_class_from_prop_file() {
+  if [ "$POTATO_PROP_FILE" ]; then
+    export_prop "$POTATO_PROP_FILE" spark.potato.main.class POTATO_MAIN_CLASS
+  else
+    echo "Main class not found." >&2
+    return 1
+  fi
+}
+
+# 从配置文件导出POTATO_MAIN_JAR。
+export_main_jar_from_prop_file() {
+  if [ "$POTATO_PROP_FILE" ]; then
+    if export_prop "$POTATO_PROP_FILE" spark.potato.main.jar POTATO_MAIN_JAR_NAME; then
+      if [ "$POTATO_CLIENT_MODE" -gt 0 ]; then
+        export POTATO_MAIN_JAR="$POTATO_CLIENT_HOME/lib/$POTATO_MAIN_JAR_NAME"
+      else
+        export POTATO_MAIN_JAR="$POTATO_HOME/lib/$POTATO_MAIN_JAR_NAME"
+      fi
+    else
+      echo "Main jar not found in prop file." >&2
+      return 1
+    fi
+  else
+    echo "No prop file specified." >&2
+    return 1
+  fi
+}
+
+# 则根据POTATO_CLIENT_HOME目录导出POTATO_MAIN_JAR。
+export_main_jar_from_dir() {
+  if [ "$POTATO_CLIENT_MODE" -gt 0 ]; then
+    local base_dir="$POTATO_CLIENT_HOME"
+  else
+    local base_dir="$POTATO_HOME"
+  fi
+  POTATO_MAIN_JAR_NAME="$(basename "$base_dir").jar"
+
+  if [ -f "$base_dir/lib/$POTATO_MAIN_JAR_NAME" ]; then
+    local main_jar="$base_dir/lib/$POTATO_MAIN_JAR_NAME"
+    export POTATO_MAIN_JAR="$main_jar"
+    return 0
+  else
+    echo "Main jar not found for name $POTATO_MAIN_JAR_NAME from $base_dir/lib." >&2
+    return 1
+  fi
+}
+
+# 提交作业到spark-submit。
+potato_submit() {
+  local spark_run="$SPARK_BIN $SPARK_ARGS"
+
+  test "$POTATO_PROP_FILE" && spark_run="$spark_run --properties-file $POTATO_PROP_FILE"
+  test "$POTATO_DEP_JARS" && spark_run="$spark_run --jars $POTATO_DEP_JARS"
+  test "$POTATO_MAIN_CLASS" && spark_run="$spark_run --class $POTATO_MAIN_CLASS"
+  test "$POTATO_SPARK_CONF" && spark_run="$spark_run $POTATO_SPARK_CONF"
+  if [ "$POTATO_MAIN_JAR" ]; then
+    spark_run="$spark_run $POTATO_MAIN_JAR"
+  else
+    echo "No main jar specified." >&2
+    return 1
+  fi
+
+  echo "run command: $spark_run $*"
+  echo
+  $spark_run "$@"
+}
+
+select_module() {
+  for m in "$POTATO_HOME"/bin/modules/*; do
+    grep -Eq "^(export\ +)?module_name=[\'\"]?$1[\'\"]?$" "$m" && {
+      source "$m"
+      break
+    }
+  done
+
+  test "$module_name" || {
+    echo "module $1 not found" >&2
+    usage
+    exit 1
+  }
+}
+
+main() {
+  source_env
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    "-h" | "--help")
+      shift
+      select_module "$1"
+      module_usage
+      exit 0
+      ;;
+    "-v" | "--version")
+      echo "potato version $POTATO_VERSION"
+      exit 0
+      ;;
+    *)
+      select_module "$1"
+      shift
+      module_run "$@"
+      exit $?
+      ;;
+    esac
+    shift
+  done
+
+  usage
+}
+
+test "$(basename "$0")" == "potato" && main "$@"

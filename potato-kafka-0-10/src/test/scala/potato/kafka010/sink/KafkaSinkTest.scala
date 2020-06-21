@@ -14,6 +14,8 @@ import potato.common.conf.PropertiesImplicits._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
+import potato.kafka010.conf._
+
 class KafkaSinkTest {
   @Test
   def sinkTest(): Unit = {

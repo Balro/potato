@@ -11,4 +11,17 @@
 
     <artifactId>potato-hive</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>potato</groupId>
+            <artifactId>potato-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>potato</groupId>
+            <artifactId>potato-kafka-0-10</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
 </project>

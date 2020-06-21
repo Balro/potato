@@ -1,8 +1,5 @@
 package potato.kafka010.offsets.cmd
 
-import java.io.FileReader
-import java.util.Properties
-
 import org.apache.commons.cli.{CommandLine, Options, ParseException}
 import org.apache.kafka.common.TopicPartition
 import org.apache.spark.SparkConf
@@ -10,6 +7,7 @@ import potato.common.cmd.CommonCliBase
 import potato.kafka010.conf._
 import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
 import potato.kafka010.offsets.manager.OffsetsManager
+import potato.spark.conf.SparkConfUtil._
 
 object KafkaOffsetCli extends CommonCliBase {
   override val helpWidth: Int = 120
@@ -75,17 +73,11 @@ object KafkaOffsetCli extends CommonCliBase {
    * 根据已解析命令行参数进行处理。
    */
   override def handleCmd(cmd: CommandLine): Unit = {
-    import scala.collection.JavaConversions.propertiesAsScalaMap
     val conf = new SparkConf()
 
     cmd.getOptionValue("prop-file") match {
-      case value: String =>
-        if (value != null) {
-          val props = new Properties()
-          props.load(new FileReader(value))
-          props.foreach(f => conf.set(f._1, f._2))
-        }
-      case null =>
+      case value: String => conf.loadPropertyFile(value)
+      case _ =>
     }
     cmd.getOptionValue("bootstrap-servers") match {
       case value: String => conf.set(POTATO_KAFKA_COMMON_BOOTSTRAP_SERVERS_KEY, value)
@@ -120,7 +112,7 @@ object KafkaOffsetCli extends CommonCliBase {
 
     if (cmd.hasOption("show")) {
       val a: Map[TopicPartition, Long] = KafkaConsumerOffsetsUtil.getLatestOffsets(manager.kafkaConf.toConsumerProperties, manager.subscriptions)
-      val b: Map[TopicPartition, Long] = manager.committedOffsets(false)
+      val b: Map[TopicPartition, Long] = manager.committedOffsets()
       a.map(f => f._1 -> (f._2, b(f._1), f._2 - b(f._1))).groupBy(_._1.topic()).foreach { kf =>
         console(s"topic:${kf._1}")
         kf._2.toSeq.sortBy(_._1.partition()).foreach(f => console(f"\t${f._1}%-10s -> latest:${f._2._1}%-8s, committed:${f._2._2}, lag:${f._2._3}"))
@@ -136,7 +128,7 @@ object KafkaOffsetCli extends CommonCliBase {
         else
           throw new ParseException(s"Missing argument [--to-earliest|--to-latest].")
       }
-      val curOffsets = manager.committedOffsets(false)
+      val curOffsets = manager.committedOffsets()
       newOffsets.groupBy(_._1.topic()).foreach { kf =>
         console(s"topic:${kf._1}")
         kf._2.toSeq.sortBy(_._1.partition()).foreach(f => console(f"\t${f._1}%-10s -> old:${curOffsets.getOrElse(f._1, KafkaConsumerOffsetsUtil.invalidOffset)}%-8s, new:${f._2}"))

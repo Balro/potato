@@ -11,6 +11,8 @@ package object exception {
    */
   case class MetadataNotFoundException(msg: String = null, throwable: Throwable = null) extends KafkaException(msg, throwable)
 
-  case class InvalidConfigException(msg: String = null, throwable: Throwable=null) extends KafkaException(msg, throwable)
+  case class InvalidConfigException(msg: String = null, throwable: Throwable = null) extends KafkaException(msg, throwable)
+
+  case class SinkFailedException(msg: String = null, throwable: Throwable = null) extends KafkaException(msg, throwable)
 
 }

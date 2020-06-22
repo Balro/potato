@@ -15,13 +15,14 @@ class SpeedLimitedProducerTest {
     props.setProperty(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "test02:9092")
     props.setProperty(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer].getName)
     props.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, classOf[StringSerializer].getName)
-    props.setProperty(POTATO_KAFKA_PRODUCER_SPEED_LIMIT_KEY, "1000")
+    props.setProperty(POTATO_KAFKA_PRODUCER_SPEED_LIMIT_KEY, "500")
 
     val producer = new SpeedLimitedProducer[String, String](props)
 
     for (i <- 0 until 10000) {
       producer.send(new ProducerRecord[String, String]("test_out", i.toString))
       println(i)
+      TimeUnit.MICROSECONDS.sleep(1)
     }
   }
 }

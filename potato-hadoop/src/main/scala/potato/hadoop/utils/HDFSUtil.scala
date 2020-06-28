@@ -96,22 +96,23 @@ object HDFSUtil extends Logging {
    * 对于存在少量子目录，但是每个子目录存在大量小文件的情况来说，尽可能启用分布式分区发现，可以大大提升分区解析效率。
    * * SQLConf:spark.sql.sources.parallelPartitionDiscovery.threshold # 建议设置为0.
    *
-   * @param source          数据源目录。
-   * @param target          目标目录，默认与数据源目录相同，即新目录会覆盖原目录。
-   * @param sourceFormat    源目录文件格式。
-   * @param targetFormat    目标目录文件格式。
-   * @param overwrite       当目标路径存在时，是否强制替换，默认为true。
-   * @param partitionFilter 过滤条件，必须对分区进行过滤，目前尚未对过滤条件是否指定分区外字段进行检查，须调用方法时外部确认。
-   * @param maxParallel     同时写入分区启用的最大作业数。
-   * @param readerOptions   额外加载入DataFrameReader的参数。
-   * @param writerOptions   额外加载入DataFrameWriter的参数。
-   * @param compression     写出文件时使用的压缩格式。
-   * @param schema          显示指定文件schema，指定schema中不应包含分区信息。如schema为null，则会使用spark的默认schema机制，比较影响性能。
+   * @param source           数据源目录。
+   * @param target           目标目录，默认与数据源目录相同，即新目录会覆盖原目录。
+   * @param sourceFormat     源目录文件格式。
+   * @param targetFormat     目标目录文件格式。
+   * @param overwrite        当目标路径存在时，是否强制替换，默认为true。
+   * @param partitionFilter  过滤条件，必须对分区进行过滤，目前尚未对过滤条件是否指定分区外字段进行检查，须调用方法时外部确认。
+   * @param maxParallel      同时写入分区启用的最大作业数。
+   * @param readerOptions    额外加载入DataFrameReader的参数。
+   * @param writerOptions    额外加载入DataFrameWriter的参数。
+   * @param compression      写出文件时使用的压缩格式。
+   * @param schema           显示指定文件schema，指定schema中不应包含分区信息。如schema为null，则会使用spark的默认schema机制，比较影响性能。
+   * @param quickInferSchema 推测数据结构时是否采用快速推测，即只推测分区下第一个数据文件。仅当schema参数为null时生效。如schema为null，且此参数为false，则使用默认的数据结构推测。
    */
   def mergePartitionedPath(spark: SparkSession, source: String, target: String, sourceFormat: String, targetFormat: String,
                            partitionFilter: String = null, overwrite: Boolean = true, maxParallel: Int = 20,
                            readerOptions: Map[String, String] = Map.empty, writerOptions: Map[String, String] = Map.empty,
-                           compression: String = "snappy", schema: StructType = null): Seq[String] = {
+                           compression: String = "snappy", schema: StructType = null, quickInferSchema: Boolean = true): Seq[String] = {
     // 不生成_SUCCESS文件。
     spark.sparkContext.hadoopConfiguration.setBoolean("mapreduce.fileoutputcommitter.marksuccessfuljobs", false)
     // 验证服务端是否开启回收站，如服务端未开启回收站，则会抛出异常。
@@ -158,7 +159,18 @@ object HDFSUtil extends Logging {
         try {
           logInfo(s"Merging directory $source/$f to $tmpDir/$f started.")
           // 为每个分区单独创建df进行写入，避免全表创建df导致partition数量过多的问题。
-          spark.read.options(readerOptions).format(sourceFormat).schema(schema).load(s"$source/$f").write
+          val dataSchema = {
+            if (schema == null && quickInferSchema) {
+              firstDataFile(spark, s"$source/$f") match {
+                case Some(file) => getDataFileSchema(spark, file.toString, sourceFormat, readerOptions)
+                case None => null
+              }
+            } else {
+              schema
+            }
+          }
+          logInfo(s"Use schema for partition $source/$f: ${dataSchema.treeString}")
+          spark.read.options(readerOptions).format(sourceFormat).schema(dataSchema).load(s"$source/$f").write
             .mode(SaveMode.ErrorIfExists)
             .format(targetFormat)
             .options(writerOptions.+("compression" -> compression))

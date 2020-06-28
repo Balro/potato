@@ -1,15 +1,11 @@
 package potato.hadoop.cmd
 
-import java.util.concurrent.TimeUnit
-
 import org.apache.commons.cli.{CommandLine, Options}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.internal.SQLConf
-import org.apache.spark.sql.types.StructType
 import potato.hadoop.utils.HDFSUtil
 import potato.common.cmd.CommonCliBase
-import potato.common.exception.PotatoException
 
 object FileMergeCli extends CommonCliBase {
   override val cliName: String = "FileMergeCli"
@@ -84,7 +80,7 @@ object FileMergeCli extends CommonCliBase {
       .desc("Enable schema sample will infer schema by the first data file to improve performance. Disable schema sample will use default schema infer policy.")
       .add()
     optBuilder().longOpt("schema-sample-file")
-      .desc("Infer schema from the specified file to improve performance").hasArg
+      .desc("File to infer global schema.").hasArg
       .add()
   }
 
@@ -116,24 +112,12 @@ object FileMergeCli extends CommonCliBase {
       spark.sparkContext.hadoopConfiguration.set(kv(0), kv(1))
     })
 
-    val schema: StructType = handleKey("disable-schema-sample", () => null,
-      () => {
-        val file: String = handleValue("schema-sample-file", f => f,
-          () => HDFSUtil.firstDataFile(spark, cmd.getOptionValue("source")) match {
-            case Some(path) => path.toString
-            case None => throw new PotatoException(s"No data file found in ${cmd.getOptionValue("source")}.")
-          }
-        )
-        HDFSUtil.getDataFileSchema(spark, file, cmd.getOptionValue("source-format"))
-      })
+    val schema = handleValue("schema-sample-file", file =>
+      HDFSUtil.getDataFileSchema(spark, file, cmd.getOptionValue("source-format"))
+    )
 
-    println(
-      s"""
-         |Infer schema:
-         |${schema.treeString}
-         |Waiting 10s to continue, if schema is incorrect ,press ctrl+c to stop.
-         |""".stripMargin)
-    TimeUnit.SECONDS.sleep(10)
+    // 是否启用快速schema推测，即为每个分区使用分区下第一个数据文件进行推测。
+    val quickSchemaSample = handleKey("disable-schema-sample", () => false, () => true)
 
     console("Merged paths:")
     handleKey("no-partition", { () =>
@@ -160,14 +144,10 @@ object FileMergeCli extends CommonCliBase {
         readerOptions = cmd.getOptionProperties("reader-opts").toMap,
         writerOptions = cmd.getOptionProperties("reader-opts").toMap,
         compression = cmd.getOptionValue("compression", "snappy"),
-        schema = schema
+        schema = schema,
+        quickInferSchema = quickSchemaSample
       ).mkString("\n"))
     })
-    console(
-      s"""
-         |Schema:
-         |${schema.treeString}
-         |""".stripMargin)
 
     spark.stop()
   }

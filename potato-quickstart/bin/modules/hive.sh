@@ -1,7 +1,8 @@
 #!/bin/echo
 
 export module_name="hive"
-export POTATO_MAIN_JAR=$POTATO_HOME/lib/potato-hive-0.2.0-SNAPSHOT.jar
+POTATO_MAIN_JAR=$(find "$POTATO_HOME"/lib/potato-hive-*.jar | head -n 1)
+export POTATO_MAIN_JAR
 
 module_usage() {
   cat <<EOF

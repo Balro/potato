@@ -1,7 +1,8 @@
 #!/bin/echo
 
 export module_name="hadoop"
-export POTATO_MAIN_JAR=$POTATO_HOME/lib/potato-hadoop-0.2.0-SNAPSHOT.jar
+POTATO_MAIN_JAR=$(find "$POTATO_HOME"/lib/potato-hadoop-*.jar | head -n 1)
+export POTATO_MAIN_JAR
 
 module_usage() {
   cat <<EOF

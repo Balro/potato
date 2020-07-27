@@ -1,4 +1,4 @@
-# spark_streaming_potato
+# spark_potato
 
 ## 简介  
 spark开发插件，将常用到的功能进行封装，以便于快速开发。  

@@ -1,5 +1,7 @@
 package potato.kafka010.offsets.storage
 
+import java.util.concurrent.TimeUnit
+
 import org.apache.hadoop.hbase.{HBaseConfiguration, HConstants, TableName}
 import org.apache.hadoop.hbase.client.{ConnectionFactory, Get, Table}
 import org.apache.hadoop.hbase.util.Bytes
@@ -61,9 +63,9 @@ class HBaseOffsetsStorageTest {
     val tbl: Table = conn.getTable(TableName.valueOf("test"))
     println(tbl)
     println(conf.get("hbase.client.pause"))
-    println(tbl.getReadRpcTimeout)
-    println(tbl.getWriteRpcTimeout)
-    println(tbl.getOperationTimeout)
+    println(tbl.getReadRpcTimeout(TimeUnit.MILLISECONDS))
+    println(tbl.getWriteRpcTimeout(TimeUnit.MILLISECONDS))
+    println(tbl.getOperationTimeout(TimeUnit.MILLISECONDS))
     val cur = System.currentTimeMillis()
     try {
       println(tbl.get(new Get(Bytes.toBytes("hello"))))

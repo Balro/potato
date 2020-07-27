@@ -2,11 +2,9 @@ package potato.kafka010.offsets.storage
 
 import java.util.Properties
 
-import kafka.common.TopicAndPartition
-import kafka.consumer.ConsumerConfig
 import org.apache.kafka.common.{KafkaException, TopicPartition}
 import org.apache.spark.internal.Logging
-import potato.kafka010.offsets.{KafkaConsumerOffsetsUtil, SimpleConsumerOffsetsUtil}
+import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
 
 /**
  * OffsetsStorage特质，用于存储offsets。
@@ -15,30 +13,6 @@ trait OffsetsStorage {
   def save(groupId: String, offsets: Map[TopicPartition, Long]): Boolean
 
   def load(groupId: String, taps: Set[TopicPartition]): Map[TopicPartition, Long]
-}
-
-/**
- * OffsetsStorage的kafka_zookeeper实现。
- *
- * @deprecated 新版本kafka建议使用kafka存储，废弃zookeeper存储。
- */
-class ZookeeperOffsetsStorage(seeds: Map[String, Int], config: ConsumerConfig) extends OffsetsStorage with Logging {
-
-  import potato.kafka010.offsets.SimpleConsumerOffsetsUtilImplicits.mapToBrokerEndPoints
-
-  override def save(groupId: String, offsets: Map[TopicPartition, Long]): Boolean = {
-    val (ret, errs) = SimpleConsumerOffsetsUtil.commitOffsetsOnZookeeper(seeds, groupId, {
-      offsets.map(f => TopicAndPartition(f._1.topic(), f._1.partition()) -> f._2)
-    })(config)
-    errs.foreach { err => logWarning("commit on zookeeper found err", err) }
-    ret
-  }
-
-  override def load(groupId: String, taps: Set[TopicPartition]): Map[TopicPartition, Long] = {
-    SimpleConsumerOffsetsUtil.fetchOffsetsOnZookeeper(seeds, groupId, {
-      taps.map(f => TopicAndPartition(f.topic(), f.partition()))
-    })(config).map(f => new TopicPartition(f._1.topic, f._1.partition) -> f._2)
-  }
 }
 
 /**

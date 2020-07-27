@@ -6,7 +6,7 @@
 
     <groupId>quickstart</groupId>
     <artifactId>potato-quickstart</artifactId>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>potato0.3.0-spark2.4.0-cdh6.2.1</version>
 
     <repositories>
         <repository>
@@ -21,33 +21,34 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <scala.binary.version>2.11</scala.binary.version>
         <scala.version>${scala.binary.version}.12</scala.version>
-        <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
-        <spark.version>2.2.0.cloudera2</spark.version>
-        <potato.version>0.2.0-SNAPSHOT</potato.version>
+        <hadoop.version>3.0.0-cdh6.2.1</hadoop.version>
+        <spark.version>2.4.0-cdh6.2.1</spark.version>
+        <potato.version>${project.version}</potato.version>
+        <assembly.descriptor>src/assembly/default.xml</assembly.descriptor>
     </properties>
 
     <profiles>
         <profile>
+            <!-- 默认profile，打包以来jar包。 -->
             <id>default</id>
             <properties>
-                <potato.scope>provided</potato.scope>
-                <assembly.descriptor>src/assembly/default.xml</assembly.descriptor>
+                <potato.scope>compile</potato.scope>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
         </profile>
         <profile>
-            <id>fat</id>
+            <!-- 轻量级jar包，只会打包客户端代码。 -->
+            <id>thin</id>
             <properties>
-                <potato.scope>compile</potato.scope>
-                <assembly.descriptor>src/assembly/fat.xml</assembly.descriptor>
+                <potato.scope>provided</potato.scope>
             </properties>
         </profile>
         <profile>
-            <id>server</id>
+            <!-- 重量级jar包，会打包所有potato插件代码。 -->
+            <id>fat</id>
             <properties>
-                <assembly.descriptor>src/assembly/server.xml</assembly.descriptor>
                 <potato.scope>compile</potato.scope>
             </properties>
             <dependencies>
@@ -76,20 +77,6 @@
                     <artifactId>potato-spark</artifactId>
                 </dependency>
             </dependencies>
-            <build>
-                <plugins>
-                    <!-- 服务端禁止打包额外代码，仅需要打包依赖项。 -->
-                    <plugin>
-                        <artifactId>maven-jar-plugin</artifactId>
-                        <version>3.1.1</version>
-                        <configuration>
-                            <excludes>
-                                <exclude>**/*</exclude>
-                            </excludes>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 
@@ -142,6 +129,12 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato</artifactId>
+                <version>${potato.version}</version>
+                <scope>provided</scope>
+            </dependency>
             <dependency>
                 <groupId>potato</groupId>
                 <artifactId>potato-common</artifactId>
@@ -225,6 +218,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <descriptors>
                         <descriptor>${assembly.descriptor}</descriptor>
                     </descriptors>

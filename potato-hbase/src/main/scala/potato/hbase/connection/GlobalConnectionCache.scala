@@ -3,7 +3,7 @@ package potato.hbase.connection
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.hbase.HConstants
 import org.apache.hadoop.hbase.client.{Connection, ConnectionFactory}
-import org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher
+import org.apache.hadoop.hbase.zookeeper.ZNodePaths
 import potato.common.pool.KeyedCacheBase
 import potato.hbase.connection.ConnectionInfo.ConnectionAddress
 
@@ -59,8 +59,8 @@ object ConnectionInfo {
 
   implicit def parse(conf: Configuration): ConnectionInfo = new ConnectionInfo(
     ConnectionAddress(conf.get(HConstants.ZOOKEEPER_QUORUM, HConstants.LOCALHOST),
-      conf.getInt(HConstants.ZOOKEEPER_CLIENT_PORT, HConstants.DEFAULT_ZOOKEPER_CLIENT_PORT),
+      conf.getInt(HConstants.ZOOKEEPER_CLIENT_PORT, HConstants.DEFAULT_ZOOKEEPER_CLIENT_PORT),
       conf.get(HConstants.ZOOKEEPER_ZNODE_PARENT, HConstants.DEFAULT_ZOOKEEPER_ZNODE_PARENT),
-      conf.get(ZK_METASERVER_KEY, ZooKeeperWatcher.META_ZNODE_PREFIX)
+      conf.get(ZK_METASERVER_KEY, ZNodePaths.META_ZNODE_PREFIX)
     ), conf)
 }

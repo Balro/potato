@@ -342,7 +342,7 @@ object HDFSUtil extends Logging {
     if (fileStatus.isDirectory)
       throw new PotatoException(s"Path $path is a directory, bug method getDateFileSchema only support data file.")
 
-    val providingClass = DataSource.lookupDataSource(format)
+    val providingClass = DataSource.lookupDataSource(format, spark.sessionState.conf)
 
     providingClass.newInstance() match {
       case format: FileFormat =>

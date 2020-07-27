@@ -36,11 +36,6 @@ class OffsetsManager(val kafkaConf: PotatoKafkaConf) extends Logging {
   // 初始化offsets存储。
   private val storage: OffsetsStorage = kafkaConf.offsetsStorageType match {
     case "kafka" => new KafkaOffsetsStorage(consumerProps)
-    case "zookeeper" =>
-      logWarning("ZookeeperOffsetsStorage is deprecated and not recommended.")
-      new ZookeeperOffsetsStorage(
-        kafkaConf.bootstrapServers.split(",").map(f => f.split(":")(0) -> f.split(":")(1).toInt).toMap,
-        kafkaConf.toSimpleConsumerConfig)
     case "hbase" => new HBaseOffsetsStorage(kafkaConf.offsetsStorageHBaseTable, kafkaConf.offsetsStorageHBaseFamily, kafkaConf.hbaseConf)
     case "none" => new NoneOffsetsStorage
     case unknown => throw new KafkaException(s"storage type not supported: $unknown")

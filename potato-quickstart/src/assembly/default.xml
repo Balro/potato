@@ -7,13 +7,17 @@
 
     <files>
         <file>
-            <source>bin/potato-client</source>
+            <source>bin/potato</source>
             <outputDirectory>bin</outputDirectory>
             <fileMode>0755</fileMode>
         </file>
     </files>
 
     <fileSets>
+        <fileSet>
+            <directory>bin/modules</directory>
+            <outputDirectory>bin/modules</outputDirectory>
+        </fileSet>
         <fileSet>
             <directory>src/main/resources</directory>
             <outputDirectory>conf</outputDirectory>

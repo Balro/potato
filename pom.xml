@@ -6,12 +6,11 @@
     <groupId>potato</groupId>
     <artifactId>potato</artifactId>
     <packaging>pom</packaging>
-    <version>0.2.0-SNAPSHOT</version>
+    <version>potato0.3.0-spark2.4.0-cdh6.2.1</version>
     <modules>
         <module>potato-common</module>
         <module>potato-hadoop</module>
         <module>potato-hbase</module>
-        <module>potato-kafka-0-8</module>
         <module>potato-kafka-0-10</module>
         <module>potato-hive</module>
         <module>potato-spark</module>
@@ -31,9 +30,10 @@
         <reporting.outputEncoding>UTF-8</reporting.outputEncoding>
         <scala.binary.version>2.11</scala.binary.version>
         <scala.version>${scala.binary.version}.12</scala.version>
-        <spark.version>2.2.0.cloudera2</spark.version>
-        <hadoop.version>2.6.0-cdh5.14.4</hadoop.version>
-        <hbase.version>1.2.0-cdh5.14.4</hbase.version>
+        <spark.version>2.4.0-cdh6.2.1</spark.version>
+        <zookeeper.version>3.4.5-cdh6.2.1</zookeeper.version>
+        <hadoop.version>3.0.0-cdh6.2.1</hadoop.version>
+        <hbase.version>2.1.0-cdh6.2.1</hbase.version>
     </properties>
 
     <dependencies>
@@ -106,6 +106,11 @@
                 <artifactId>commons-pool</artifactId>
                 <version>1.6</version>
                 <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.hadoop</groupId>

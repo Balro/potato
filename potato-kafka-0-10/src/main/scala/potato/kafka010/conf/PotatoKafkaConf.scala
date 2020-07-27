@@ -2,7 +2,6 @@ package potato.kafka010.conf
 
 import java.util.Properties
 
-import kafka.consumer.{ConsumerConfig => SimpleConsumerConfig}
 import org.apache.hadoop.hbase.HConstants
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -10,7 +9,6 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.spark.SparkConf
 import potato.common.conf.PropertiesImplicits.mapToProperties
-import potato.kafka010.offsets.SimpleConsumerOffsetsUtilImplicits
 
 class PotatoKafkaConf(conf: SparkConf, kafkaProps: Map[String, String] = Map.empty) {
   private val default: Map[String, String] = Map(
@@ -48,10 +46,6 @@ class PotatoKafkaConf(conf: SparkConf, kafkaProps: Map[String, String] = Map.emp
   lazy val offsetsStorageHBaseTable: String = conf.get(POTATO_KAFKA_OFFSETS_STORAGE_HBASE_TABLE_KEY, POTATO_KAFKA_OFFSETS_STORAGE_HBASE_TABLE_DEFAULT)
   lazy val offsetsStorageHBaseFamily: String = conf.get(POTATO_KAFKA_OFFSETS_STORAGE_HBASE_FAMILY_KEY, POTATO_KAFKA_OFFSETS_STORAGE_HBASE_FAMILY_DEFAULT)
   lazy val offsetsStorageHBaseConf: String = conf.get(POTATO_KAFKA_OFFSETS_STORAGE_HBASE_ZOO_QUORUM_KEY)
-
-  lazy val toSimpleConsumerConfig: SimpleConsumerConfig = {
-    SimpleConsumerOffsetsUtilImplicits.mapToConsumerConfig(consumerProps)
-  }
 
   lazy val toConsumerProperties: Properties = consumerProps
 

@@ -234,18 +234,6 @@ class NewOptionBuilder {
     this
   }
 
-  //  /**
-  //   * Sets the type of the Option.
-  //   *
-  //   * @param type the type of the Option
-  //   * @return this builder, to allow method chaining
-  //   */
-  //  def  type(final Class<?> type):Builder
-  //  {
-  //    this.type = type;
-  //    return this;
-  //  }
-
   /**
    * The Option will use '=' as a means to separate argument value.
    *

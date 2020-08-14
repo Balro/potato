@@ -3,7 +3,6 @@ package potato.common.threads
 import java.util.Date
 import java.util.concurrent.{Executors, TimeUnit}
 
-//noinspection ScalaDeprecation
 object DaemonThreadFactoryTest {
   def main(args: Array[String]): Unit = {
     val executor = Executors.newSingleThreadScheduledExecutor(DaemonThreadFactory)

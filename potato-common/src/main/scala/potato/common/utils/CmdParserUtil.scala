@@ -1,8 +1,7 @@
-package potato.common.cmd
-
-import potato.common.exception.ArgParseException
+package potato.common.utils
 
 import scala.collection.mutable
+import potato.common.exception._
 
 object CmdParserUtil {
   /**
@@ -67,7 +66,7 @@ object CmdParserUtil {
           props += key -> value
           parse = tail
         case Nil =>
-        case _ => throw ArgParseException(s"Remain args not parsed -> ${args.mkString(" ")}")
+        case _ => throw new PotatoConfException(s"Remain args not parsed -> ${args.mkString(" ")}")
       }
     }
     props.toMap -> flags.toSet

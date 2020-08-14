@@ -10,7 +10,7 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.{StreamingContext, Time}
 import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka010.{ConsumerStrategies, HasOffsetRanges, KafkaUtils, LocationStrategies, OffsetRange}
-import potato.common.exception.MethodNotAllowedException
+import potato.common.exception.PotatoMethodException
 import potato.kafka010.conf._
 import potato.kafka010.offsets.storage._
 import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
@@ -46,13 +46,13 @@ class OffsetsManager(val kafkaConf: PotatoKafkaConf) extends Logging {
   private[offsets] var subscriptions: Set[TopicPartition] = KafkaConsumerOffsetsUtil.getTopicsPartition(consumerProps, kafkaConf.subscribeTopics)
 
   def subscribePartetion(parts: Set[TopicPartition]): OffsetsManager = this.synchronized {
-    if (dStreamCreated.get()) throw MethodNotAllowedException(s"Subscribe is not allowed when dstream created.")
+    if (dStreamCreated.get()) throw new PotatoMethodException(s"Subscribe is not allowed when dstream created.")
     subscriptions = parts
     this
   }
 
   def subscribeTopic(tpcs: Set[String]): OffsetsManager = this.synchronized {
-    if (dStreamCreated.get()) throw MethodNotAllowedException(s"Subscribe is not allowed when dstream created.")
+    if (dStreamCreated.get()) throw new PotatoMethodException(s"Subscribe is not allowed when dstream created.")
     subscriptions = KafkaConsumerOffsetsUtil.getTopicsPartition(consumerProps, tpcs)
     this
   }
@@ -169,7 +169,7 @@ class OffsetsManager(val kafkaConf: PotatoKafkaConf) extends Logging {
                            cache: Boolean = false
                          ): DStream[ConsumerRecord[K, V]] = this.synchronized {
     assert(offsets.nonEmpty, "No partition assigned.")
-    if (dStreamCreated.get()) throw MethodNotAllowedException(s"DStream not allowed to create twice.")
+    if (dStreamCreated.get()) throw new PotatoMethodException(s"DStream not allowed to create twice.")
     dStreamCreated.set(true)
     val stream = KafkaUtils.createDirectStream[K, V](ssc,
       LocationStrategies.PreferConsistent,

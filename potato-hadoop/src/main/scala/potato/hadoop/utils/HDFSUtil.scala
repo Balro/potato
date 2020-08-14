@@ -2,7 +2,9 @@ package potato.hadoop.utils
 
 import java.util.concurrent.Executors
 
+import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.{FileSystem, Path, Trash}
+import org.apache.hadoop.hdfs.DistributedFileSystem
 import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql._
@@ -12,7 +14,7 @@ import org.apache.spark.sql.internal.SQLConf
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.unsafe.types.UTF8String
 import org.apache.spark.{SparkConf, SparkContext}
-import potato.common.exception.PotatoException
+import potato.common.exception._
 import potato.common.threads.DaemonThreadFactory
 
 import scala.collection.mutable
@@ -185,7 +187,7 @@ object HDFSUtil extends Logging {
     }
 
     // 临时目录存在未移动的文件。
-    if (dirOnly(fs, tmpDir)) {
+    if (isDirOnly(fs, tmpDir)) {
       logInfo(s"Delete tmp directory $tmpDir")
       moveToTrash(fs, tmpDir)
     } else {
@@ -232,7 +234,7 @@ object HDFSUtil extends Logging {
   /**
    * 检查给定路径下所有子路径是否全为目录，如存在文件，则返回false。
    */
-  def dirOnly(fs: FileSystem, path: Path): Boolean = !fs.listFiles(path, true).hasNext
+  def isDirOnly(fs: FileSystem, path: Path): Boolean = !fs.listFiles(path, true).hasNext
 
   /**
    * 解析指定目录的数据结构和分区结构。
@@ -285,7 +287,7 @@ object HDFSUtil extends Logging {
    * @return (dataSchema,partitionSchema)
    */
   def getFileSchema(sc: SparkContext, format: String, path: String): (StructType, StructType) = {
-    getFileSchema(SparkSession.builder().config(sc.getConf).getOrCreate(), format, path)
+    getFileSchema(SparkSession.builder.config(sc.getConf).getOrCreate(), format, path)
   }
 
   /**
@@ -379,5 +381,20 @@ object HDFSUtil extends Logging {
         return Option(status.getPath)
     }
     None
+  }
+
+  //todo
+  def recoverRelease(conf: Configuration, path: Path, recursive: Boolean = false): Unit = {
+    val fs = FileSystem.newInstance(conf)
+    fs match {
+      case dfs: DistributedFileSystem =>
+        if (recursive) {
+          dfs.recoverLease(path)
+          dfs.listFiles(path, recursive)
+        } else {
+          dfs.recoverLease(path)
+        }
+      case ofs => logWarning(null, new PotatoMethodException(s"${ofs.getClass.getName} not supported this method, only support ${classOf[DistributedFileSystem].getName}"))
+    }
   }
 }

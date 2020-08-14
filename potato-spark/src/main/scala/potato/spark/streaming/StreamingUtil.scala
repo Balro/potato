@@ -4,7 +4,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.{Duration, Milliseconds, StreamingContext}
 import potato.spark.conf.POTATO_SPARK_STREAMING_BATCH_DURATION_MS_KEY
-import potato.common.exception.ConfigNotFoundException
+import potato.common.exception.PotatoConfException
 import potato.common.utils.JVMCleanUtil
 
 object StreamingUtil extends Logging {
@@ -33,7 +33,7 @@ object StreamingUtil extends Logging {
       if (conf.contains(POTATO_SPARK_STREAMING_BATCH_DURATION_MS_KEY))
         new StreamingContext(conf, Milliseconds(conf.get(POTATO_SPARK_STREAMING_BATCH_DURATION_MS_KEY).toLong))
       else
-        throw ConfigNotFoundException(s"Config: $POTATO_SPARK_STREAMING_BATCH_DURATION_MS_KEY not found.")
+        throw new PotatoConfException(s"Config: $POTATO_SPARK_STREAMING_BATCH_DURATION_MS_KEY not found.")
     } else {
       new StreamingContext(conf, Milliseconds(duration))
     }

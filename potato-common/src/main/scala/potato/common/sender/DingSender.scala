@@ -4,6 +4,9 @@ import org.apache.spark.SparkConf
 import potato.common.conf._
 import potato.common.utils.DingRobotUtil
 
+/**
+ * 向钉钉机器人发送信息。目前仅支持text格式。
+ */
 class DingSender(conf: SparkConf) extends Sender[String, Unit] {
   val token: String = conf.get(POTATO_COMMON_SENDER_DING_TOKEN_KEY)
   val atAll: Boolean = conf.get(POTATO_COMMON_SENDER_DING_AT_KEY, POTATO_COMMON_SENDER_DING_AT_DEFAULT) == "all"

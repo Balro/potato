@@ -3,7 +3,7 @@ package potato.common.utils
 import org.junit.Test
 
 class DingRobotUtilTest {
-  val token = "xxxx"
+  val token = "xxx"
   val phones: Array[String] = Array("123")
 
   @Test

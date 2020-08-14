@@ -41,7 +41,7 @@ class HDFSUtilTest {
   @Test
   def dirOnlyTest(): Unit = {
     val fs = FileSystem.get(new HdfsConfiguration())
-    println(HDFSUtil.dirOnly(fs, new Path("/out_merge_1590068372135_local-1590068370367/ymd=20200519")))
+    println(HDFSUtil.isDirOnly(fs, new Path("/out_merge_1590068372135_local-1590068370367/ymd=20200519")))
   }
 
   @Test

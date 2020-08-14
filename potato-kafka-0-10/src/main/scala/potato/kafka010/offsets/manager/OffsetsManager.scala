@@ -13,16 +13,14 @@ import org.apache.spark.streaming.kafka010.{ConsumerStrategies, HasOffsetRanges,
 import potato.common.exception.PotatoMethodException
 import potato.kafka010.conf._
 import potato.kafka010.offsets.storage._
-import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
 import potato.kafka010.offsets.listener.OffsetsUpdateListener
+import potato.kafka010.offsets.utils.KafkaConsumerOffsetsUtil
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
 /**
  * KafkaOffsets 管理工具。提供offsets基本管理功能。
- *
- * // * @param conf 专用配置类，对SparkConf进行了简单包装，便于访问。
  */
 class OffsetsManager(val kafkaConf: PotatoKafkaConf) extends Logging {
 
@@ -43,7 +41,7 @@ class OffsetsManager(val kafkaConf: PotatoKafkaConf) extends Logging {
 
   private val dStreamCreated = new AtomicBoolean(false)
 
-  private[offsets] var subscriptions: Set[TopicPartition] = KafkaConsumerOffsetsUtil.getTopicsPartition(consumerProps, kafkaConf.subscribeTopics)
+  private[kafka010] var subscriptions: Set[TopicPartition] = KafkaConsumerOffsetsUtil.getTopicsPartition(consumerProps, kafkaConf.subscribeTopics)
 
   def subscribePartetion(parts: Set[TopicPartition]): OffsetsManager = this.synchronized {
     if (dStreamCreated.get()) throw new PotatoMethodException(s"Subscribe is not allowed when dstream created.")
@@ -156,14 +154,16 @@ class OffsetsManager(val kafkaConf: PotatoKafkaConf) extends Logging {
    * 使用给定offsets创建流。
    *
    * @param reset      是否对给定的offsets进行检查重置。
-   * @param cache      是否将每批次的offsets缓存到OffsetsManager，缓存offsets可用于控制提交。
-   *                   默认读取配置中的[[POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY]]决定。
    * @param autoUpdate 是否在每批次执行完毕后自动提交offsets，启用此参数时会忽略cache参数，强制缓存offsets并在offsets提交后清理对应缓存。
    *                   如配置为false，则提交offsets时需要调用[[updateOffsetsByTime]]。
    *                   默认读取配置中的[[POTATO_KAFKA_OFFSETS_STORAGE_AUTO_UPDATE_KEY]]决定。
+   *                   该功能又[[OffsetsUpdateListener]]实现。
+   * @param cache      是否将每批次的offsets缓存到OffsetsManager，缓存offsets可用于控制提交。
+   *                   默认读取配置中的[[POTATO_KAFKA_CONSUMER_OFFSET_RESET_KEY]]决定。
    */
   def createDStream[K, V](
-                           ssc: StreamingContext, offsets: Map[TopicPartition, Long] = committedOffsets(),
+                           ssc: StreamingContext,
+                           offsets: Map[TopicPartition, Long] = committedOffsets(),
                            reset: Boolean = kafkaConf.offsetResetEnable,
                            autoUpdate: Boolean = kafkaConf.offsetsStorageAutoUpdate,
                            cache: Boolean = false

@@ -1,6 +1,7 @@
 package potato.spark.lock.singleton
 
 import org.junit.Test
+import potato.spark.cmd.SingletonLockCli
 import potato.spark.conf._
 
 class SingletonLockCliTest {

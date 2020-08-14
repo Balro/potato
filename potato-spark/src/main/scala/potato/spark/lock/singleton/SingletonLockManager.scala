@@ -3,12 +3,9 @@ package potato.spark.lock.singleton
 import java.util.concurrent.TimeUnit
 
 import org.apache.spark.internal.Logging
-import org.json4s.JsonDSL._
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
-
 import potato.spark.conf._
 import potato.spark.exception._
+import potato.spark.lock.LockMessage
 
 /**
  * singleton lock 代理工具。
@@ -16,8 +13,6 @@ import potato.spark.exception._
  * 或者新作业可以直接停止旧作业，代替旧作业运行。
  */
 class SingletonLockManager(lockService: SingletonLockService) extends Logging {
-  implicit val formats: Formats = DefaultFormats
-
   private[singleton] var lock: SingletonLock = {
     lockService.conf.get(POTATO_LOCK_SINGLETON_TYPE_KEY, POTATO_LOCK_SINGLETON_TYPE_DEFAULT) match {
       case "zookeeper" => new ZookeeperSingletonLock(lockService,
@@ -68,13 +63,13 @@ class SingletonLockManager(lockService: SingletonLockService) extends Logging {
              ): Unit = {
     this.synchronized {
       withRetry(maxTry, interval) { () =>
-        if (lock.tryLock(createMsg)) {
+        if (lock.tryLock(new LockMessage(lockService.sc).toJsonString)) {
           logInfo("Get lock successfully.")
           return
         } else if (force) {
           logWarning(s"Get lock failed, try clean old lock ${lock.getMsg._2}.")
           lock.clean()
-          if (!lock.tryLock(createMsg)) {
+          if (!lock.tryLock(new LockMessage(lockService.sc).toJsonString)) {
             throw CannotGetSingletonLockException("Force get lock failed.")
           }
         } else {
@@ -88,30 +83,4 @@ class SingletonLockManager(lockService: SingletonLockService) extends Logging {
   }
 
   def release(): Unit = lock.release()
-
-  /**
-   * 锁携带信息包括:
-   * appName
-   * applicationId
-   * applicationAttemptId
-   * deployMode
-   * lastHeartbeatTime
-   * master
-   * startTime
-   * user
-   * webUri
-   */
-  def createMsg: String = {
-    compact(Map(
-      "appName" -> lockService.sc.appName.toString,
-      "applicationId" -> lockService.sc.applicationId.toString,
-      "applicationAttemptId" -> lockService.sc.applicationAttemptId.getOrElse("-1"),
-      "deployMode" -> lockService.sc.deployMode,
-      "lastHeartbeatTime" -> System.currentTimeMillis.toString,
-      "master" -> lockService.sc.master,
-      "startTime" -> lockService.sc.startTime.toString,
-      "user" -> lockService.sc.sparkUser,
-      "webUri" -> lockService.sc.uiWebUrl.getOrElse("null")
-    ))
-  }
 }

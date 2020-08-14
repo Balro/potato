@@ -67,7 +67,7 @@ trait Service extends Logging {
   }
 
   /**
-   * 快捷方法，启动服务同时盗用stopOnJVMExit()方法。
+   * 快捷方法，启动服务同时调用stopOnJVMExit()方法。
    */
   def startAndStopWhenShutdown(): Unit = {
     checkAndStart()

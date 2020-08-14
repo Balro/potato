@@ -18,7 +18,7 @@ module_run() {
   while [ $# -gt 0 ]; do
     case "$1" in
     "--lock")
-      export POTATO_MAIN_CLASS="potato.spark.lock.singleton.SingletonLockCli"
+      export POTATO_MAIN_CLASS="potato.spark.cmd.SingletonLockCli"
       export SPARK_ARGS="$SPARK_ARGS --master local[*]"
       ;;
     "--conf")

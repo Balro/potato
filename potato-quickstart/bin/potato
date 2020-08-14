@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-test "$SPARK_BIN" || export SPARK_BIN=spark2-submit
+test "$SPARK_BIN" || export SPARK_BIN=spark-submit
 export SPARK_ARGS="$SPARK_ARGS"
 
 usage() {

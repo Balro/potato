@@ -12,15 +12,18 @@ object StreamingDemo extends FullTemplate {
   private val queue = mutable.Queue.empty[RDD[String]]
 
   override def main(args: Array[String]): Unit = {
-    val ssc = createSSC().withService.stopWhenShutdown
+    val ssc = createSSC().withDefaultService.stopWhenShutdown
     val stream = ssc.queueStream(queue)
     stream.print()
 
-    ssc.start()
+    var batch = 0
+
+//    ssc.start()
     while (!ssc.sparkContext.isStopped) {
       queue += ssc.sparkContext.makeRDD(Seq("test data: " + new Date().toString))
       TimeUnit.MILLISECONDS.sleep(stream.slideDuration.milliseconds)
     }
-    ssc.awaitTerminationOrTimeout(60000)
+
+    //    ssc.awaitTerminationOrTimeout(60000)
   }
 }

@@ -18,7 +18,7 @@ module_run() {
   while [ $# -gt 0 ]; do
     case "$1" in
     "--offset")
-      export POTATO_MAIN_CLASS="potato.kafka010.offsets.cmd.KafkaOffsetCli"
+      export POTATO_MAIN_CLASS="potato.kafka010.cmd.KafkaOffsetCli"
       ;;
     "--conf")
       shift

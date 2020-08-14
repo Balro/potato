@@ -24,12 +24,12 @@
         <hadoop.version>3.0.0-cdh6.2.1</hadoop.version>
         <spark.version>2.4.0-cdh6.2.1</spark.version>
         <potato.version>${project.version}</potato.version>
-        <assembly.descriptor>src/assembly/default.xml</assembly.descriptor>
+        <assembly.descriptor>src/assembly/deploy.xml</assembly.descriptor>
     </properties>
 
     <profiles>
         <profile>
-            <!-- 默认profile，打包以来jar包。 -->
+            <!-- 默认profile，打包依赖jar包。 -->
             <id>default</id>
             <properties>
                 <potato.scope>compile</potato.scope>
@@ -39,7 +39,7 @@
             </activation>
         </profile>
         <profile>
-            <!-- 轻量级jar包，只会打包客户端代码。 -->
+            <!-- 轻量级jar包，仅打包客户端代码。 -->
             <id>thin</id>
             <properties>
                 <potato.scope>provided</potato.scope>

@@ -19,23 +19,22 @@ trait ServiceFunction {
     /**
      * 注册同时启动默认配置中的附加服务。
      */
-    def withService: T
+    def withDefaultService: T
 
     /**
-     * 停止附加服务后停止包装对象。
+     * 停止所有附加服务。
      */
-    def stopWithService: T
+    def stopAllService: T
   }
 
   class ContextWithService(sc: SparkContext) extends WithService[SparkContext] {
-    override def withService: SparkContext = {
+    override def withDefaultService: SparkContext = {
       serviceManager.sc(sc).registerBySparkConf(sc.getConf)
       sc
     }
 
-    override def stopWithService: SparkContext = {
+    override def stopAllService: SparkContext = {
       serviceManager.stop()
-      sc.stop()
       sc
     }
   }
@@ -43,18 +42,16 @@ trait ServiceFunction {
   implicit def _withService(sc: SparkContext): WithService[SparkContext] = new ContextWithService(sc)
 
   class StreamingWithService(ssc: StreamingContext) extends WithService[StreamingContext] {
-    override def withService: StreamingContext = {
+    override def withDefaultService: StreamingContext = {
       serviceManager.ssc(ssc).registerBySparkConf(ssc.sparkContext.getConf)
       ssc
     }
 
-    override def stopWithService: StreamingContext = {
+    override def stopAllService: StreamingContext = {
       serviceManager.stop()
-      ssc.stop()
       ssc
     }
   }
 
   implicit def _withService(ssc: StreamingContext): WithService[StreamingContext] = new StreamingWithService(ssc)
-
 }

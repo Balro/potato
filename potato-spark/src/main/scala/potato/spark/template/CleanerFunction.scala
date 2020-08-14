@@ -11,6 +11,7 @@ trait CleanerFunction {
   trait StopWhenShutdown[T] {
     /**
      * 将包装对象的清理方法注册到清理方法中，当jvm退出时自动调用。
+     * @deprecated
      */
     def stopWhenShutdown: T
   }
@@ -45,16 +46,16 @@ trait CleanerFunction {
   /**
    * 注册清理方法，注册多个清理方法时不保证方法调用顺序。
    *
-   * @param desc 清理方法名称。
+   * @param id 清理方法名称。
    * @param f    方法体。
    */
-  def clean(desc: String, f: () => Unit): Unit = cleanWhenShutdown(desc, f)
+  def clean(id: String, f: () => Unit): Unit = cleanWhenShutdown(id, f)
 
   /**
    * 注册清理方法，清理方法按cleanInOrder调用顺序调用。
    *
-   * @param desc 清理方法名称。
+   * @param id 清理方法名称。
    * @param f    方法体。
    */
-  def cleanInOrder(desc: String, f: () => Unit): Unit = cleaner.addCleanFunc(desc, f)
+  def cleanInOrder(id: String, f: () => Unit): Unit = cleaner.addCleanFunc(id, f)
 }

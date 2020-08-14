@@ -5,7 +5,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import potato.common.cmd.CommonCliBase
 import potato.spark.sql.writer._
-import potato.spark.conf.SparkConfUtil._
+import potato.spark.conf.SparkConfUtil.conf2Loadable
 
 object HiveExportCli extends CommonCliBase {
   override val cliName: String = "HiveExportCli"
@@ -33,7 +33,7 @@ object HiveExportCli extends CommonCliBase {
    */
   override def handleCmd(cmd: CommandLine): Unit = {
     val conf = new SparkConf()
-    handleValue("prop-file", file => conf.loadPropertyFile(file))
+    handleValue("prop-file", file => conf.load(file))
     val spark = SparkSession.builder().enableHiveSupport().config(conf).getOrCreate()
     val extraDF: DataFrame = handleValue("sql", sql => spark.sql(sql))
     val writer = extraDF.potatoWrite

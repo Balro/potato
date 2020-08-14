@@ -4,7 +4,7 @@ import potato.spark.template._
 
 object BatchDemo extends FullTemplate {
   override def main(args: Array[String]): Unit = {
-    val sc = createSC().withService.stopWhenShutdown
+    val sc = createSC().withDefaultService
     println(sc.makeRDD(0 until 10).sum())
   }
 }

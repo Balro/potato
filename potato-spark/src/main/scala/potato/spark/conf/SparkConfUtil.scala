@@ -7,6 +7,9 @@ import org.apache.spark.SparkConf
 
 import scala.collection.JavaConversions.propertiesAsScalaMap
 
+/**
+ * SparkConf工具类。用于加载配置文件。
+ */
 object SparkConfUtil {
   def loadPropertiesToEnv(props: Properties): Unit = props.foreach { f =>
     System.setProperty(f._1, f._2)
@@ -18,18 +21,26 @@ object SparkConfUtil {
     loadPropertiesToEnv(props)
   }
 
+  def loadProperties(conf: SparkConf, props: Properties): SparkConf = {
+    props.foreach { f =>
+      conf.set(f._1, f._2)
+    }
+    conf
+  }
+
+  def loadPropertyFile(conf: SparkConf, file: String): SparkConf = {
+    val props = new Properties()
+    props.load(new FileReader(file))
+    loadProperties(conf, props)
+  }
+
   class LoadableConf(conf: SparkConf) {
-    def loadProperties(props: Properties): SparkConf = {
-      props.foreach { f =>
-        conf.set(f._1, f._2)
-      }
-      conf
+    def load(props: Properties): SparkConf = {
+      loadProperties(conf, props)
     }
 
-    def loadPropertyFile(file: String): SparkConf = {
-      val props = new Properties()
-      props.load(new FileReader(file))
-      loadProperties(props)
+    def load(file: String): SparkConf = {
+      loadPropertyFile(conf, file)
     }
   }
 

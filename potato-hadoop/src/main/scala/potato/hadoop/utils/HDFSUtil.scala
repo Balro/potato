@@ -21,6 +21,7 @@ import scala.collection.mutable
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, ExecutionContextExecutorService, Future}
 import scala.util.Failure
+import scala.util.matching.Regex
 
 object HDFSUtil extends Logging {
   implicit def str2Path(str: String): Path = new Path(str)
@@ -384,17 +385,25 @@ object HDFSUtil extends Logging {
   }
 
   //todo
-  def recoverRelease(conf: Configuration, path: Path, recursive: Boolean = false): Unit = {
+  def recoverRelease(conf: Configuration, path: Path, pattern: String = null): Unit = {
     val fs = FileSystem.newInstance(conf)
     fs match {
       case dfs: DistributedFileSystem =>
-        if (recursive) {
-          dfs.recoverLease(path)
-          dfs.listFiles(path, recursive)
-        } else {
-          dfs.recoverLease(path)
+        dfs.recoverLease(path)
+        if (pattern != null) {
+          val r = pattern.r
+          val ite = dfs.listFiles(path, true)
+          while (ite.hasNext) {
+            val p = ite.next().getPath.getName
+            r.findFirstMatchIn(p).nonEmpty
+          }
         }
       case ofs => logWarning(null, new PotatoMethodException(s"${ofs.getClass.getName} not supported this method, only support ${classOf[DistributedFileSystem].getName}"))
     }
+  }
+
+  def main(args: Array[String]): Unit = {
+    val r = "(abc){3}".r
+    println(r.findFirstIn(""))
   }
 }

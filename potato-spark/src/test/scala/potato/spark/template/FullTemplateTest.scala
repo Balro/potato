@@ -8,7 +8,7 @@ import potato.spark.util.LocalLauncherUtil
 
 object FullTemplateApp extends FullTemplate {
   override def main(args: Array[String]): Unit = {
-    val sc = createSC().withService.stopWhenShutdown
+    val sc = createSC().withDefaultService.stopWhenShutdown
 
     println(sc.parallelize(sc.getConf.get("spark.test.numbers").split(",").map(_.toInt)).sum())
   }

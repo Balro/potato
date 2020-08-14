@@ -12,8 +12,6 @@ import potato.kafka010.offsets.manager.OffsetsManager
  * 创建kafkaDStream的工具类。
  */
 package object source extends Logging {
-  val emptyKafkaParams: Map[String, String] = Map.empty
-
   /**
    * 由已提交的offsets创建流。
    *

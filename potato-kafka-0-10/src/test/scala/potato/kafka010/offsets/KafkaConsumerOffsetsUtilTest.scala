@@ -7,6 +7,7 @@ import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.junit.Test
 import potato.common.conf.PropertiesImplicits.mapToProperties
+import potato.kafka010.offsets.utils.KafkaConsumerOffsetsUtil
 
 class KafkaConsumerOffsetsUtilTest {
   val props: Properties = mapToProperties(Map(

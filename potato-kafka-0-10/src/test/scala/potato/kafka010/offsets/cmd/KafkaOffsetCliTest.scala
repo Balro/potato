@@ -1,6 +1,7 @@
 package potato.kafka010.offsets.cmd
 
 import org.junit.Test
+import potato.kafka010.cmd.KafkaOffsetCli
 
 class KafkaOffsetCliTest {
   @Test

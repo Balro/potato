@@ -4,7 +4,7 @@ import java.util.Properties
 
 import org.apache.kafka.common.{KafkaException, TopicPartition}
 import org.apache.spark.internal.Logging
-import potato.kafka010.offsets.KafkaConsumerOffsetsUtil
+import potato.kafka010.offsets.utils.KafkaConsumerOffsetsUtil
 
 /**
  * OffsetsStorage特质，用于存储offsets。

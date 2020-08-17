@@ -72,9 +72,9 @@ class StreamingBacklogMonitorService extends StreamingService with StreamingList
     val currentDelay = batchCompleted.batchInfo.totalDelay.get
     if (currentDelay > threshold) {
       if (!isReported.get() || (reportNum.get() < reportMax && current - lastReportTime > reportInterval)) {
-        sender.send(mkSenderString(problem = true, currentDelay))
-        lastReportTime = current
         reportNum.incrementAndGet()
+        lastReportTime = current
+        sender.send(mkSenderString(problem = true, currentDelay))
         isReported.set(true)
         logWarning(s"Streaming job delayed, current delay time $currentDelay, sending delay message [${reportNum.get()}/$reportMax].")
       }

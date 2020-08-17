@@ -3,6 +3,7 @@ package potato.demo.streaming
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
+import org.apache.spark.SparkConf
 import org.apache.spark.rdd.RDD
 import potato.spark.template._
 
@@ -16,14 +17,13 @@ object StreamingDemo extends FullTemplate {
     val stream = ssc.queueStream(queue)
     stream.print()
 
-    var batch = 0
-
-//    ssc.start()
+    ssc.start()
     while (!ssc.sparkContext.isStopped) {
+      println(ssc.sparkContext.isStopped)
       queue += ssc.sparkContext.makeRDD(Seq("test data: " + new Date().toString))
       TimeUnit.MILLISECONDS.sleep(stream.slideDuration.milliseconds)
     }
 
-    //    ssc.awaitTerminationOrTimeout(60000)
+    ssc.awaitTerminationOrTimeout(60000)
   }
 }

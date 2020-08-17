@@ -1,7 +1,7 @@
 #!/bin/echo
 
 export module_name="spark"
-export POTATO_MAIN_JAR=$POTATO_HOME/lib/potato-spark-0.2.0-SNAPSHOT.jar
+export POTATO_MAIN_JAR="$(find "$POTATO_HOME/lib/" -name potato-spark-\*.jar | head -n 1)"
 
 module_usage() {
   cat <<EOF

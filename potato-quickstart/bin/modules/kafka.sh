@@ -1,7 +1,7 @@
 #!/bin/echo
 
 export module_name="kafka"
-export POTATO_MAIN_JAR=$POTATO_HOME/lib/potato-kafka-0-10-0.2.0-SNAPSHOT.jar
+export POTATO_MAIN_JAR="$(find "$POTATO_HOME/lib/" -name potato-kafka-\*.jar | head -n 1)"
 
 module_usage() {
   cat <<EOF

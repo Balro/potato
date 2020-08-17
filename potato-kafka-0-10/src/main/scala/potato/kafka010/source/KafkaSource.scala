@@ -1,4 +1,4 @@
-package potato.kafka010
+package potato.kafka010.source
 
 import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.common.TopicPartition
@@ -11,7 +11,7 @@ import potato.kafka010.offsets.manager.OffsetsManager
 /**
  * 创建kafkaDStream的工具类。
  */
-package object source extends Logging {
+object KafkaSource extends Logging {
   /**
    * 由已提交的offsets创建流。
    *

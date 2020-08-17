@@ -9,19 +9,19 @@ import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import potato.kafka010.sink.{KafkaSinkUtil, ProducerRecord}
 import potato.spark.sql.writer.PotatoWriter
-import potato.kafka010.writer.KafkaDFWriteFormat._
+import potato.kafka010.writer.KafkaWriteFormat._
 
 class KafkaWriter extends PotatoWriter with Serializable with Logging {
   private var topic: String = _
-  private var format: KafkaDFWriteFormat = _
-  private var sep: String = ","
+  private var format: KafkaWriteFormat = _
+  private var sep: String = _
   private val props = new Properties()
 
   override def option(options: Map[String, String]): PotatoWriter = {
     import scala.collection.JavaConversions.propertiesAsScalaMap
     topic = options("topic")
-    format = KafkaDFWriteFormat.withName(options("df.format"))
-    sep = options.getOrElse("df.sep", ",")
+    format = KafkaWriteFormat.withName(options("writer.format"))
+    sep = options.getOrElse("csv.sep", ",")
     this.props ++= Map(
       ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName,
       ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName

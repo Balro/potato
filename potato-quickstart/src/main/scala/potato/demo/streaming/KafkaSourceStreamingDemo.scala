@@ -1,6 +1,6 @@
 package potato.demo.streaming
 
-import potato.kafka010.source._
+import potato.kafka010.source.KafkaSource._
 import potato.spark.template._
 
 object KafkaSourceStreamingDemo extends FullTemplate {

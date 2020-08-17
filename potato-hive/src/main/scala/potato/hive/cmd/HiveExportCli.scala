@@ -9,6 +9,20 @@ import potato.spark.conf.SparkConfUtil.conf2Loadable
 
 object HiveExportCli extends CommonCliBase {
   override val cliName: String = "HiveExportCli"
+  override val usageFooter: String =
+    """
+      |export to kafka usage:
+      | ./bin/potato hive --export \
+      |   --conf spark.master=yarn-client \
+      |   --sql "select 1" \
+      |   --writer kafka \
+      |   --writer-conf bootstrap.servers=localhost:9092 \
+      |   --writer-conf topic=test1 \
+      |   --writer-conf writer.format=first \ # first/json/csv
+      |   [--writer-conf csv.sep=,] \ # seperator for csv format, default is  ','
+      |   [--writer-conf spark.potato.kafka.producer.speed.limit=100] \ # msg/sec rate limit per executor
+      |   [--writer-conf key=value] # other producer configs
+      |""".stripMargin
 
   /**
    * 预处理，添加[[org.apache.commons.cli.Option]]。

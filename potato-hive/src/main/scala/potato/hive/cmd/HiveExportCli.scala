@@ -16,11 +16,11 @@ object HiveExportCli extends CommonCliBase {
       | ./bin/potato hive \
       |   --conf spark.master=yarn-client \
       |   --export \
-      |   --sql "select 1" \
       |   --writer kafka \
       |   --writer-conf bootstrap.servers=localhost:9092 \
       |   --writer-conf topic=test1 \
-      |   --writer-conf writer.format=first \ # first/json/csv
+      |   --json / --csv [--csv-sep ','] \
+      |   --sql "select 1" \
       |   [--writer-conf csv.sep=,] \ # seperator for csv format, default is  ','
       |   [--writer-conf spark.potato.kafka.producer.speed.limit=100] \ # msg/sec rate limit per executor
       |   [--writer-conf key=value] # other producer configs

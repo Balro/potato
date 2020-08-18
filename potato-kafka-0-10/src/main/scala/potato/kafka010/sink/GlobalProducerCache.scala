@@ -12,7 +12,7 @@ import potato.kafka010.conf._
 object GlobalProducerCache extends KeyedCacheBase[Properties, KafkaProducer[Any, Any]] {
   def getCachedProducer[K, V](key: Properties): KafkaProducer[K, V] = this.synchronized {
     internalGetOrCreate(key) { () =>
-      key.getProperty(POTATO_KAFKA_PRODUCER_SPEED_LIMIT_KEY) match {
+      key.getProperty(POTATO_KAFKA_PRODUCER_SPEED_LIMIT_KEY.substring(POTATO_KAFKA_PRODUCER_PREFIX.length)) match {
         case _: String => new SpeedLimitedProducer[K, V](key).asInstanceOf[KafkaProducer[Any, Any]]
         case _ => new KafkaProducer[K, V](key).asInstanceOf[KafkaProducer[Any, Any]]
       }

@@ -3,7 +3,6 @@ package potato.kafka010.conf
 import java.util.Properties
 
 import org.apache.hadoop.hbase.HConstants
-import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
@@ -19,7 +18,8 @@ class PotatoKafkaConf(conf: SparkConf, kafkaProps: Map[String, String] = Map.emp
   )
 
   lazy val commonProps: Map[String, String] = default ++
-    Map(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG -> kafkaProps.getOrElse(CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG, conf.get(POTATO_KAFKA_COMMON_BOOTSTRAP_SERVERS_KEY)))
+    conf.getAllWithPrefix(POTATO_KAFKA_COMMON_CONF_PREFIX).toMap ++
+    kafkaProps
   lazy val consumerProps: Map[String, String] = commonProps ++
     conf.getAllWithPrefix(POTATO_KAFKA_CONSUMER_PREFIX).toMap ++ kafkaProps +
     (ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG -> "false") // 由于kafka010直接流使用了新api，所以需要关闭自动offset提交。

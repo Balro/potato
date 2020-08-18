@@ -22,7 +22,6 @@ object HiveExportCli extends CommonCliBase {
       |   --writer-conf topic=test1 \
       |   --json / --csv [--csv-sep ','] \
       |   --sql "select 1" \
-      |   [--writer-conf csv.sep=,] \ # seperator for csv format, default is  ','
       |   [--writer-conf spark.potato.kafka.producer.speed.limit=100] \ # msg/sec rate limit per executor
       |   [--writer-conf key=value] # other producer configs
       |""".stripMargin

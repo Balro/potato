@@ -1,8 +1,6 @@
 package potato.spark.sql.writer
 
-import java.util.Locale
-
-import org.apache.spark.sql.{DataFrameWriter, Dataset, SaveMode}
+import org.apache.spark.sql.{Dataset, SaveMode}
 import potato.common.exception.PotatoException
 import potato.spark.sql.PotatoDataSource
 

@@ -7,6 +7,7 @@ import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import potato.common.exception.PotatoException
+import potato.kafka010.conf.PotatoKafkaConf
 import potato.kafka010.sql.writer.KafkaTopicWriter
 import potato.spark.sql.PotatoDataSource
 import potato.spark.sql.writer.PotatoDataSourceWriter
@@ -17,13 +18,7 @@ class KafkaDataSource extends PotatoDataSource {
       throw new PotatoException("KafkaDataSourceWriter only support append mode")
     }
 
-    val props = new Properties()
-    scala.collection.JavaConversions.propertiesAsScalaMap(props) ++= Map(
-      ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG -> classOf[StringDeserializer].getName,
-      ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG -> classOf[StringDeserializer].getName,
-      ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName,
-      ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG -> classOf[StringSerializer].getName
-    ) ++= options
+    val props = new PotatoKafkaConf(df.sparkSession.sparkContext.getConf, options).toProducerProperties
 
     new KafkaTopicWriter(df, options.getOrElse("topic", throw new PotatoException("prop 'topic' required")), props)
   }

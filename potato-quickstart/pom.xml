@@ -23,7 +23,7 @@
         <scala.version>${scala.binary.version}.12</scala.version>
         <hadoop.version>3.0.0-cdh6.2.1</hadoop.version>
         <spark.version>2.4.0-cdh6.2.1</spark.version>
-        <potato.version>potato0.3.0-spark2.4.0-cdh6.2.1</potato.version>
+        <potato.version>potato0.4.0-spark2.4.0-cdh6.2.1</potato.version>
         <assembly.descriptor>src/assembly/deploy.xml</assembly.descriptor>
     </properties>
 

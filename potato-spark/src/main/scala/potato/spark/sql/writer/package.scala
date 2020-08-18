@@ -1,18 +1,14 @@
 package potato.spark.sql
 
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset, Row}
 
 package object writer {
-  // 使用反射，为了避免potato-spark项目依赖其他插件而产生循环依赖。
-  val writerMapping = Map(
-    "kafka" -> "potato.kafka010.writer.KafkaWriter"
-  )
 
-  class PotatoWriterFunction(df:DataFrame) {
-    def potatoWrite:PotatoWriterManager = {
-      new PotatoWriterManager(df)
+  class PotatoWriterFunction[T](ds: Dataset[T]) {
+    def potatoWrite: PotatoDataFrameWriter[T] = {
+      new PotatoDataFrameWriter(ds)
     }
   }
 
-  implicit def toPotatoWriterManager(ds: DataFrame): PotatoWriterFunction = new PotatoWriterFunction(ds)
+  implicit def toPotatoWriter[T](ds: Dataset[T]): PotatoWriterFunction[T] = new PotatoWriterFunction(ds)
 }

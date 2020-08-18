@@ -84,6 +84,12 @@
                 <scope>provided</scope>
             </dependency>
             <dependency>
+                <groupId>org.reflections</groupId>
+                <artifactId>reflections</artifactId>
+                <version>0.9.11</version>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.apache.spark</groupId>
                 <artifactId>spark-streaming-kafka-0-8_${scala.binary.version}</artifactId>
                 <version>${spark.version}</version>

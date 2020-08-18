@@ -6,7 +6,7 @@
 
     <groupId>quickstart</groupId>
     <artifactId>potato-quickstart</artifactId>
-    <version>potato0.3.0-spark2.4.0-cdh6.2.1</version>
+    <version>potato0.3.0-spark2.4.0-cdh6.2.1-2020.08.18</version>
 
     <repositories>
         <repository>

@@ -31,9 +31,6 @@ object HiveExportCli extends CommonCliBase {
    * 预处理，添加[[org.apache.commons.cli.Option]]。
    */
   override def initOptions(opts: Options): Unit = {
-    optBuilder().longOpt("prop-file").hasArg
-      .desc("Specify default prop file to load.")
-      .add()
     optBuilder().longOpt("writer").hasArg.required
       .desc("Specify writer implement, support kafka.")
       .add()
@@ -60,7 +57,6 @@ object HiveExportCli extends CommonCliBase {
    */
   override def handleCmd(cmd: CommandLine): Unit = {
     val conf = new SparkConf()
-    handleValue("prop-file", file => conf.load(file))
     val spark = SparkSession.builder().enableHiveSupport().config(conf).getOrCreate()
     val rawDF: DataFrame = handleValue("sql", sql => spark.sql(sql))
 

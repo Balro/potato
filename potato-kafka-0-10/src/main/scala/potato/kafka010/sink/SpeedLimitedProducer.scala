@@ -9,7 +9,7 @@ import potato.kafka010.conf._
 
 class SpeedLimitedProducer[K, V](props: Properties) extends KafkaProducer[K, V](props) {
   // 每秒中接受的最大send条数。
-  private val limit: Long = props.getProperty(POTATO_KAFKA_PRODUCER_SPEED_LIMIT_KEY, Long.MaxValue.toString).toLong
+  private val limit: Long = props.getProperty(POTATO_KAFKA_PRODUCER_SPEED_LIMIT_KEY.substring(POTATO_KAFKA_PRODUCER_PREFIX.length), Long.MaxValue.toString).toLong
   private val curSize = new AtomicLong(0L)
   private var lastSleepTime = System.currentTimeMillis()
 

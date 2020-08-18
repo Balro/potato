@@ -24,8 +24,8 @@ abstract class CommonCliBase {
       handleCmd(cmd)
       println(strBuffer.toString)
     } catch {
-      case e: ParseException =>
-        console(e.getMessage)
+      case e: Exception =>
+        e.printStackTrace()
         println(strBuffer.toString)
         printHelp()
     }

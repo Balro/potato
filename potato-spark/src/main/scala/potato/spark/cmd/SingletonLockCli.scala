@@ -38,27 +38,17 @@ object SingletonLockCli extends CommonCliBase {
       .desc("Zookeeper quorum which the zookeeper lock will use.").add()
     optBuilder().longOpt("zoo-path").hasArg
       .desc("Zookeeper path to store the lock.").add()
-    optBuilder().longOpt("prop-file").hasArg
-      .desc("Job properties file.").add()
-    optBuilder().longOpt("conf").hasArgs
-      .desc("Other configurations, e.g. --conf k1=v1 --conf k2=v2 .").add()
   }
 
   /**
    * 根据已解析命令行参数进行处理。
    */
   override def handleCmd(cmd: CommandLine): Unit = {
-    import potato.spark.conf.SparkConfUtil.conf2Loadable
     val conf = new SparkConf().setMaster("local[*]")
-    handleValue("prop-file", conf.load(_))
     handleValue("id", conf.setAppName)
     handleValue("zoo-quorum", conf.set(POTATO_LOCK_SINGLETON_ZOOKEEPER_QUORUM_KEY, _))
     handleValue("zoo-path", conf.set(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, _),
       () => conf.set(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_DEFAULT))
-    handleValues("conf", _.foreach { f =>
-      val kv = f.split("=")
-      conf.set(kv(0), kv(1))
-    })
     val service = new SingletonLockCliService(conf)
     val lockType = handleValue("type", t => t, () => POTATO_LOCK_SINGLETON_TYPE_DEFAULT)
     val lock = lockType match {

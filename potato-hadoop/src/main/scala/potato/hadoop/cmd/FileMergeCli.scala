@@ -59,10 +59,6 @@ object FileMergeCli extends CommonCliBase {
       .desc("Configs add to hadoop Configuration. e.g. --hadoop-conf key1 value1 --hadoop-conf key2 value2")
       .numberOfArgs(2)
       .add()
-    optBuilder().longOpt("spark-conf")
-      .desc("Configs add to SparkConf. e.g. --spark-conf key1 value1 --spark-conf key2 value2")
-      .numberOfArgs(2)
-      .add()
     optBuilder().longOpt("reader-opts")
       .desc("Configs add to DataFrameReader. e.g. --reader-opts key1 value1 --reader-opts key2 value2")
       .numberOfArgs(2)
@@ -105,10 +101,6 @@ object FileMergeCli extends CommonCliBase {
       conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_PARALLELISM.key, 20.toString)
     })
 
-    handleValues("spark-conf", _.foreach { f =>
-      val kv = f.split("=")
-      conf.set(kv(0), kv(1))
-    })
     val spark = SparkSession.builder().appName(cliName).config(conf).getOrCreate()
 
     handleValues("hadoop-conf", _.foreach { f =>

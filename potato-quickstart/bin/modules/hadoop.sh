@@ -10,7 +10,6 @@ Usage:
 
 opts:
   --file-merge <args>  file merge function.
-  --conf <key=value>   additional spark conf.
 EOF
 }
 
@@ -20,10 +19,6 @@ module_run() {
     "--file-merge")
       export POTATO_MAIN_CLASS="potato.hadoop.cmd.FileMergeCli"
       ;;
-    "--conf")
-      shift
-      export POTATO_SPARK_CONF="$POTATO_SPARK_CONF --conf $1"
-      ;;
     *)
       break
       ;;
@@ -31,7 +26,7 @@ module_run() {
     shift
   done
 
-  append_dep_jars "$POTATO_LIB_DIR"
+  append_lib_jars
 
   (test "$POTATO_MAIN_CLASS" && potato_submit "$@") || module_usage
 }

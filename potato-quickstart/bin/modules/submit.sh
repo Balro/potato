@@ -5,14 +5,12 @@ export module_name="submit"
 module_usage() {
   cat <<EOF
 Usage:
-  $(basename "$0") submit <opts> [main jar args]
+  $(basename "$0") <-p|--properties-file \${prop-file}> submit <opts> [main jar args]
 
-opts-required:
-  -p|--prop-file       specify the property file to load.
-opts-optional:
+opts:
   -c|--class <class>   main class on spark submit.
   -j|--jar <jar>       main jar file on spark submit.
-  --conf <key=value>   additional spark conf.
+
 EOF
 }
 
@@ -22,7 +20,7 @@ submit_app() {
     return 1
   }
 
-  append_all_jars
+  append_lib_jars
 
   test "$POTATO_MAIN_CLASS" || export_main_class_from_prop_file
   test "$POTATO_MAIN_JAR" || export_main_jar_from_prop_file || export_main_jar_from_dir
@@ -37,10 +35,6 @@ module_run() {
       module_usage
       exit 0
       ;;
-    "-p" | "--prop-file")
-      shift
-      export POTATO_PROP_FILE="$1"
-      ;;
     "-c" | "--class")
       shift
       export POTATO_MAIN_CLASS="$1"
@@ -48,10 +42,6 @@ module_run() {
     "-j" | "--jar")
       shift
       export POTATO_MAIN_JAR="$1"
-      ;;
-    "--conf")
-      shift
-      export POTATO_SPARK_CONF="$POTATO_SPARK_CONF --conf $1"
       ;;
     *)
       break

@@ -13,9 +13,10 @@ object HiveExportCli extends CommonCliBase {
   override val usageFooter: String =
     """
       |export to kafka usage:
-      | ./bin/potato hive \
-      |   --conf spark.master=yarn-client \
+      | ./bin/potato \
+      |   --module hive \
       |   --export \
+      |   --mode append \
       |   --writer kafka \
       |   --writer-conf bootstrap.servers=localhost:9092 \
       |   --writer-conf topic=test1 \

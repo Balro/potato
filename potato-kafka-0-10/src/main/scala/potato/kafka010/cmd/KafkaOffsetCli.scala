@@ -28,9 +28,6 @@ object KafkaOffsetCli extends CommonCliBase {
    * 预处理，添加[[org.apache.commons.cli.Option]]。
    */
   override def initOptions(opts: Options): Unit = {
-    optBuilder().longOpt("prop-file")
-      .desc("Property files to load, can be overwrite by other args.").hasArg
-      .add()
     optBuilder().longOpt("bootstrap-servers")
       .desc("Specify kafka servers to get offsets.").required.hasArg
       .add()
@@ -42,9 +39,6 @@ object KafkaOffsetCli extends CommonCliBase {
       .add()
     optBuilder().longOpt("storage-type")
       .desc("Supported kafka,hbase,zookeeper(not recommended).").required.hasArg
-      .add()
-    optBuilder().longOpt("conf")
-      .desc("Specify additional conf. e.g. --conf k1=v1 --conf k2=v2").hasArg
       .add()
     optBuilder().longOpt("hbase-quorum")
       .desc("HBase zookeeper quorum, e.g. zoo1,zoo2. Default: localhost").hasArg
@@ -75,10 +69,6 @@ object KafkaOffsetCli extends CommonCliBase {
   override def handleCmd(cmd: CommandLine): Unit = {
     val conf = new SparkConf()
 
-    cmd.getOptionValue("prop-file") match {
-      case value: String => conf.load(value)
-      case _ =>
-    }
     cmd.getOptionValue("bootstrap-servers") match {
       case value: String => conf.set(POTATO_KAFKA_COMMON_BOOTSTRAP_SERVERS_KEY, value)
       case null =>
@@ -93,10 +83,6 @@ object KafkaOffsetCli extends CommonCliBase {
     }
     cmd.getOptionValue("storage-type") match {
       case value: String => conf.set(POTATO_KAFKA_OFFSETS_STORAGE_TYPE_KEY, value)
-      case null =>
-    }
-    cmd.getOptionValues("conf") match {
-      case values: Array[String] => values.map(f => f.split("=")).foreach(f => conf.set(f(0), f(1)))
       case null =>
     }
     cmd.getOptionValue("hbase-quorum") match {

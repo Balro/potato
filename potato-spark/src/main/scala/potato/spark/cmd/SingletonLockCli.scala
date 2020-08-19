@@ -47,15 +47,14 @@ object SingletonLockCli extends CommonCliBase {
     val conf = new SparkConf().setMaster("local[*]")
     handleValue("id", conf.setAppName)
     handleValue("zoo-quorum", conf.set(POTATO_LOCK_SINGLETON_ZOOKEEPER_QUORUM_KEY, _))
-    handleValue("zoo-path", conf.set(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, _),
-      () => conf.set(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_DEFAULT))
+    handleValue("zoo-path", conf.set(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, _))
     val service = new SingletonLockCliService(conf)
     val lockType = handleValue("type", t => t, () => POTATO_LOCK_SINGLETON_TYPE_DEFAULT)
     val lock = lockType match {
       case "zookeeper" => new ZookeeperSingletonLock(service,
         conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_QUORUM_KEY),
         POTATO_LOCK_SINGLETON_ZOOKEEPER_TIMEOUT_DEFAULT.toInt,
-        conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY),
+        conf.get(POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_KEY, POTATO_LOCK_SINGLETON_ZOOKEEPER_PATH_DEFAULT),
         conf.get("spark.app.name")
       )
       case other => throw new PotatoException(s"SingletonLock not support type $other .")

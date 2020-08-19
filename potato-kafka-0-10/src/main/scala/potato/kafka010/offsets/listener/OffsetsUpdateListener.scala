@@ -1,5 +1,7 @@
 package potato.kafka010.offsets.listener
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import org.apache.spark.internal.Logging
 import org.apache.spark.streaming.scheduler.{StreamingListener, StreamingListenerBatchCompleted}
 import potato.kafka010.offsets.manager.OffsetsManager
@@ -13,17 +15,25 @@ import potato.kafka010.offsets.manager.OffsetsManager
  * @param manager 用于提交offsets的OffsetsManager。
  */
 class OffsetsUpdateListener(manager: OffsetsManager) extends StreamingListener with Logging {
-  override def onBatchCompleted(batchCompleted: StreamingListenerBatchCompleted): Unit = {
+  // 用于标记失败作业的出现，避免出现误提交offset的bug。
+  private val canUpdate = new AtomicBoolean(true)
+
+  override def onBatchCompleted(batchCompleted: StreamingListenerBatchCompleted): Unit = this.synchronized {
     logDebug(batchCompleted.batchInfo.toString)
     val errs = batchCompleted.batchInfo.outputOperationInfos.filter {
       _._2.failureReason.isDefined
     }
     if (errs.isEmpty) {
-      manager.updateOffsetsByTime(batchCompleted.batchInfo.batchTime.milliseconds)
-      logInfo(s"Update offsets on batch completed.")
+      if (canUpdate.get()) {
+        manager.updateOffsetsByTime(batchCompleted.batchInfo.batchTime.milliseconds)
+        logInfo(s"Update offsets on batch completed")
+      } else {
+        logError(s"Cannot update offsets for batch ${batchCompleted.batchInfo.batchTime}because canUpdate is false")
+      }
     } else {
+      canUpdate.compareAndSet(true, false)
       logWarning(s"Update offsets on batch ${batchCompleted.batchInfo.batchTime.milliseconds} failed " +
-        s"becase of $errs")
+        s"becase of $errs. Set canUpdate to false")
     }
   }
 }

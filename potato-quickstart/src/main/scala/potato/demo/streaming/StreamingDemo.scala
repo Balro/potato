@@ -18,11 +18,17 @@ object StreamingDemo extends FullTemplate {
     stream.print()
 
     ssc.start()
-    while (!ssc.sparkContext.isStopped) {
-      println(ssc.sparkContext.isStopped)
-      queue += ssc.sparkContext.makeRDD(Seq("test data: " + new Date().toString))
-      TimeUnit.MILLISECONDS.sleep(stream.slideDuration.milliseconds)
-    }
+    val t = new Thread(new Runnable {
+      override def run(): Unit = {
+        while (!ssc.sparkContext.isStopped) {
+          println(ssc.sparkContext.isStopped)
+          queue += ssc.sparkContext.makeRDD(Seq("test data: " + new Date().toString))
+          TimeUnit.MILLISECONDS.sleep(stream.slideDuration.milliseconds)
+        }
+      }
+    })
+    t.setDaemon(true)
+    t.start()
 
     ssc.awaitTerminationOrTimeout(60000)
   }

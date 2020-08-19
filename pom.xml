@@ -146,7 +146,7 @@
                         <artifactId>hadoop-annotations</artifactId>
                     </exclusion>
                 </exclusions>
-                <scope>compile</scope>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

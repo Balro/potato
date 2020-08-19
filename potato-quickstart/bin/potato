@@ -203,6 +203,7 @@ main() {
   done
 
   usage
+  exit 1
 }
 
 test "$(basename "$0")" == "potato" && main "$@"

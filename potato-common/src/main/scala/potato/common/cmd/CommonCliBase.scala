@@ -28,6 +28,7 @@ abstract class CommonCliBase {
         e.printStackTrace()
         println(strBuffer.toString)
         printHelp()
+        sys.exit(1)
     }
   }
 

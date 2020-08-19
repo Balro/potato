@@ -49,5 +49,8 @@ module_run() {
     esac
     shift
   done
-  submit_app "$@" || module_usage
+  if ! submit_app "$@"; then
+    module_usage
+    exit 1
+  fi
 }

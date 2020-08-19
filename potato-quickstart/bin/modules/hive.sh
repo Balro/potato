@@ -3,7 +3,6 @@
 export module_name="hive"
 export POTATO_MAIN_JAR="$(find "$POTATO_HOME/lib/" -name potato-hive-\*.jar | head -n 1)"
 
-
 module_usage() {
   cat <<EOF
 Usage:
@@ -29,5 +28,8 @@ module_run() {
 
   append_lib_jars
 
-  (test "$POTATO_MAIN_CLASS" && potato_submit "$@") || module_usage
+  if ! (test "$POTATO_MAIN_CLASS" && potato_submit "$@"); then
+    module_usage
+    exit 1
+  fi
 }

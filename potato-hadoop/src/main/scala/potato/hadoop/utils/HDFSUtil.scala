@@ -1,6 +1,7 @@
 package potato.hadoop.utils
 
 import java.util.concurrent.Executors
+import java.util.concurrent.atomic.AtomicInteger
 
 import org.apache.hadoop.fs.{FileSystem, Path, Trash}
 import org.apache.spark.deploy.SparkHadoopUtil
@@ -144,7 +145,9 @@ object HDFSUtil extends Logging {
     val filteredPartitionDF = if (partitionFilter == null) partitionDF else partitionDF.where(partitionFilter)
     filteredPartitionDF.show(Int.MaxValue - 1, truncate = false)
     // 组合分区路径片段，如 Map(ymd->20200101,type->"a") 将组合为 "ymd=20200101/type=a" 。
-    val filteredPartFragment = filteredPartitionDF.collect().map { r =>
+    val filteredPartFragment = filteredPartitionDF.where(
+      s"${partitionNames.map(f => s"$f is not null").mkString(" and ")}" // 过滤异常分区。
+    ).collect().map { r =>
       partitionNames.zip(r.toSeq.map(_.toString)).toMap
     }.map(p => PartitioningUtils.getPathFragment(p, partitionSpec.partitionColumns))
 
@@ -153,6 +156,9 @@ object HDFSUtil extends Logging {
     )
     val oldPPDT = spark.conf.get(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key)
     spark.conf.set(SQLConf.PARALLEL_PARTITION_DISCOVERY_THRESHOLD.key, 0)
+
+    val totalJobNum = filteredPartFragment.length
+    var submittedJobNum = new AtomicInteger(0)
     // 用于对每一个分区提交子作业。
     val jobs: Future[mutable.ArraySeq[Unit]] = Future.sequence(filteredPartFragment.map { f =>
       Future {
@@ -175,7 +181,7 @@ object HDFSUtil extends Logging {
             .format(targetFormat)
             .options(writerOptions.+("compression" -> compression))
             .save(s"$tmpDir/$f")
-          logInfo(s"Merging directory $source/$f to $tmpDir/$f finished.")
+          logInfo(s"Merging directory $source/$f to $tmpDir/$f finished. Submitted job number is [${submittedJobNum.incrementAndGet()}/$totalJobNum]")
         } catch {
           case e: Exception =>
             spark.close() // 当有分区失败时停止作业。

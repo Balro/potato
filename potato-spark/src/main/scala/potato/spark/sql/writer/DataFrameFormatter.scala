@@ -21,13 +21,13 @@ object DataFrameFormatter {
   def toJSON(df: DataFrame): DataFrame = {
     val rowSchema = df.schema
     val sessionLocalTimeZone = df.sparkSession.sessionState.conf.sessionLocalTimeZone
-    val field = classOf[DataFrame].getDeclaredField("exprEnc")
-    field.setAccessible(true)
     df.mapPartitions { iter =>
       val writer = new CharArrayWriter()
       // create the Generator without separator inserted between 2 records
       val gen = new PotatoJacksonGenerator(rowSchema, writer,
         new PotatoJSONOptions(Map.empty[String, String], sessionLocalTimeZone))
+      val field = classOf[DataFrame].getDeclaredField("exprEnc")
+      field.setAccessible(true)
 
       new Iterator[String] {
         override def hasNext: Boolean = iter.hasNext

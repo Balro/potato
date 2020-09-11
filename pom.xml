@@ -14,6 +14,7 @@
         <module>potato-kafka-0-10</module>
         <module>potato-hive</module>
         <module>potato-spark</module>
+        <module>potato-monitor</module>
     </modules>
 
     <repositories>

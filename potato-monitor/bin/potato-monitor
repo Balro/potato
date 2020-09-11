@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+# potato-monitor🐷进程，可以提供对作业的启动、关闭、监控、自动重启等功能。

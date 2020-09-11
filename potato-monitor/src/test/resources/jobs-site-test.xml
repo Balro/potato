@@ -1,0 +1,12 @@
+<jobs>
+    <job1>
+        <home>/home/xxx/spark_jobs/abc</home>
+        <config>/home/xxx/spark_jobs/abc/conf/abc.properties</config>
+        <restart>300</restart>
+    </job1>
+    <job2>
+        <home>/home/xxx/spark_jobs/abc</home>
+        <config>/home/xxx/spark_jobs/abc/conf/abc.properties</config>
+        <restart>300</restart>
+    </job2>
+</jobs>

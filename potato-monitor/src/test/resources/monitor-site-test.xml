@@ -1,0 +1,17 @@
+<configuration>
+    <heartbeat>
+        <type>rest</type>
+        <rest>
+            <port>9999</port>
+        </rest>
+    </heartbeat>
+    <check>
+        <interval>60</interval>
+    </check>
+    <alert>
+        <ding>
+            <token></token>
+            <at></at>
+        </ding>
+    </alert>
+</configuration>

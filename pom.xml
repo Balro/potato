@@ -15,6 +15,7 @@
         <module>potato-hive</module>
         <module>potato-spark</module>
         <module>potato-monitor</module>
+        <module>potato-redis</module>
     </modules>
 
     <repositories>
@@ -148,6 +149,11 @@
                     </exclusion>
                 </exclusions>
                 <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>3.3.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

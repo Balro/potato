@@ -30,7 +30,6 @@ object KafkaSinkUtil extends Logging {
       val record = props.getProperty(POTATO_KAFKA_PRODUCER_FAILED_RECORD_KEY.substring(POTATO_KAFKA_PRODUCER_PREFIX.length), POTATO_KAFKA_PRODUCER_FAILED_RECORD_DEFAULT).toLong
       val ratio = props.getProperty(POTATO_KAFKA_PRODUCER_FAILED_RATIO_KEY.substring(POTATO_KAFKA_PRODUCER_PREFIX.length), POTATO_KAFKA_PRODUCER_FAILED_RATIO_DEFAULT).toDouble
       val ratioBackoff = props.getProperty(POTATO_KAFKA_PRODUCER_FAILED_RATIO_BACKOFF_KEY.substring(POTATO_KAFKA_PRODUCER_PREFIX.length), POTATO_KAFKA_PRODUCER_FAILED_RATIO_BACKOFF_DEFAULT).toLong
-      System.out.println(s"---- foreach $total:$failed:$record:$ratio")
       GlobalProducerCache.withProducer[K, V, Unit](props) { producer =>
         part.foreach { f =>
           producer.send(f, new Callback {

@@ -15,13 +15,13 @@ package object sink {
   type Increment = org.apache.hadoop.hbase.client.Increment
 
   class MutationActionRDD(rdd: RDD[MutationAction]) extends Serializable {
-    def saveToHBase(conf: SerializedConfiguration, table: String, bufferSize: Long = ConnectionConfiguration.WRITE_BUFFER_SIZE_DEFAULT): Unit = {
+    def saveToHBase(conf: SerializedConfiguration, table: String = null, bufferSize: Long = ConnectionConfiguration.WRITE_BUFFER_SIZE_DEFAULT): Unit = {
       HBaseSinkUtil.saveToHBase(rdd, conf, table, bufferSize)
     }
   }
 
   class MutationActionDStream(stream: DStream[MutationAction]) extends Serializable {
-    def saveToHBase(conf: SerializedConfiguration, table: String, bufferSize: Long = ConnectionConfiguration.WRITE_BUFFER_SIZE_DEFAULT): Unit = {
+    def saveToHBase(conf: SerializedConfiguration, table: String = null, bufferSize: Long = ConnectionConfiguration.WRITE_BUFFER_SIZE_DEFAULT): Unit = {
       stream.foreachRDD { rdd =>
         HBaseSinkUtil.saveToHBase(rdd, conf, table, bufferSize)
       }

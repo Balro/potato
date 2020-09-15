@@ -11,6 +11,8 @@ import scala.collection.mutable.ListBuffer
 
 trait SinkTable extends Serializable {
   def sink(row: Mutation): Unit
+
+  def close(): Unit
 }
 
 trait BufferedSinkTable extends SinkTable {

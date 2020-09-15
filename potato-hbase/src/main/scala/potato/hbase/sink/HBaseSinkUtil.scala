@@ -18,22 +18,46 @@ object HBaseSinkUtil extends Logging {
    * @param table      要写入的表。
    * @param bufferSize buffer大小，单位B。
    */
-  def saveToHBase(rdd: RDD[MutationAction], conf: SerializedConfiguration, table: String,
+  def saveToHBase(rdd: RDD[MutationAction], conf: SerializedConfiguration, table: String = null,
                   bufferSize: Long = ConnectionConfiguration.WRITE_BUFFER_SIZE_DEFAULT): Unit = {
     rdd.foreachPartition { part =>
-      withMutator(conf, table, bufferSize) { mutator =>
-        withBufferedSinkTable(conf, table, synchronized = false, bufferSize) { btbl =>
-          part.foreach {
-            case MutationAction(MutationType.APPEND, mutation) =>
-              btbl.sink(mutation)
-            case MutationAction(MutationType.INCREMENT, mutation) =>
-              btbl.sink(mutation)
-            case MutationAction(MutationType.DELETE, mutation) =>
-              mutator.mutate(mutation)
-            case MutationAction(MutationType.PUT, mutation) =>
-              mutator.mutate(mutation)
-            case m: MutationAction =>
-              logWarning(s"Uknown mutation $m")
+      if (table != null) {
+        withMutator(conf, table, bufferSize) { mutator =>
+          withBufferedSinkTable(conf, table, synchronized = false, bufferSize) { btbl =>
+            part.foreach { f =>
+              f.action match {
+                case MutationType.APPEND =>
+                  btbl.sink(f.mutation)
+                case MutationType.INCREMENT =>
+                  btbl.sink(f.mutation)
+                case MutationType.DELETE =>
+                  mutator.mutate(f.mutation)
+                case MutationType.PUT =>
+                  mutator.mutate(f.mutation)
+                case m: MutationType.Type =>
+                  logWarning(s"Uknown mutation $m")
+              }
+            }
+          }
+        }
+      } else {
+        part.foreach { f =>
+          assert(f.table != null)
+          withMutator(conf, f.table, bufferSize) { mutator =>
+            withBufferedSinkTable(conf, f.table, synchronized = false, bufferSize) { btbl =>
+              f.action match {
+                case MutationType.APPEND =>
+                  btbl.sink(f.mutation)
+                case MutationType.INCREMENT =>
+                  btbl.sink(f.mutation)
+                case MutationType.DELETE =>
+                  mutator.mutate(f.mutation)
+                case MutationType.PUT =>
+                  mutator.mutate(f.mutation)
+                case m: MutationType.Type =>
+                  logWarning(s"Uknown mutation $m")
+              }
+            }
           }
         }
       }
@@ -41,7 +65,7 @@ object HBaseSinkUtil extends Logging {
   }
 }
 
-case class MutationAction(action: MutationType.Type, mutation: Mutation)
+case class MutationAction(action: MutationType.Type, mutation: Mutation, table: String = null)
 
 object MutationType extends Enumeration {
   type Type = Value

@@ -1,10 +1,5 @@
 package potato.kafka010.sql
 
-import java.util.Properties
-
-import org.apache.kafka.clients.consumer.ConsumerConfig
-import org.apache.kafka.clients.producer.ProducerConfig
-import org.apache.kafka.common.serialization.{StringDeserializer, StringSerializer}
 import org.apache.spark.sql.{DataFrame, SaveMode}
 import potato.common.exception.PotatoException
 import potato.kafka010.conf.PotatoKafkaConf

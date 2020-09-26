@@ -1,15 +1,15 @@
 package potato.redis
 
-import potato.common.conf
+import potato.common.conf._
 
 package object conf {
-  val POTATO_REDIS_PREFIX = conf.POTATO_PREFIX + "redis."
-  val POTATO_REDIS_HOST_KEY = POTATO_REDIS_PREFIX + "host"
-  val POTATO_REDIS_HOST_DEFAULT = "localhost"
-  val POTATO_REDIS_PORT_KEY = POTATO_REDIS_PREFIX + "port"
-  val POTATO_REDIS_PORT_DEFAULT = 6179.toString
+  val POTATO_REDIS_PREFIX: String = POTATO_PREFIX + "redis."
+  val POTATO_REDIS_HOSTS_KEY: String = POTATO_REDIS_PREFIX + "hosts"
+  val POTATO_REDIS_HOSTS_DEFAULT: String = "localhost:6379"
+  val POTATO_REDIS_AUTH_KEY: String = POTATO_REDIS_PREFIX + "auth"
+  val POTATO_REDIS_AUTH_DEFAULT: String = ""
+  val POTATO_REDIS_TIMEOUT_KEY: String = POTATO_REDIS_PREFIX + "timeout"
+  val POTATO_REDIS_TIMEOUT_DEFAULT: String = "5000"
   val POTATO_REDIS_CONFIG_KEY = POTATO_REDIS_PREFIX + "config."
   val POTATO_REDIS_CLUSTER_PREFIX = POTATO_REDIS_PREFIX + "cluster."
-  val POTATO_REDIS_CLUSTER_HOSTS_KEY = POTATO_REDIS_CLUSTER_PREFIX + "hosts"
-  val POTATO_REDIS_CLUSTER_HOSTS_DEFAULT = POTATO_REDIS_CLUSTER_PREFIX + "localhost:6379"
 }

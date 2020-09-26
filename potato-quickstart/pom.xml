@@ -76,6 +76,10 @@
                     <groupId>potato</groupId>
                     <artifactId>potato-spark</artifactId>
                 </dependency>
+                <dependency>
+                    <groupId>potato</groupId>
+                    <artifactId>potato-redis</artifactId>
+                </dependency>
             </dependencies>
         </profile>
     </profiles>
@@ -125,6 +129,10 @@
             <groupId>potato</groupId>
             <artifactId>potato-kafka-0-10</artifactId>
         </dependency>
+        <dependency>
+            <groupId>potato</groupId>
+            <artifactId>potato-redis</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -168,6 +176,12 @@
             <dependency>
                 <groupId>potato</groupId>
                 <artifactId>potato-spark</artifactId>
+                <version>${potato.version}</version>
+                <scope>${potato.scope}</scope>
+            </dependency>
+            <dependency>
+                <groupId>potato</groupId>
+                <artifactId>potato-redis</artifactId>
                 <version>${potato.version}</version>
                 <scope>${potato.scope}</scope>
             </dependency>

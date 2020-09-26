@@ -22,6 +22,11 @@
             <artifactId>potato-kafka-0-10</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>potato</groupId>
+            <artifactId>potato-redis</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
 </project>

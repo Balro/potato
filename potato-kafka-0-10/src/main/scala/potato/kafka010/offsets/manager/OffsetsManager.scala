@@ -131,12 +131,12 @@ class OffsetsManager(val kafkaConf: PotatoKafkaConf) extends Logging {
    * @param delay 提交offsets的延后时间。
    */
   def updateOffsetsByTime(time: Long, delay: Long = kafkaConf.offsetsStorageUpdateDelay): Unit = this.synchronized {
-    logInfo(s"Start update offsets by:time -> $time, delay -> $delay")
     while (offsetsCache.nonEmpty && offsetsCache.head._1 <= time - delay) {
       val head = offsetsCache.head
+      logInfo(s"Start update offsets by:time -> $time, delay -> $delay, offsets -> $head")
       updateOffsets(head._2)
       offsetsCache -= head._1
-      logInfo(s"Updated offsets -> $head")
+      logInfo(s"Offsets updated by:time -> $time, delay -> $delay -> $head")
     }
   }
 

@@ -20,6 +20,8 @@ object TableUtil {
                      bufferSize: Long = ConnectionConfiguration.WRITE_BUFFER_SIZE_DEFAULT)(f: BufferedMutator => R): R = {
     val mtt = getCachedConnection(conf).getBufferedMutator(
       new BufferedMutatorParams(TableName.valueOf(table)).writeBufferSize(bufferSize)
+        .setWriteBufferPeriodicFlushTimeoutMs(10 * 60 * 1000) // 每10分钟进行全量flush。
+        .setWriteBufferPeriodicFlushTimerTickMs(1 * 60 * 1000) // 全量flush检测间隔。
     )
     val ret = f(mtt)
     mtt.close()

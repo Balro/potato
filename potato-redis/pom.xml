@@ -13,6 +13,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>potato</groupId>
+            <artifactId>potato-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>potato</groupId>
+            <artifactId>potato-spark</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
         </dependency>

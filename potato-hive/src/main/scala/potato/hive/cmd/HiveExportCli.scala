@@ -6,7 +6,6 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 import potato.common.cmd.CommonCliBase
 import potato.common.exception.PotatoCmdException
 import potato.spark.sql.writer._
-import potato.spark.conf.SparkConfUtil.conf2Loadable
 
 object HiveExportCli extends CommonCliBase {
   override val cliName: String = "HiveExportCli"
@@ -42,8 +41,10 @@ object HiveExportCli extends CommonCliBase {
     optBuilder().longOpt("sql")
       .desc("Spark sql to extra hive data.").hasArg.required
       .add()
-    groupBuilder().addOption(optBuilder().longOpt("json").hasArg(false).desc("use json format").build())
+    groupBuilder()
+      .addOption(optBuilder().longOpt("json").hasArg(false).desc("use json format").build())
       .addOption(optBuilder().longOpt("csv").hasArg(false).desc("use csv format").build())
+      .addOption(optBuilder().longOpt("raw").hasArg(false).desc("use raw format").build())
       .required()
       .add()
     optBuilder().longOpt("csv-sep").hasArg
@@ -59,8 +60,9 @@ object HiveExportCli extends CommonCliBase {
     val spark = SparkSession.builder().enableHiveSupport().config(conf).getOrCreate()
     val rawDF: DataFrame = handleValue("sql", sql => spark.sql(sql))
 
-    val formattedDF = handleKey("json", () => DataFrameFormatter.toJSON(rawDF), () =>
-      handleKey("csv", () => DataFrameFormatter.toCSV(rawDF, handleValue("csv-sep", v => v, () => ","))))
+    val formattedDF = handleKey("json", () => DataFrameFormatter.toJSON(rawDF),
+      () => handleKey("csv", () => DataFrameFormatter.toCSV(rawDF, handleValue("csv-sep", v => v, () => ",")),
+        () => handleKey("raw", () => rawDF)))
 
     val writer = formattedDF.potatoWrite
     handleValue("writer", f => writer.format(f))

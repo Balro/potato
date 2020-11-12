@@ -9,6 +9,7 @@ trait PotatoDataSource {
 
 object PotatoDataSource {
   val sourceMapping: Map[String, String] = Map(
-    "kafka" -> "potato.kafka010.sql.KafkaDataSource"
+    "kafka" -> "potato.kafka010.sql.KafkaDataSource",
+    "redis" -> "potato.redis.sql.RedisDataSource"
   )
 }
